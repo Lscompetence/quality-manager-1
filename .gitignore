@@ -1,0 +1,20 @@
+# Dépendances et builds
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environnement (les .env.example restent versionnés)
+.env
+.env*.local
+.env.development
+.env.production
+
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+~$*
+.vscode/
+.idea/
+*.log

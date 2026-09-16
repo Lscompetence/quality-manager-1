@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Mini-app · Grille Adaptation Profil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --bg-elev-2: rgba(28,32,52,0.88);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.16; --aur-c2: 0.16; --aur-c3: 0.14;
+  --aur-c4: 0.16; --aur-c5: 0.14; --aur-c6: 0.20; --aur-c7: 0.14;
+  --aur-veil-start: rgba(3,4,10,0.6);
+  --aur-veil-end: rgba(3,4,10,0.94);
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-info: #6B89D0;
+  --danger: #EF5C5C;
+  --c6: #A755F8;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --bg-elev-2: rgba(255,254,250,0.92);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.10; --aur-c2: 0.10; --aur-c3: 0.08;
+  --aur-c4: 0.10; --aur-c5: 0.08; --aur-c6: 0.12; --aur-c7: 0.08;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end: rgba(244,247,250,0.92);
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-info: #3D5A99;
+  --danger: #C2410C;
+  --c6: #8530DB;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Catégorie environnement (C6 → violet) */
+[data-cat="AF"] { --aur-c2: 0.32; }
+[data-cat="BC"] { --aur-c4: 0.32; }
+[data-cat="VAE"] { --aur-c3: 0.30; }
+[data-cat="CFA"] { --aur-c6: 0.34; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR (identique à indicateur_11) */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; text-decoration: none; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33% { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66% { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; max-width: 1500px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER MINI-APP ===== */
+.app-header {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+}
+.ah-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ah-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 8px var(--c6); }
+.ah-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 40px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.ah-subtitle { font-size: 14.5px; color: var(--text-mute); max-width: 700px; line-height: 1.55; }
+.ah-indicators { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ah-ind-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--c6);
+}
+.ah-ind-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 6px var(--c6); }
+.ah-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 38px; border-radius: 11px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all .2s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+.btn-secondary svg { width: 13px; height: 13px; }
+
+/* ===== ONGLETS ===== */
+.tabs {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tab-btn {
+  padding: 9px 16px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  background: transparent; border: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px var(--amethyst-soft);
+}
+.tab-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-mute);
+}
+.tab-btn.active .tab-count { background: var(--amethyst-soft); color: var(--amethyst-br); }
+
+/* ===== PANNEAU TABLE (réutilisable) ===== */
+.panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .panel { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18); }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.panel-actions { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 12px -2px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 6px 18px -2px rgba(107,79,187,0.7); }
+.btn-add svg { width: 12px; height: 12px; }
+
+/* ===== TABLE (registre) ===== */
+.tbl-wrap { overflow-x: auto; }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 10px; font-weight: 600;
+  color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.tbl tbody tr { transition: background .15s; }
+.tbl tbody tr:hover { background: var(--surface); }
+.tbl td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.col-num { width: 50px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-faint); }
+.col-actions { width: 70px; text-align: right; }
+.row-action {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.row-action:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.row-action.danger:hover { color: var(--danger); }
+.row-action svg { width: 13px; height: 13px; }
+
+/* Inputs inline dans la table */
+.cell-input, .cell-select, .cell-textarea {
+  width: 100%; padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  resize: none;
+  line-height: 1.4;
+}
+.cell-input:hover, .cell-select:hover, .cell-textarea:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.cell-input:focus, .cell-select:focus, .cell-textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 26px;
+}
+.cell-select option {
+  background: #1a1d2e;
+  color: #F5F4EE;
+  padding: 8px;
+}
+[data-theme="light"] .cell-select option {
+  background: #FFFEFA;
+  color: #0F2A47;
+}
+
+/* Empty state */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Flash pour nouvelle ligne ajoutée */
+@keyframes rowFlash {
+  0%   { background: var(--amethyst-soft); }
+  100% { background: transparent; }
+}
+.tbl tbody tr.row-flash { animation: rowFlash 1.2s ease-out; }
+.tbl tbody tr.row-flash td { border-bottom-color: var(--amethyst-soft); }
+
+/* ===== ONGLET SYNTHÈSE — KPI cards ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+[data-theme="light"] .kpi-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--kpi-color, var(--c6)); opacity: 0.55;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.kpi-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--kpi-color, var(--c6)); box-shadow: 0 0 6px var(--kpi-color, var(--c6)); }
+.kpi-value {
+  font-family: 'Raleway'; font-weight: 300; font-size: 36px;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+.kpi-value .unit { font-size: 16px; color: var(--text-faint); margin-left: 4px; }
+.kpi-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 8px; }
+
+.kpi-card.cat-23 { --kpi-color: #6B89D0; }
+.kpi-card.cat-24 { --kpi-color: #5DC9A5; }
+.kpi-card.cat-25 { --kpi-color: #EB489B; }
+.kpi-card.total { --kpi-color: var(--c6); }
+.kpi-card.exploit { --kpi-color: var(--status-done); }
+.kpi-card.todo { --kpi-color: var(--status-progress); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: #3D5A99; }
+[data-theme="light"] .kpi-card.cat-24 { --kpi-color: #2BA785; }
+[data-theme="light"] .kpi-card.cat-25 { --kpi-color: #C82A7D; }
+
+/* Analyse qualitative */
+.qual-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+.qual-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 18px; }
+.qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.qual-field { display: flex; flex-direction: column; gap: 8px; }
+.qual-field label {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600;
+}
+.qual-field textarea {
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  min-height: 80px; resize: vertical;
+  line-height: 1.5;
+  transition: all .2s;
+}
+.qual-field textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Onglet panes */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .35s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Aide flottante */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .help-backdrop { background: rgba(15,42,71,0.32); }
+.help-backdrop.open { display: flex; opacity: 1; }
+.help-backdrop.open .help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.help-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  padding: 32px 36px;
+  max-width: 700px; width: 100%;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.help-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.help-eyebrow { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-title { font-family: 'Raleway'; font-weight: 300; font-size: 28px; color: var(--text); letter-spacing: -0.02em; }
+.help-close { width: 34px; height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text-mute); transition: all .2s; }
+.help-close:hover { background: var(--surface-2); color: var(--text); }
+.help-section { margin-bottom: 18px; }
+.help-section h4 { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-section p { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.help-section ul { list-style: none; padding: 0; }
+.help-section li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; }
+.help-section li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); opacity: 0.7; }
+.help-section li b { color: var(--text); }
+
+/* Animations */
+.app-header, .tabs, .panel, .kpi-grid, .qual-panel { opacity: 0; filter: blur(8px); animation: enter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.app-header { animation-delay: .1s; }
+.tabs { animation-delay: .2s; }
+.panel { animation-delay: .3s; }
+.kpi-grid { animation-delay: .3s; }
+.qual-panel { animation-delay: .42s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+
+/* Bandeau d'info en haut d'un onglet */
+.tbl-hint {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  background: var(--amethyst-soft-2);
+  border: 1px solid var(--amethyst-soft);
+  border-radius: 12px;
+  font-size: 12.5px; line-height: 1.45;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}
+.tbl-hint svg { color: var(--amethyst-br); flex-shrink: 0; margin-top: 1px; }
+
+/* Bouton détails (cellule) */
+.cell-details { display: flex; justify-content: center; align-items: center; }
+.details-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-mute);
+  cursor: pointer;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600;
+  transition: all .15s;
+}
+.details-btn:hover { background: var(--surface-2); border-color: var(--amethyst-soft); color: var(--text); }
+.details-btn.has-content { background: var(--amethyst-soft-2); border-color: var(--amethyst-soft); color: var(--amethyst-br); }
+.details-btn.has-content:hover { background: var(--amethyst-soft); }
+.details-btn svg { opacity: 0.85; }
+.details-badge {
+  min-width: 16px; height: 16px;
+  display: inline-grid; place-items: center;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 9.5px; padding: 0 4px;
+}
+.details-btn.has-content .details-badge { background: var(--amethyst); color: white; border-color: var(--amethyst); }
+
+/* Modale détails */
+.details-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .details-backdrop { background: rgba(15,42,71,0.32); }
+.details-backdrop.open { display: flex; opacity: 1; }
+.details-backdrop.open .details-modal { transform: translateY(0) scale(1); opacity: 1; }
+.details-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  max-width: 860px; width: 100%;
+  max-height: calc(100vh - 80px); overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+  display: flex; flex-direction: column;
+}
+.dm-head {
+  padding: 26px 32px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 18px; flex-shrink: 0;
+}
+.dm-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 6px;
+}
+.dm-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 24px;
+  color: var(--text); letter-spacing: -0.02em; margin-bottom: 8px;
+}
+.dm-meta {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  font-size: 12.5px; color: var(--text-mute);
+}
+.dm-meta b { color: var(--text-soft); font-weight: 500; }
+.dm-close {
+  width: 34px; height: 34px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  color: var(--text-mute);
+  transition: all .2s; flex-shrink: 0;
+}
+.dm-close:hover { background: var(--surface-2); color: var(--text); }
+.dm-body { padding: 22px 32px 32px; overflow-y: auto; flex: 1; }
+.dm-section-title {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.18em;
+  text-transform: uppercase; font-weight: 600;
+  margin: 0 0 14px;
+}
+.dm-section-title.second { margin-top: 24px; }
+.dm-field { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+.dm-field label { font-family: 'Raleway'; font-size: 13.5px; font-weight: 500; color: var(--text-soft); line-height: 1.4; }
+.dm-field textarea {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13.5px;
+  color: var(--text);
+  resize: vertical; min-height: 56px;
+  line-height: 1.5; transition: all .2s;
+}
+.dm-field textarea:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.dm-suivi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 8px;
+}
+.dm-suivi-row {
+  display: grid; grid-template-columns: 110px 1fr 1fr 100px 1fr 30px;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+.dm-suivi-row:last-child { border-bottom: none; }
+.dm-suivi-row input, .dm-suivi-row textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--text); resize: none;
+}
+.dm-suivi-row textarea { min-height: 30px; }
+.dm-suivi-row input:focus, .dm-suivi-row textarea:focus {
+  outline: none; border-color: var(--amethyst-br);
+  box-shadow: 0 0 0 2px var(--amethyst-soft-2);
+}
+.dm-suivi-head {
+  display: grid; grid-template-columns: 110px 1fr 1fr 100px 1fr 30px;
+  gap: 8px; padding-bottom: 6px;
+  font-family: 'JetBrains Mono'; font-size: 9.5px;
+  color: var(--text-faint); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+}
+.dm-suivi-add {
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--amethyst-soft-2);
+  border: 1px dashed var(--amethyst-soft);
+  border-radius: 8px;
+  color: var(--amethyst-br);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.dm-suivi-add:hover { background: var(--amethyst-soft); }
+.dm-suivi-del {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.dm-suivi-del:hover { background: rgba(239,92,92,0.10); color: var(--danger); border-color: rgba(239,92,92,0.30); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 18px;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 9px;
+  transform: translateY(20px); opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none; z-index: 200;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="brand" href="home.html"><div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </a>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <a class="nav-item" href="dossier_dashboard.html">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </a>
+      <a class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </a>
+      <a class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </a>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <a class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></a>
+      <a class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></a>
+      <a class="nav-item" href="critere_03.html"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">40</span></a>
+      <a class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></a>
+      <a class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></a>
+      <a class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></a>
+      <a class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></a>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <a href="#">mini-apps</a><span class="sep">/</span>
+        <b>grille d'adaptation au profil</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER MINI-APP -->
+    <div class="app-header">
+      <div class="ah-left">
+        <div class="ah-eyebrow">Mini-app · Personnalisation parcours</div>
+        <h1 class="ah-title">Grille d'adaptation au profil</h1>
+        <p class="ah-subtitle">Personnalisation du parcours selon le profil identifié. Définissez vos <b>profils-types</b>, déclinez les adaptations sur 5 axes, et tracez la <b>fiche d'adaptation individuelle</b> pour chaque bénéficiaire.</p>
+        <div class="ah-indicators">
+          <div class="ah-ind-pill">Ind. 6 · Adaptation profils</div>
+          <div class="ah-ind-pill">Ind. 10 · Adaptation parcours</div>
+          <div class="ah-ind-pill">Ind. 26 · Handicap</div>
+        </div>
+      </div>
+      <div class="ah-right">
+        <button class="btn-secondary" id="openHelpBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Mode d'emploi
+        </button>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="profils">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+        Profils-types
+        <span class="tab-count" id="cntProfils">0</span>
+      </button>
+      <button class="tab-btn" data-tab="grille">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Grille adaptation
+        <span class="tab-count" id="cntGrille">0</span>
+      </button>
+      <button class="tab-btn" data-tab="fiches">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Fiches individuelles
+        <span class="tab-count" id="cntFiches">0</span>
+      </button>
+    </div>
+
+    <!-- ============ ONGLET 1 : PROFILS-TYPES ============ -->
+    <div class="tab-pane active" data-pane="profils">
+      <div class="tbl-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Définissez les <b>profils-types</b> que vous rencontrez fréquemment. Adaptez la liste à votre activité réelle — les exemples sont indicatifs.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+            Profils-types rencontrés
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="profils">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter un profil
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblProfils">
+            <thead><tr>
+              <th style="width:80px;">Code</th>
+              <th style="width:230px;">Intitulé du profil</th>
+              <th>Description / caractéristiques clés</th>
+              <th>Signaux de détection</th>
+              <th style="width:110px;">Volume estimé</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyProfils"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 2 : GRILLE ADAPTATION ============ -->
+    <div class="tab-pane" data-pane="grille">
+      <div class="tbl-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Pour chaque profil, déclinez les adaptations sur <b>5 axes</b> : contenu, rythme, supports, accompagnement, évaluation. La grille doit refléter votre réalité, pas une vue idéalisée.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Adaptations par profil
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="grille">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une ligne
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblGrille">
+            <thead><tr>
+              <th style="width:150px;">Profil</th>
+              <th>Contenu (qu'est-ce qui change ?)</th>
+              <th>Rythme & durée</th>
+              <th>Supports & outils</th>
+              <th>Accompagnement</th>
+              <th>Évaluation</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyGrille"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 3 : FICHES INDIVIDUELLES ============ -->
+    <div class="tab-pane" data-pane="fiches">
+      <div class="tbl-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Une <b>fiche par bénéficiaire</b>. Cliquez sur l'icône détail pour saisir les adaptations retenues et tracer les ajustements en cours de parcours.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Fiches d'adaptation individuelles
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="fiches">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nouvelle fiche
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblFiches">
+            <thead><tr>
+              <th>Nom et prénom</th>
+              <th>Formation suivie</th>
+              <th style="width:130px;">Date démarrage</th>
+              <th style="width:110px;">Profil-type</th>
+              <th style="width:160px;">Référent</th>
+              <th style="width:90px; text-align:center;">Détails</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyFiches"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALE DÉTAILS FICHE ===== -->
+<div class="details-backdrop" id="detailsBackdrop">
+  <div class="details-modal" id="detailsContent"></div>
+</div>
+
+<!-- ===== MODALE MODE D'EMPLOI ===== -->
+<div class="help-backdrop" id="helpBackdrop">
+  <div class="help-modal">
+    <div class="help-head">
+      <div>
+        <div class="help-eyebrow">Mode d'emploi · Grille Adaptation</div>
+        <h2 class="help-title">Grille d'adaptation<br>au profil bénéficiaire</h2>
+      </div>
+      <button class="help-close" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="help-section">
+      <h4>À quoi sert cet outil</h4>
+      <p>Trace la <b>personnalisation</b> de votre prestation pour chaque profil de bénéficiaire. L'indicateur 6 (Majeure) exige que vous démontriez comment vous adaptez réellement, pas que vous le déclariez en théorie.</p>
+    </div>
+    <div class="help-section">
+      <h4>Comment l'utiliser</h4>
+      <ul>
+        <li><b>Profils-types</b> : recensez les profils que vous rencontrez réellement (débutants, salariés, PSH...)</li>
+        <li><b>Grille adaptation</b> : pour chaque profil, déclinez sur 5 axes (contenu, rythme, supports, accompagnement, évaluation)</li>
+        <li><b>Fiches individuelles</b> : une fiche par bénéficiaire avec profil identifié + adaptations retenues + suivi des ajustements</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Pièges fréquents en audit</h4>
+      <ul>
+        <li>Grille théorique mais aucune fiche individuelle remplie</li>
+        <li>Profils-types génériques sans rapport avec l'activité réelle</li>
+        <li>Pas de suivi des ajustements en cours de parcours</li>
+        <li>Adaptation handicap absente de la grille</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Sauvegardé</span></div>
+
+<script>
+/* =======================================================
+   THÈME
+======================================================= */
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function apply(t) { root.setAttribute('data-theme', t); }
+  function init() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  apply(init());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) apply(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+/* =======================================================
+   MOTEUR — Grille Adaptation Profil
+   3 tables : profils, grille, fiches (+ modale détail fiche)
+======================================================= */
+const APP_SCHEMA = {
+  id: 'grille-adaptation',
+  storageKey: 'qm:miniapp:grille-adaptation',
+  tables: {
+    profils: {
+      label: 'Profils-types',
+      toastLabel: 'Profil ajouté',
+      columns: [
+        { id: 'code',        type: 'text',     label: 'Code' },
+        { id: 'intitule',    type: 'text',     label: 'Intitulé' },
+        { id: 'description', type: 'textarea', label: 'Description' },
+        { id: 'signaux',     type: 'textarea', label: 'Signaux de détection' },
+        { id: 'volume',      type: 'text',     label: 'Volume estimé' },
+      ]
+    },
+    grille: {
+      label: 'Grille adaptation',
+      toastLabel: 'Ligne ajoutée',
+      columns: [
+        { id: 'profil',         type: 'text',     label: 'Profil' },
+        { id: 'contenu',        type: 'textarea', label: 'Contenu' },
+        { id: 'rythme',         type: 'textarea', label: 'Rythme' },
+        { id: 'supports',       type: 'textarea', label: 'Supports' },
+        { id: 'accompagnement', type: 'textarea', label: 'Accompagnement' },
+        { id: 'evaluation',     type: 'textarea', label: 'Évaluation' },
+      ]
+    },
+    fiches: {
+      label: 'Fiches individuelles',
+      toastLabel: 'Fiche ajoutée',
+      columns: [
+        { id: 'nom',         type: 'text',    label: 'Nom et prénom' },
+        { id: 'formation',   type: 'text',    label: 'Formation' },
+        { id: 'dateDebut',   type: 'date',    label: 'Date démarrage' },
+        { id: 'profilType',  type: 'text',    label: 'Profil-type' },
+        { id: 'referent',    type: 'text',    label: 'Référent' },
+        { id: 'details',     type: 'details', label: 'Détails' },
+      ]
+    }
+  },
+  tabs: {
+    profils: ['profils'],
+    grille:  ['grille'],
+    fiches:  ['fiches']
+  },
+  freeFields: []
+};
+
+// Champs d'adaptation pour la fiche détail
+const FICHE_FIELDS = [
+  { id: 'adaptContenu',        label: 'Adaptation du contenu' },
+  { id: 'adaptRythme',         label: 'Adaptation du rythme et de la durée' },
+  { id: 'adaptSupports',       label: 'Adaptation des supports et outils' },
+  { id: 'adaptAccompagnement', label: 'Adaptation de l\'accompagnement' },
+  { id: 'adaptEvaluation',     label: 'Adaptation de l\'évaluation' },
+];
+
+const SEED = {
+  profils: [
+    { code: 'P1', intitule: 'Débutant complet sur le domaine',          description: 'Aucune connaissance préalable. Souvent en reconversion ou en demande d\'orientation.', signaux: 'Pas d\'expérience pro + aucune formation initiale + difficulté à verbaliser le besoin', volume: '30 %' },
+    { code: 'P2', intitule: 'Initié — bases déjà acquises',             description: 'Connaissances générales, manque l\'opérationnalité. Souvent en perfectionnement.',     signaux: 'Vocabulaire métier maîtrisé + expérience occasionnelle + objectifs techniques précis',  volume: '40 %' },
+    { code: 'P3', intitule: 'Confirmé — vise certification',            description: 'Pratique régulière, vise une certification ou spécialisation.',                       signaux: 'Expérience pro confirmée + maîtrise des bases + vise un référentiel précis',           volume: '15 %' },
+    { code: 'P4', intitule: 'Salarié en activité — contraintes fortes', description: 'Doit concilier formation et emploi. Disponibilités limitées.',                       signaux: 'Emploi en cours + demande de planning souple + financement employeur',                 volume: '25 %' },
+    { code: 'P5', intitule: 'Demandeur d\'emploi',                     description: 'Disponibilité forte, souvent en reconversion. Financement France Travail.',           signaux: 'Inscription France Travail + projet de reconversion + financement collectif',          volume: '20 %' },
+    { code: 'P6', intitule: 'Apprenti / alternant',                     description: 'Jeune adulte en alternance. Tripartite avec entreprise.',                            signaux: 'Contrat apprentissage / professionnalisation + maître d\'apprentissage',              volume: '—' },
+    { code: 'P7', intitule: 'Bénéficiaire en situation de handicap',    description: 'RQTH ou autre reconnaissance. Besoin d\'adaptations spécifiques.',                  signaux: 'Mention RQTH + demande explicite d\'aménagement + lien avec référent handicap',       volume: '5-10 %' },
+    { code: 'P8', intitule: 'Senior — reprise après longue interruption', description: 'Plus de 50 ans, reprise après longue absence. Besoin de remise en confiance.',      signaux: '50+ ans + interruption pro > 2 ans + verbalisation d\'appréhensions',                volume: '5-10 %' },
+  ],
+  grille: [
+    { profil: 'P1 Débutant',                contenu: 'Démarrage par glossaire métier + vocabulaire de base. Plus de temps sur les fondamentaux.', rythme: 'Demi-journées (vs journées). Plus de pauses. Étalement.',     supports: 'Supports illustrés. Vidéos courtes (< 5 min). Glossaire imprimé. Quiz de validation.', accompagnement: 'Tutorat individuel renforcé. Référent dédié.',                          evaluation: 'Évaluation progressive, ne pas attendre la fin. Bienveillante.' },
+    { profil: 'P2 Initié',                  contenu: 'Démarrage direct sur cas pratiques. Approfondissements techniques.',                        rythme: 'Rythme standard. Possible accélération sur modules acquis.',  supports: 'Supports denses, ressources techniques. Étude de cas réels.',                         accompagnement: 'Tutorat à la demande. Ressources auto-formation.',                      evaluation: 'Évaluation classique avec critères techniques.' },
+    { profil: 'P3 Confirmé',                contenu: 'Orienté certification ou spécialisation. Préparation aux épreuves.',                        rythme: 'Rythme soutenu. Étalement pour mise en pratique pro.',         supports: 'Supports techniques avancés. Référentiel officiel. Annales d\'examens.',             accompagnement: 'Coaching spécialisé. Préparation jury.',                                evaluation: 'Évaluation alignée certificateur. Blanc d\'épreuve.' },
+    { profil: 'P4 Salarié en activité',     contenu: 'Identique mais répartition différente. Modules courts (2h) plus fréquents.',               rythme: 'Soirée + samedi matin. Distanciel asynchrone privilégié.',     supports: 'Plateforme LMS 24/7. Modules téléchargeables hors-ligne.',                            accompagnement: 'Asynchrone par défaut. RDV synchrones espacés.',                        evaluation: 'Échelonnée, dates aménageables.' },
+    { profil: 'P5 Demandeur d\'emploi',    contenu: 'Inclut volet « employabilité » : CV, simulation entretien, posture pro.',                  rythme: 'Plein temps possible. Sessions intensives.',                    supports: 'Présentiel pour favoriser socialisation. Mise en réseau.',                            accompagnement: 'Coaching insertion. Liens avec partenaires.',                           evaluation: 'Évaluation + bilan d\'insertion à 3/6 mois.' },
+    { profil: 'P7 PSH',                     contenu: 'Adapté selon type de handicap (texte vs audio, simplification...).',                        rythme: 'Tiers-temps en évaluation. Durée allongée si besoin.',         supports: 'Supports accessibles (gros caractères, audio, langue des signes).',                  accompagnement: 'Référent handicap dédié. Liens MDPH / CAP EMPLOI.',                      evaluation: 'Aménagements selon notification MDPH.' },
+  ],
+  fiches: [
+    { nom: 'DUBOIS Anaïs',     formation: 'CPCE-2026-S01 — Création cellule entrepreneuriat', dateDebut: '2026-01-12', profilType: 'P5 DE',  referent: 'Sofia Mansour',
+      adaptContenu: 'Volet entrepreneuriat renforcé (a déjà un projet).', adaptRythme: 'Plein temps OK.', adaptSupports: 'Présentiel privilégié.', adaptAccompagnement: 'Coaching insertion en sus.', adaptEvaluation: 'Évaluation standard.',
+      ajustements: [
+        { date: '2026-01-26', constat: 'Difficultés sur volet juridique', ajustement: 'Module complémentaire + ressource externe', vise: 'Sofia Mansour', effet: 'Confiance retrouvée, blocage levé' }
+      ] },
+    { nom: 'LAFOND Michel',    formation: 'CPCE-2026-S01',                                     dateDebut: '2026-01-12', profilType: 'P8 Senior', referent: 'Sofia Mansour',
+      adaptContenu: 'Comparaison avec pratiques antérieures (a managé 20 ans).', adaptRythme: 'Rythme adapté, pas d\'accélération.', adaptSupports: 'Écrits privilégiés. Pas de jargon.', adaptAccompagnement: 'Binômage avec apprenant junior pour entraide.', adaptEvaluation: 'Évaluation standard.',
+      ajustements: [] },
+    { nom: 'KARIM Yassine',    formation: 'CFA-2026-S01 — Apprentissage',                       dateDebut: '2025-09-04', profilType: 'P6 Apprenti', referent: 'Marie Dupont',
+      adaptContenu: 'Aligné référentiel diplôme. Mises en situation entreprise.', adaptRythme: '1 sem CFA / 3 sem entreprise.', adaptSupports: 'Livret apprentissage. Plateforme partagée MA.', adaptAccompagnement: 'Tutorat avec maître d\'apprentissage.', adaptEvaluation: 'CCF + évaluation en entreprise.',
+      ajustements: [] },
+    { nom: 'CHEN Wei',         formation: 'BC-2026-S03 — Bilan de compétences',                  dateDebut: '2026-03-04', profilType: 'P7 PSH', referent: 'Yacine Belkacem',
+      adaptContenu: 'Adaptation visuelle (malvoyance).', adaptRythme: 'Tiers-temps en évaluation. Pauses adaptées.', adaptSupports: 'Supports gros caractères + audio + screen reader compatible.', adaptAccompagnement: 'Référent handicap mobilisé. Liaison MDPH.', adaptEvaluation: 'Aménagements selon notification MDPH (tiers-temps).',
+      ajustements: [
+        { date: '2026-03-11', constat: 'Outil LMS non compatible NVDA', ajustement: 'Alternative PDF accessible + audio descriptifs', vise: 'Yacine Belkacem', effet: 'Accès rétabli, satisfaction bénéficiaire' }
+      ] }
+  ]
+};
+
+const STORAGE_KEY = APP_SCHEMA.storageKey;
+function loadState() {
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch(e) {}
+  return JSON.parse(JSON.stringify(SEED));
+}
+let state = loadState();
+function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); showToast('Sauvegardé'); } catch(e) {} }
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+function tbodyIdFor(tid) { return 'tbody' + tid.charAt(0).toUpperCase() + tid.slice(1); }
+
+function renderCell(col, row, tableId, rowIndex) {
+  const value = row[col.id] ?? '';
+  if (col.type === 'select') {
+    const opts = col.options.map(o => `<option value="${o.value}"${o.value === value ? ' selected' : ''}>${o.label}</option>`).join('');
+    return `<select class="cell-select" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"><option value="">—</option>${opts}</select>`;
+  }
+  if (col.type === 'date') return `<input type="date" class="cell-input" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+  if (col.type === 'textarea') return `<textarea class="cell-textarea" rows="1" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}">${value}</textarea>`;
+  if (col.type === 'details') {
+    const filled = FICHE_FIELDS.filter(f => (row[f.id] || '').trim() !== '').length;
+    const nbAdj = (row.ajustements || []).length;
+    const total = filled + nbAdj;
+    const cls = total > 0 ? 'has-content' : '';
+    return `<span class="cell-details">
+      <button class="details-btn ${cls}" data-tbl="${tableId}" data-row="${rowIndex}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="details-badge">${total}</span>
+      </button>
+    </span>`;
+  }
+  const safe = String(value).replace(/"/g, '&quot;');
+  return `<input type="text" class="cell-input" value="${safe}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+}
+
+function renderTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const rows = state[tableId] || [];
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (!tbody) return;
+  if (rows.length === 0) {
+    const colspan = schema.columns.length + 1;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-row">Aucune entrée. Cliquez sur « Ajouter » pour commencer.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((row, i) => {
+    const cells = schema.columns.map(col => `<td>${renderCell(col, row, tableId, i)}</td>`).join('');
+    return `<tr>${cells}<td class="col-actions">
+      <button class="row-action danger" data-action="delete" data-tbl="${tableId}" data-row="${i}" title="Supprimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </td></tr>`;
+  }).join('');
+  attachCellHandlers(tbody);
+  autosizeTextareas(tbody);
+}
+
+function autosizeTextareas(scope) {
+  scope.querySelectorAll('textarea').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(34, ta.scrollHeight) + 'px';
+  });
+}
+
+function attachCellHandlers(scope) {
+  scope.querySelectorAll('.cell-input, .cell-select, .cell-textarea').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const { tbl, row, col } = e.target.dataset;
+      state[tbl][parseInt(row)][col] = e.target.value;
+      saveState();
+    });
+    el.addEventListener('input', (e) => {
+      if (e.target.tagName === 'TEXTAREA') {
+        e.target.style.height = 'auto';
+        e.target.style.height = Math.max(34, e.target.scrollHeight) + 'px';
+      }
+    });
+  });
+  scope.querySelectorAll('.details-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      openDetailsModal(tbl, parseInt(row));
+    });
+  });
+  scope.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      state[tbl].splice(parseInt(row), 1);
+      saveState();
+      renderTable(tbl);
+      updateCounts();
+    });
+  });
+}
+
+// === Modale détail fiche ===
+function openDetailsModal(tableId, rowIndex) {
+  const row = state[tableId][rowIndex];
+  if (!row.ajustements) row.ajustements = [];
+  const modal = document.getElementById('detailsContent');
+  const backdrop = document.getElementById('detailsBackdrop');
+
+  modal.innerHTML = `
+    <div class="dm-head">
+      <div>
+        <div class="dm-eyebrow">Fiche d'adaptation individuelle</div>
+        <h2 class="dm-title">${row.nom || 'Bénéficiaire'}</h2>
+        <div class="dm-meta">
+          <span><b>Formation :</b> ${row.formation || '—'}</span>
+          <span><b>Démarrage :</b> ${row.dateDebut || '—'}</span>
+          <span><b>Profil :</b> ${row.profilType || '—'}</span>
+          <span><b>Référent :</b> ${row.referent || '—'}</span>
+        </div>
+      </div>
+      <button class="dm-close" id="detailsClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="dm-body">
+      <div class="dm-section-title">Adaptations retenues à l'entrée</div>
+      ${FICHE_FIELDS.map(f => `
+        <div class="dm-field">
+          <label>${f.label}</label>
+          <textarea data-row="${rowIndex}" data-col="${f.id}">${row[f.id] || ''}</textarea>
+        </div>
+      `).join('')}
+
+      <div class="dm-section-title second">Suivi des ajustements en cours de parcours</div>
+      <div class="dm-suivi" id="suiviContainer">
+        <div class="dm-suivi-head">
+          <div>Date</div><div>Constat / besoin</div><div>Ajustement décidé</div><div>Visé par</div><div>Effet observé</div><div></div>
+        </div>
+        <div id="suiviList">
+          ${(row.ajustements || []).map((adj, ai) => `
+            <div class="dm-suivi-row" data-adj="${ai}">
+              <input type="date" data-adj-col="date" value="${adj.date || ''}">
+              <textarea data-adj-col="constat" rows="1">${adj.constat || ''}</textarea>
+              <textarea data-adj-col="ajustement" rows="1">${adj.ajustement || ''}</textarea>
+              <input type="text" data-adj-col="vise" value="${adj.vise || ''}">
+              <textarea data-adj-col="effet" rows="1">${adj.effet || ''}</textarea>
+              <button class="dm-suivi-del" data-adj-del="${ai}" title="Supprimer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="dm-suivi-add" id="addAjustementBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un ajustement
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Handlers adaptations
+  modal.querySelectorAll('textarea[data-col]').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(56, ta.scrollHeight) + 'px';
+    ta.addEventListener('input', () => {
+      state.fiches[rowIndex][ta.dataset.col] = ta.value;
+      ta.style.height = 'auto';
+      ta.style.height = Math.max(56, ta.scrollHeight) + 'px';
+    });
+    ta.addEventListener('blur', () => { saveState(); renderTable('fiches'); });
+  });
+
+  // Handlers ajustements
+  function attachSuiviHandlers() {
+    modal.querySelectorAll('.dm-suivi-row').forEach(rowEl => {
+      const ai = parseInt(rowEl.dataset.adj);
+      rowEl.querySelectorAll('[data-adj-col]').forEach(el => {
+        el.addEventListener('input', () => {
+          state.fiches[rowIndex].ajustements[ai][el.dataset.adjCol] = el.value;
+          if (el.tagName === 'TEXTAREA') {
+            el.style.height = 'auto';
+            el.style.height = Math.max(30, el.scrollHeight) + 'px';
+          }
+        });
+        el.addEventListener('blur', () => { saveState(); renderTable('fiches'); });
+        if (el.tagName === 'TEXTAREA') {
+          el.style.height = 'auto';
+          el.style.height = Math.max(30, el.scrollHeight) + 'px';
+        }
+      });
+      rowEl.querySelector('[data-adj-del]').addEventListener('click', () => {
+        state.fiches[rowIndex].ajustements.splice(ai, 1);
+        saveState();
+        renderTable('fiches');
+        openDetailsModal('fiches', rowIndex);
+      });
+    });
+  }
+  attachSuiviHandlers();
+
+  document.getElementById('addAjustementBtn').addEventListener('click', () => {
+    state.fiches[rowIndex].ajustements.push({
+      date: new Date().toISOString().slice(0,10),
+      constat: '', ajustement: '', vise: '', effet: ''
+    });
+    saveState();
+    openDetailsModal('fiches', rowIndex);
+  });
+
+  document.getElementById('detailsClose').addEventListener('click', closeDetailsModal);
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetailsModal() {
+  document.getElementById('detailsBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const b = document.getElementById('detailsBackdrop');
+    if (b && b.classList.contains('open')) closeDetailsModal();
+  }
+});
+
+function addRow(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const emptyRow = {};
+  schema.columns.forEach(col => {
+    if (col.type === 'date') emptyRow[col.id] = new Date().toISOString().slice(0,10);
+    else if (col.type === 'details') emptyRow.ajustements = [];
+    else emptyRow[col.id] = '';
+  });
+  // Champs d'adaptation pour les fiches
+  if (tableId === 'fiches') {
+    FICHE_FIELDS.forEach(f => emptyRow[f.id] = '');
+    emptyRow.ajustements = [];
+  }
+  state[tableId].unshift(emptyRow);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  showToast(schema.toastLabel || 'Ajouté');
+  renderTable(tableId);
+  updateCounts();
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (tbody) {
+    const firstRow = tbody.firstElementChild;
+    if (firstRow) {
+      firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstRow.classList.add('row-flash');
+      setTimeout(() => firstRow.classList.remove('row-flash'), 1200);
+      setTimeout(() => {
+        const firstInput = firstRow.querySelector('input[type="text"], textarea');
+        if (firstInput) firstInput.focus();
+      }, 350);
+    }
+  }
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => addRow(btn.dataset.add));
+});
+
+function updateCounts() {
+  Object.entries(APP_SCHEMA.tabs).forEach(([tabId, tableIds]) => {
+    const total = tableIds.reduce((sum, tid) => sum + (state[tid] || []).length, 0);
+    const el = document.getElementById('cnt' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+    if (el) el.textContent = total;
+  });
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-pane="${btn.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+const helpBackdrop = document.getElementById('helpBackdrop');
+document.getElementById('openHelpBtn').addEventListener('click', () => {
+  helpBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+function closeHelp() {
+  helpBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+helpBackdrop.addEventListener('click', e => { if (e.target === helpBackdrop) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && helpBackdrop.classList.contains('open')) closeHelp(); });
+
+Object.keys(APP_SCHEMA.tables).forEach(tid => renderTable(tid));
+updateCounts();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Critère 03 · Mise en œuvre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.18; --aur-c2: 0.18; --aur-c3: 0.16;
+  --aur-c4: 0.18; --aur-c5: 0.16; --aur-c6: 0.20; --aur-c7: 0.16;
+  --aur-veil-start: rgba(3,4,10,0.55);
+  --aur-veil-end:   rgba(3,4,10,0.92);
+  --title-grad-start: #FFFFFF;
+  --title-grad-mid:   #C09BFF;
+  --title-grad-end:   #9474FF;
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-na: #5B5F70;
+  --warn: #F59E0B;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.12; --aur-c2: 0.12; --aur-c3: 0.10;
+  --aur-c4: 0.12; --aur-c5: 0.10; --aur-c6: 0.12; --aur-c7: 0.10;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end:   rgba(244,247,250,0.92);
+  --title-grad-start: #0F2A47;
+  --title-grad-mid:   #6B4FBB;
+  --title-grad-end:   #5A3FAB;
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-na: #8893A3;
+  --warn: #B45309;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Teinte aurore par catégorie */
+[data-cat="AF"]  { --aur-c2: 0.36; }
+[data-cat="BC"]  { --aur-c4: 0.36; }
+[data-cat="VAE"] { --aur-c3: 0.34; }
+[data-cat="CFA"] { --aur-c6: 0.38; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33%      { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66%      { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 36px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER COMPACT DU CRITÈRE ===== */
+.crit-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 32px; margin-bottom: 14px;
+  padding-bottom: 26px; border-bottom: 1px solid var(--border);
+}
+.ch-left { flex: 1; min-width: 0; }
+.ch-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--crit-accent); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ch-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--crit-accent); box-shadow: 0 0 8px var(--crit-accent); }
+.ch-title-row { display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; }
+.ch-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 44px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+}
+.ch-pct {
+  font-family: 'Raleway'; font-weight: 300; font-size: 38px;
+  color: var(--crit-accent); line-height: 1; letter-spacing: -0.02em;
+  display: inline-flex; align-items: baseline; gap: 2px;
+}
+.ch-pct .u { font-size: 22px; opacity: 0.75; }
+.ch-sub { font-size: 14.5px; color: var(--text-mute); margin-top: 12px; max-width: 620px; line-height: 1.55; }
+.ch-right { display: flex; align-items: center; gap: 14px; }
+.ch-stats {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute); letter-spacing: 0.06em;
+  text-align: right; line-height: 1.7;
+}
+.ch-stats b { color: var(--text); font-weight: 600; }
+.btn-3d {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 18px; height: 42px; border-radius: 12px;
+  font-family: 'Raleway'; font-size: 13.5px; font-weight: 600; color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -1px 0 rgba(0,0,0,0.2), 0 6px 18px -4px rgba(107,79,187,0.7), 0 14px 32px -10px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-3d:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 10px 24px -4px rgba(107,79,187,0.85), 0 22px 48px -10px rgba(107,79,187,0.55); }
+
+/* Section title */
+.section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 30px 0 20px; }
+.section-title { font-family: 'Raleway'; font-weight: 300; font-size: 22px; color: var(--text); letter-spacing: -0.015em; }
+.section-hint { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); letter-spacing: 0.1em; }
+
+/* ===== GRILLE INDICATEURS (2 cards par ligne) ===== */
+.indicators-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.indicator {
+  position: relative; overflow: hidden;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 4px 14px -4px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .indicator {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    0 4px 14px -4px rgba(15,42,71,0.08),
+    0 14px 30px -12px rgba(15,42,71,0.15);
+}
+.indicator::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--crit-accent);
+  opacity: 0.4; transition: opacity .25s;
+}
+.indicator:hover {
+  border-color: var(--border-strong); transform: translateY(-3px);
+}
+.indicator:hover::before { opacity: 1; box-shadow: 0 0 20px var(--crit-accent); }
+
+.ind-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; gap: 12px;
+}
+.ind-num {
+  font-family: 'Raleway'; font-weight: 200; font-size: 32px;
+  color: var(--crit-accent); line-height: 1; letter-spacing: -0.03em;
+  opacity: 0.95;
+}
+
+/* Pastille de statut (cliquable depuis la card) */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 9px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; border: 1px solid;
+  transition: all .2s; user-select: none;
+  position: relative;
+}
+.status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.status-pill svg { width: 9px; height: 9px; opacity: 0.7; margin-left: 2px; }
+.status-pill.done   { color: var(--status-done);   background: rgba(88,214,154,0.10); border-color: rgba(88,214,154,0.32); }
+.status-pill.done::before { background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+.status-pill.progress { color: var(--status-progress); background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.32); }
+.status-pill.progress::before { background: var(--status-progress); box-shadow: 0 0 8px var(--status-progress); }
+.status-pill.todo   { color: var(--text-mute); background: var(--surface-2); border-color: var(--border); }
+.status-pill.todo::before { background: var(--text-mute); }
+.status-pill.na     { color: var(--status-na); background: var(--surface); border-color: var(--border); opacity: 0.7; }
+.status-pill.na::before { background: var(--status-na); }
+[data-theme="light"] .status-pill.done   { background: rgba(14,159,110,0.10); border-color: rgba(14,159,110,0.30); }
+[data-theme="light"] .status-pill.progress { background: rgba(180,83,9,0.10); border-color: rgba(180,83,9,0.30); }
+.status-pill:hover { filter: brightness(1.1); }
+
+/* Menu déroulant statut */
+.status-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 200px;
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.5), 0 20px 50px -12px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transform: translateY(-4px) scale(0.96);
+  transition: all .2s cubic-bezier(.22,1,.36,1);
+}
+[data-theme="light"] .status-menu {
+  box-shadow: 0 10px 30px -6px rgba(15,42,71,0.18), 0 20px 50px -12px rgba(15,42,71,0.22);
+}
+.status-pill.open + .status-menu { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.sm-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono'; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-soft);
+  cursor: pointer; transition: background .15s;
+}
+.sm-item:hover { background: var(--surface-2); color: var(--text); }
+.sm-item::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+.sm-item.done::before    { background: var(--status-done); box-shadow: 0 0 6px var(--status-done); }
+.sm-item.progress::before { background: var(--status-progress); box-shadow: 0 0 6px var(--status-progress); }
+.sm-item.todo::before    { background: var(--text-mute); }
+.sm-item.na::before      { background: var(--status-na); }
+
+.ind-title {
+  font-family: 'Raleway'; font-weight: 500; font-size: 17px;
+  color: var(--text); line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+/* Bloc warning (Complet sans documents) */
+.ind-warn {
+  display: none;
+  margin-top: 10px; margin-bottom: 14px;
+  padding: 9px 12px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.24);
+  border-radius: 9px;
+  font-size: 11.5px; line-height: 1.45;
+  color: var(--text-soft);
+  gap: 8px; align-items: flex-start;
+}
+[data-theme="light"] .ind-warn { background: rgba(180,83,9,0.08); border-color: rgba(180,83,9,0.22); }
+.ind-warn-ic { color: var(--warn); flex-shrink: 0; margin-top: 1px; }
+.ind-warn b { color: var(--warn); font-weight: 600; }
+.indicator[data-state="done"][data-docs="0"] .ind-warn { display: flex; }
+
+/* Footer card */
+.ind-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+.ind-docs {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono'; font-size: 11.5px;
+  color: var(--text-mute); font-weight: 500;
+}
+.ind-docs svg { width: 13px; height: 13px; opacity: 0.7; }
+.ind-docs b { font-family: 'Raleway'; font-weight: 600; color: var(--text); font-size: 14px; }
+.ind-updated { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.04em; }
+.ind-arrow { width: 28px; height: 28px; border-radius: 50%; background: var(--amethyst-soft-2); display: grid; place-items: center; color: var(--amethyst-br); transition: all .25s; }
+.indicator:hover .ind-arrow { background: var(--amethyst-soft); transform: translateX(2px); }
+
+/* Indicateur Non applicable : ensemble estompé */
+.indicator[data-state="na"] { opacity: 0.55; }
+.indicator[data-state="na"]:hover { opacity: 0.85; }
+
+/* Animations */
+.crit-header, .indicators-grid { opacity: 0; filter: blur(10px); animation: enter 1s cubic-bezier(.22,1,.36,1) forwards; }
+.crit-header { animation-delay: .1s; }
+.indicators-grid { animation-delay: .25s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+.indicator { opacity: 0; animation: indEnter .7s cubic-bezier(.22,1,.36,1) forwards; }
+.indicator:nth-child(1) { animation-delay: .3s; }
+.indicator:nth-child(2) { animation-delay: .36s; }
+.indicator:nth-child(3) { animation-delay: .42s; }
+.indicator:nth-child(4) { animation-delay: .48s; }
+.indicator:nth-child(5) { animation-delay: .54s; }
+.indicator:nth-child(6) { animation-delay: .6s; }
+.indicator:nth-child(7) { animation-delay: .66s; }
+.indicator:nth-child(8) { animation-delay: .72s; }
+@keyframes indEnter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.indicator[data-state="na"] { animation-name: indEnterNA; }
+@keyframes indEnterNA { from { opacity: 0; transform: translateY(14px); } to { opacity: 0.55; transform: translateY(0); } }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand" onclick="window.location.href='home.html'">
+      <div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </div>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <div class="nav-item" onclick="window.location.href='dossier_dashboard.html'">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </div>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <div class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></div>
+      <div class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></div>
+      <div class="nav-item active"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">63</span></div>
+      <div class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></div>
+      <div class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></div>
+      <div class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></div>
+      <div class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <b>critère 03 · mise en œuvre</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER COMPACT -->
+    <div class="crit-header" style="--crit-accent: #EF9E28;">
+      <div class="ch-left">
+        <div class="ch-eyebrow">Critère 03</div>
+        <div class="ch-title-row">
+          <h1 class="ch-title">Mise en œuvre</h1>
+          <div class="ch-pct">63<span class="u">%</span></div>
+        </div>
+        <p class="ch-sub">Adaptation des prestations et accompagnement des bénéficiaires. Vous déclarez le statut de chaque indicateur — c'est vous qui jugez si vos preuves sont suffisantes pour l'audit.</p>
+      </div>
+      <div class="ch-right">
+        <div class="ch-stats">
+          <div><b>5</b> complets</div>
+          <div><b>1</b> en cours</div>
+          <div><b>2</b> à traiter</div>
+        </div>
+        <button class="btn-3d">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un document
+        </button>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">Les 8 indicateurs du critère</h2>
+      <div class="section-hint">cliquez sur un indicateur pour entrer · cliquez sur un statut pour le changer</div>
+    </div>
+
+    <!-- GRILLE INDICATEURS -->
+    <div class="indicators-grid" style="--crit-accent:#EF9E28;">
+
+      <div class="indicator" data-state="done" data-docs="3">
+        <div class="ind-head">
+          <div class="ind-num">08</div>
+          <div class="status-wrapper">
+            <button class="status-pill done">Complet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Adaptation des contenus et modalités</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>3</b> documents
+          </div>
+          <div class="ind-updated">Mis à jour il y a 4 jours</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="done" data-docs="2">
+        <div class="ind-head">
+          <div class="ind-num">09</div>
+          <div class="status-wrapper">
+            <button class="status-pill done">Complet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Conditions d'accueil et de réalisation</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>2</b> documents
+          </div>
+          <div class="ind-updated">Mis à jour il y a 2 sem.</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="todo" data-docs="0">
+        <div class="ind-head">
+          <div class="ind-num">10</div>
+          <div class="status-wrapper">
+            <button class="status-pill todo">À traiter
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Accompagnement pédagogique</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>0</b> document
+          </div>
+          <div class="ind-updated">Jamais modifié</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="progress" data-docs="4">
+        <div class="ind-head">
+          <div class="ind-num">11</div>
+          <div class="status-wrapper">
+            <button class="status-pill progress">En cours
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Suivi de l'assiduité</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>4</b> documents
+          </div>
+          <div class="ind-updated">Mis à jour hier</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="todo" data-docs="0">
+        <div class="ind-head">
+          <div class="ind-num">12</div>
+          <div class="status-wrapper">
+            <button class="status-pill todo">À traiter
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Évaluation des acquis</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>0</b> document
+          </div>
+          <div class="ind-updated">Jamais modifié</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="done" data-docs="1">
+        <div class="ind-head">
+          <div class="ind-num">13</div>
+          <div class="status-wrapper">
+            <button class="status-pill done">Complet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Décision du jury</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>1</b> document
+          </div>
+          <div class="ind-updated">Mis à jour il y a 3 sem.</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="done" data-docs="2">
+        <div class="ind-head">
+          <div class="ind-num">14</div>
+          <div class="status-wrapper">
+            <button class="status-pill done">Complet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Documents de fin de prestation</h3>
+        <div class="ind-warn"></div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>2</b> documents
+          </div>
+          <div class="ind-updated">Mis à jour il y a 6 jours</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+      <div class="indicator" data-state="done" data-docs="0">
+        <div class="ind-head">
+          <div class="ind-num">15</div>
+          <div class="status-wrapper">
+            <button class="status-pill done">Complet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="status-menu">
+              <div class="sm-item todo">À traiter</div>
+              <div class="sm-item progress">En cours</div>
+              <div class="sm-item done">Complet</div>
+              <div class="sm-item na">Non applicable</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="ind-title">Sortie et accompagnement post-prestation</h3>
+        <div class="ind-warn">
+          <svg class="ind-warn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div><b>Attention :</b> aucun document déposé. Vous attestez que vos preuves sont conservées ailleurs ou que cet indicateur est procédural.</div>
+        </div>
+        <div class="ind-foot">
+          <div class="ind-docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <b>0</b> document
+          </div>
+          <div class="ind-updated">Marqué complet il y a 1 sem.</div>
+          <div class="ind-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Thème
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function applyTheme(t) { root.setAttribute('data-theme', t); }
+  function resolveInitial() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  applyTheme(resolveInitial());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) applyTheme(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+// Statut : menu déroulant + changement
+(function() {
+  const STATUSES = {
+    todo:     { cls: 'todo',     label: 'À traiter' },
+    progress: { cls: 'progress', label: 'En cours' },
+    done:     { cls: 'done',     label: 'Complet' },
+    na:       { cls: 'na',       label: 'Non applicable' },
+  };
+
+  function closeAll() {
+    document.querySelectorAll('.status-pill.open').forEach(p => p.classList.remove('open'));
+  }
+
+  document.querySelectorAll('.status-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = pill.classList.contains('open');
+      closeAll();
+      if (!wasOpen) pill.classList.add('open');
+    });
+  });
+
+  document.querySelectorAll('.status-menu .sm-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cls = ['todo','progress','done','na'].find(c => item.classList.contains(c));
+      const wrapper = item.closest('.status-wrapper');
+      const pill = wrapper.querySelector('.status-pill');
+      const card = wrapper.closest('.indicator');
+      const status = STATUSES[cls];
+      // mise à jour pill
+      pill.className = 'status-pill ' + status.cls + ' open';
+      pill.innerHTML = status.label + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      // mise à jour data-state pour le warning
+      card.setAttribute('data-state', cls);
+      closeAll();
+    });
+  });
+
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', closeAll);
+
+  // Empêcher le clic sur la pill / menu de propager au clic sur la card
+  document.querySelectorAll('.status-wrapper').forEach(w => {
+    w.style.position = 'relative';
+    w.addEventListener('click', e => e.stopPropagation());
+  });
+})();
+</script>
+</body>
+</html>

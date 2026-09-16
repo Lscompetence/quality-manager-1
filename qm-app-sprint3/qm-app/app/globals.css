@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme="dark"] {
+    --background: 232 56% 3%; /* #03040A */
+    --foreground: 47 24% 95%; /* #F5F4EE */
+    --card: 0 0% 100% / 0.04;
+    --card-foreground: 47 24% 95%;
+    --popover: 232 56% 5%;
+    --popover-foreground: 47 24% 95%;
+    --primary: 257 47% 53%; /* amethyst */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100% / 0.07;
+    --secondary-foreground: 47 24% 95%;
+    --muted: 0 0% 100% / 0.04;
+    --muted-foreground: 240 6% 56%; /* #8A8A93 */
+    --accent: 257 100% 73% / 0.12; /* améthyste soft */
+    --accent-foreground: 47 24% 95%;
+    --destructive: 0 73% 65%; /* #EF5C5C */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.07;
+    --ring: 257 100% 73%; /* #9474FF */
+    --radius: 0.75rem;
+  }
+
+  [data-theme="light"] {
+    --background: 41 50% 97%; /* #FBFAF6 */
+    --foreground: 213 65% 17%; /* #0F2A47 */
+    --card: 0 0% 100% / 0.85;
+    --card-foreground: 213 65% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 65% 17%;
+    --primary: 257 47% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100% / 0.65;
+    --secondary-foreground: 213 65% 17%;
+    --muted: 213 65% 17% / 0.05;
+    --muted-foreground: 213 25% 44%;
+    --accent: 257 47% 53% / 0.08;
+    --accent-foreground: 213 65% 17%;
+    --destructive: 0 73% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 65% 17% / 0.10;
+    --input: 213 65% 17% / 0.10;
+    --ring: 257 47% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  body {
+    font-family: var(--font-raleway), Raleway, system-ui, sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Aurora background */
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  body::before {
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(107, 79, 187, 0.22), transparent 65%);
+    top: -200px;
+    left: -200px;
+  }
+
+  body::after {
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(148, 116, 255, 0.18), transparent 65%);
+    bottom: -150px;
+    right: -150px;
+  }
+
+  [data-theme="light"] body::before {
+    background: radial-gradient(circle, rgba(107, 79, 187, 0.12), transparent 65%);
+  }
+  [data-theme="light"] body::after {
+    background: radial-gradient(circle, rgba(148, 116, 255, 0.10), transparent 65%);
+  }
+}
+
+@layer utilities {
+  .aurora-glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+}

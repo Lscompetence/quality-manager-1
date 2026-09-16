@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Mini-app · Cockpit Critère 7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --bg-elev-2: rgba(28,32,52,0.88);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.16; --aur-c2: 0.16; --aur-c3: 0.14;
+  --aur-c4: 0.16; --aur-c5: 0.14; --aur-c6: 0.20; --aur-c7: 0.14;
+  --aur-veil-start: rgba(3,4,10,0.6);
+  --aur-veil-end: rgba(3,4,10,0.94);
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-info: #6B89D0;
+  --danger: #EF5C5C;
+  --c6: #A755F8;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --bg-elev-2: rgba(255,254,250,0.92);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.10; --aur-c2: 0.10; --aur-c3: 0.08;
+  --aur-c4: 0.10; --aur-c5: 0.08; --aur-c6: 0.12; --aur-c7: 0.08;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end: rgba(244,247,250,0.92);
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-info: #3D5A99;
+  --danger: #C2410C;
+  --c6: #8530DB;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Pour cette mini-app, le code couleur est C7 (rose, amélioration continue) */
+:root, [data-theme="dark"] { --c7: #EB489B; }
+[data-theme="light"] { --c7: #C82A7D; }
+
+/* Override de --c6 dans cette mini-app pour utiliser C7 */
+.ah-eyebrow::before { background: var(--c7) !important; box-shadow: 0 0 8px var(--c7) !important; }
+.ah-eyebrow { color: var(--c7) !important; }
+.kpi-card.cat-23 { --kpi-color: var(--c7); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: var(--c7); }
+
+/* Catégorie environnement (C6 → violet) */
+[data-cat="AF"] { --aur-c2: 0.32; }
+[data-cat="BC"] { --aur-c4: 0.32; }
+[data-cat="VAE"] { --aur-c3: 0.30; }
+[data-cat="CFA"] { --aur-c6: 0.34; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR (identique à indicateur_11) */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; text-decoration: none; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33% { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66% { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; max-width: 1500px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER MINI-APP ===== */
+.app-header {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+}
+.ah-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ah-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 8px var(--c6); }
+.ah-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 40px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.ah-subtitle { font-size: 14.5px; color: var(--text-mute); max-width: 700px; line-height: 1.55; }
+.ah-indicators { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ah-ind-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--c6);
+}
+.ah-ind-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 6px var(--c6); }
+.ah-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 38px; border-radius: 11px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all .2s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+.btn-secondary svg { width: 13px; height: 13px; }
+
+/* ===== ONGLETS ===== */
+.tabs {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tab-btn {
+  padding: 9px 16px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  background: transparent; border: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px var(--amethyst-soft);
+}
+.tab-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-mute);
+}
+.tab-btn.active .tab-count { background: var(--amethyst-soft); color: var(--amethyst-br); }
+
+/* ===== PANNEAU TABLE (réutilisable) ===== */
+.panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .panel { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18); }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.panel-actions { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 12px -2px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 6px 18px -2px rgba(107,79,187,0.7); }
+.btn-add svg { width: 12px; height: 12px; }
+
+/* ===== TABLE (registre) ===== */
+.tbl-wrap { overflow-x: auto; }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 10px; font-weight: 600;
+  color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.tbl tbody tr { transition: background .15s; }
+.tbl tbody tr:hover { background: var(--surface); }
+.tbl td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.col-num { width: 50px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-faint); }
+.col-actions { width: 70px; text-align: right; }
+.row-action {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.row-action:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.row-action.danger:hover { color: var(--danger); }
+.row-action svg { width: 13px; height: 13px; }
+
+/* Inputs inline dans la table */
+.cell-input, .cell-select, .cell-textarea {
+  width: 100%; padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  resize: none;
+  line-height: 1.4;
+}
+.cell-input:hover, .cell-select:hover, .cell-textarea:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.cell-input:focus, .cell-select:focus, .cell-textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 26px;
+}
+.cell-select option {
+  background: #1a1d2e;
+  color: #F5F4EE;
+  padding: 8px;
+}
+[data-theme="light"] .cell-select option {
+  background: #FFFEFA;
+  color: #0F2A47;
+}
+
+/* Empty state */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Flash pour nouvelle ligne ajoutée */
+@keyframes rowFlash {
+  0%   { background: var(--amethyst-soft); }
+  100% { background: transparent; }
+}
+.tbl tbody tr.row-flash { animation: rowFlash 1.2s ease-out; }
+.tbl tbody tr.row-flash td { border-bottom-color: var(--amethyst-soft); }
+
+/* ===== ONGLET SYNTHÈSE — KPI cards ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+[data-theme="light"] .kpi-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--kpi-color, var(--c6)); opacity: 0.55;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.kpi-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--kpi-color, var(--c6)); box-shadow: 0 0 6px var(--kpi-color, var(--c6)); }
+.kpi-value {
+  font-family: 'Raleway'; font-weight: 300; font-size: 36px;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+.kpi-value .unit { font-size: 16px; color: var(--text-faint); margin-left: 4px; }
+.kpi-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 8px; }
+
+.kpi-card.cat-23 { --kpi-color: #6B89D0; }
+.kpi-card.cat-24 { --kpi-color: #5DC9A5; }
+.kpi-card.cat-25 { --kpi-color: #EB489B; }
+.kpi-card.total { --kpi-color: var(--c6); }
+.kpi-card.exploit { --kpi-color: var(--status-done); }
+.kpi-card.todo { --kpi-color: var(--status-progress); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: #3D5A99; }
+[data-theme="light"] .kpi-card.cat-24 { --kpi-color: #2BA785; }
+[data-theme="light"] .kpi-card.cat-25 { --kpi-color: #C82A7D; }
+
+/* Analyse qualitative */
+.qual-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+.qual-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 18px; }
+.qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.qual-field { display: flex; flex-direction: column; gap: 8px; }
+.qual-field label {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600;
+}
+.qual-field textarea {
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  min-height: 80px; resize: vertical;
+  line-height: 1.5;
+  transition: all .2s;
+}
+.qual-field textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Onglet panes */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .35s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Aide flottante */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .help-backdrop { background: rgba(15,42,71,0.32); }
+.help-backdrop.open { display: flex; opacity: 1; }
+.help-backdrop.open .help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.help-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  padding: 32px 36px;
+  max-width: 700px; width: 100%;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.help-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.help-eyebrow { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-title { font-family: 'Raleway'; font-weight: 300; font-size: 28px; color: var(--text); letter-spacing: -0.02em; }
+.help-close { width: 34px; height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text-mute); transition: all .2s; }
+.help-close:hover { background: var(--surface-2); color: var(--text); }
+.help-section { margin-bottom: 18px; }
+.help-section h4 { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-section p { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.help-section ul { list-style: none; padding: 0; }
+.help-section li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; }
+.help-section li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); opacity: 0.7; }
+.help-section li b { color: var(--text); }
+
+
+/* === KPI cards spécifiques au Cockpit === */
+.kpi-card.alert { --kpi-color: var(--danger); }
+.kpi-card.score { --kpi-color: var(--c7); }
+.kpi-value.score-value {
+  font-weight: 200; font-size: 48px;
+  background: linear-gradient(135deg, var(--text), var(--c7));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* === Hero d'accueil cockpit === */
+.cockpit-hero {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 32px;
+  margin-bottom: 22px;
+  position: relative; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .cockpit-hero {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10);
+}
+.cockpit-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--c7), transparent);
+  opacity: 0.7;
+}
+.cockpit-hero-title {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.22em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 6px;
+}
+.cockpit-hero-text {
+  font-size: 14px; color: var(--text-soft); line-height: 1.55;
+}
+
+/* === Onglet Questionnaires (référentiel) === */
+.q-block {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .q-block { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.q-block-head {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.q-block-num {
+  font-family: 'Raleway'; font-weight: 300; font-size: 28px;
+  color: var(--c7); line-height: 1;
+}
+.q-block-title {
+  font-family: 'Raleway'; font-weight: 500; font-size: 17px;
+  color: var(--text);
+}
+.q-block-sub {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.1em;
+  margin-left: auto;
+}
+.q-item {
+  display: grid; grid-template-columns: 28px 1fr 110px;
+  gap: 14px; align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.q-item:last-child { border-bottom: none; }
+.q-item-num {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-faint);
+}
+.q-item-text {
+  font-size: 13.5px; color: var(--text-soft); line-height: 1.45;
+}
+.q-item-type {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.08em;
+  text-align: right;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  text-transform: uppercase; font-weight: 600;
+}
+.q-item-type.open { color: var(--amethyst-br); background: var(--amethyst-soft-2); }
+
+/* === Cellules notation 1-5 === */
+.cell-note { width: 60px; text-align: center; }
+.cell-note input {
+  width: 100%; padding: 6px 4px;
+  text-align: center;
+  font-family: 'JetBrains Mono'; font-weight: 600; font-size: 13px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text);
+  transition: all .15s;
+}
+.cell-note input:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-note input[data-bad="1"] { color: var(--danger); }
+.cell-note input[data-good="1"] { color: var(--status-done); }
+
+/* En-têtes Qx avec tooltip survol */
+.tbl thead th.note-h {
+  text-align: center; cursor: help;
+  border-bottom: 2px dotted var(--border-strong);
+}
+
+/* === Ligne de moyennes (footer registre) === */
+.tbl tfoot tr {
+  background: var(--amethyst-soft-2);
+  font-weight: 600;
+}
+.tbl tfoot td {
+  padding: 12px;
+  border-top: 2px solid var(--amethyst-soft);
+  font-family: 'JetBrains Mono'; font-size: 12px;
+  color: var(--text);
+  text-align: center;
+}
+.tbl tfoot td:first-child {
+  text-align: left;
+  font-family: 'Raleway'; font-weight: 600; font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.tbl tfoot .moy-val { color: var(--amethyst-br); font-weight: 700; font-size: 13px; }
+
+/* === Encadré "Comment ça marche" === */
+.howto {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: var(--amethyst-soft-2);
+  border: 1px solid var(--amethyst-soft);
+  border-radius: 12px;
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--text-soft);
+}
+.howto b { color: var(--amethyst-br); }
+
+/* Animations */
+.app-header, .tabs, .panel, .kpi-grid, .qual-panel { opacity: 0; filter: blur(8px); animation: enter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.app-header { animation-delay: .1s; }
+.tabs { animation-delay: .2s; }
+.panel { animation-delay: .3s; }
+.kpi-grid { animation-delay: .3s; }
+.qual-panel { animation-delay: .42s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 18px;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 9px;
+  transform: translateY(20px); opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none; z-index: 200;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="brand" href="home.html"><div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </a>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <a class="nav-item" href="dossier_dashboard.html">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </a>
+      <a class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </a>
+      <a class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </a>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <a class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></a>
+      <a class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></a>
+      <a class="nav-item" href="critere_03.html"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">40</span></a>
+      <a class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></a>
+      <a class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></a>
+      <a class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></a>
+      <a class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></a>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <a href="#">mini-apps</a><span class="sep">/</span>
+        <b>cockpit critère 7 · amélioration continue</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER MINI-APP -->
+    <div class="app-header">
+      <div class="ah-left">
+        <div class="ah-eyebrow">Mini-app · Pièce maîtresse</div>
+        <h1 class="ah-title">Cockpit qualité <span style="color:var(--c7);">— Critère 7</span></h1>
+        <p class="ah-subtitle">Tableau de bord unique de l'amélioration continue. Consolide les <b>satisfactions</b>, <b>réclamations</b>, <b>actions correctives</b> et <b>revues qualité</b> — l'auditeur regarde ce cockpit en premier.</p>
+        <div class="ah-indicators">
+          <div class="ah-ind-pill" style="color: var(--c7);">Ind. 30 · Appréciations</div>
+          <div class="ah-ind-pill" style="color: var(--c7);">Ind. 31 · Réclamations</div>
+          <div class="ah-ind-pill" style="color: var(--c7);">Ind. 32 · Amélioration</div>
+        </div>
+      </div>
+      <div class="ah-right">
+        <button class="btn-secondary" id="openHelpBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Mode d'emploi
+        </button>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="accueil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Accueil
+      </button>
+      <button class="tab-btn" data-tab="questionnaires">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Référentiel
+      </button>
+      <button class="tab-btn" data-tab="benef">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+        Saisie Bénéf.
+        <span class="tab-count" id="cntBenef">0</span>
+      </button>
+      <button class="tab-btn" data-tab="form">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        Saisie Form.
+        <span class="tab-count" id="cntForm">0</span>
+      </button>
+      <button class="tab-btn" data-tab="entr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Saisie Entr.
+        <span class="tab-count" id="cntEntr">0</span>
+      </button>
+      <button class="tab-btn" data-tab="synthese">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Synthèse
+      </button>
+      <button class="tab-btn" data-tab="reclam">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Réclamations
+        <span class="tab-count" id="cntReclam">0</span>
+      </button>
+      <button class="tab-btn" data-tab="paq">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        PAQ
+        <span class="tab-count" id="cntPaq">0</span>
+      </button>
+      <button class="tab-btn" data-tab="revues">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Revues
+        <span class="tab-count" id="cntRevues">0</span>
+      </button>
+    </div>
+
+    <!-- ============ ONGLET 1 : ACCUEIL ============ -->
+    <div class="tab-pane active" data-pane="accueil">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">🎯 Tableau de bord critère 7</div>
+        <div class="cockpit-hero-text">Vue d'ensemble en temps réel des trois indicateurs d'amélioration continue. Les valeurs ci-dessous se recalculent automatiquement à chaque saisie dans les autres onglets.</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card score">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 30 · Note satisfaction</div>
+          <div class="kpi-value score-value"><span id="kpiNote">—</span><span class="unit"> /5</span></div>
+          <div class="kpi-foot">moyenne 3 questionnaires</div>
+        </div>
+        <div class="kpi-card exploit">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 30 · Recommandation</div>
+          <div class="kpi-value"><span id="kpiReco">0</span><span class="unit"> %</span></div>
+          <div class="kpi-foot">bénéficiaires "Oui"</div>
+        </div>
+        <div class="kpi-card cat-24">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 31 · Réclam. clôturées</div>
+          <div class="kpi-value"><span id="kpiReclam">0</span><span class="unit"> %</span></div>
+          <div class="kpi-foot">taux de clôture</div>
+        </div>
+        <div class="kpi-card alert">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 31 · Réclam. en retard</div>
+          <div class="kpi-value" id="kpiReclamRetard">0</div>
+          <div class="kpi-foot">alertes ouvertes</div>
+        </div>
+        <div class="kpi-card exploit">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 32 · Actions PAQ</div>
+          <div class="kpi-value"><span id="kpiPaq">0</span><span class="unit"> %</span></div>
+          <div class="kpi-foot">taux de réalisation</div>
+        </div>
+        <div class="kpi-card alert">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Ind. 32 · Actions en retard</div>
+          <div class="kpi-value" id="kpiPaqRetard">0</div>
+          <div class="kpi-foot">alertes ouvertes</div>
+        </div>
+      </div>
+
+      <div class="howto">
+        <b>💡 Comment utiliser ce cockpit :</b>
+        1) Consultez les trames de questionnaires dans <b>Référentiel</b>.
+        2) Saisissez chaque retour dans <b>Saisie Bénéf. / Form. / Entr.</b> — les moyennes se calculent toutes seules.
+        3) Tenez les registres <b>Réclamations</b>, <b>PAQ</b>, <b>Revues</b> au fil de l'eau.
+        4) Tout le critère 7 vit ici — c'est la pièce centrale pour l'audit.
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 2 : QUESTIONNAIRES (référentiel statique) ============ -->
+    <div class="tab-pane" data-pane="questionnaires" id="paneQuestionnaires">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">❓ Référentiel des questionnaires</div>
+        <div class="cockpit-hero-text">Les 3 trames à diffuser après chaque action de formation. Échelle de notation : <b>1 = Très insatisfait</b> à <b>5 = Très satisfait</b>. Les retours sont à saisir dans les onglets de saisie.</div>
+      </div>
+      <!-- Le contenu sera rempli par JS -->
+    </div>
+
+    <!-- ============ ONGLET 3 : SAISIE BÉNÉFICIAIRE ============ -->
+    <div class="tab-pane" data-pane="benef">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+            Retours bénéficiaires (à chaud + à froid)
+            <span style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-mute); margin-left:4px; font-weight:400;">notes 1 à 5</span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="benef">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter un retour
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblBenef">
+            <thead><tr>
+              <th style="width:100px;">Date</th>
+              <th>Action / Session</th>
+              <th style="width:85px;">Moment</th>
+              <th style="width:85px;">Reco</th>
+              <th class="note-h" style="width:55px;" title="Q1 — Objectifs atteints">Q1</th>
+              <th class="note-h" style="width:55px;" title="Q2 — Contenu vs attentes">Q2</th>
+              <th class="note-h" style="width:55px;" title="Q3 — Qualité animation">Q3</th>
+              <th class="note-h" style="width:55px;" title="Q4 — Clarté supports">Q4</th>
+              <th class="note-h" style="width:55px;" title="Q5 — Rythme">Q5</th>
+              <th class="note-h" style="width:55px;" title="Q6 — Accueil">Q6</th>
+              <th class="note-h" style="width:55px;" title="Q7 — Conditions matérielles">Q7</th>
+              <th class="note-h" style="width:55px;" title="Q8 — Respect horaires">Q8</th>
+              <th class="note-h" style="width:55px;" title="Q9 (à froid) — Mise en pratique">Q9</th>
+              <th class="note-h" style="width:55px;" title="Q10 (à froid) — Réponse aux besoins">Q10</th>
+              <th>Verbatim clé</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyBenef"></tbody>
+            <tfoot id="tfootBenef"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 4 : SAISIE FORMATEUR ============ -->
+    <div class="tab-pane" data-pane="form">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            Retours formateurs / équipe pédagogique
+            <span style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-mute); margin-left:4px; font-weight:400;">notes 1 à 5</span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="form">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter un retour
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblForm">
+            <thead><tr>
+              <th style="width:100px;">Date</th>
+              <th>Action / Session</th>
+              <th class="note-h" style="width:55px;" title="Q1 — Clarté objectifs">Q1</th>
+              <th class="note-h" style="width:55px;" title="Q2 — Adéquation programme">Q2</th>
+              <th class="note-h" style="width:55px;" title="Q3 — Qualité supports">Q3</th>
+              <th class="note-h" style="width:55px;" title="Q4 — Conditions techniques">Q4</th>
+              <th class="note-h" style="width:55px;" title="Q5 — Coordination">Q5</th>
+              <th class="note-h" style="width:55px;" title="Q6 — Préparation bénéf.">Q6</th>
+              <th class="note-h" style="width:55px;" title="Q7 — Soutien">Q7</th>
+              <th class="note-h" style="width:55px;" title="Q8 — Satisfaction globale">Q8</th>
+              <th>Verbatim clé</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyForm"></tbody>
+            <tfoot id="tfootForm"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 5 : SAISIE ENTREPRISE ============ -->
+    <div class="tab-pane" data-pane="entr">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Retours entreprises / financeurs
+            <span style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-mute); margin-left:4px; font-weight:400;">notes 1 à 5</span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="entr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter un retour
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblEntr">
+            <thead><tr>
+              <th style="width:100px;">Date</th>
+              <th>Action / Session</th>
+              <th style="width:80px;">Type</th>
+              <th style="width:85px;">Reco</th>
+              <th class="note-h" style="width:55px;" title="Q1 — Besoin satisfait">Q1</th>
+              <th class="note-h" style="width:55px;" title="Q2 — Communication">Q2</th>
+              <th class="note-h" style="width:55px;" title="Q3 — Effets observés">Q3</th>
+              <th class="note-h" style="width:55px;" title="Q4 — Qualité admin">Q4</th>
+              <th class="note-h" style="width:55px;" title="Q5 — Respect engagements">Q5</th>
+              <th class="note-h" style="width:55px;" title="Q6 (CFA) — Lien CFA-entreprise">Q6</th>
+              <th>Verbatim clé</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyEntr"></tbody>
+            <tfoot id="tfootEntr"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 6 : SYNTHÈSE SATISFACTION ============ -->
+    <div class="tab-pane" data-pane="synthese">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">📊 Synthèse satisfaction · Ind. 30</div>
+        <div class="cockpit-hero-text">Consolidation des 3 questionnaires en une note globale. Les chiffres se mettent à jour en temps réel.</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card score">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Bénéficiaires</div>
+          <div class="kpi-value"><span id="synthBenef">—</span><span class="unit"> /5</span></div>
+          <div class="kpi-foot"><span id="synthBenefN">0</span> retours</div>
+        </div>
+        <div class="kpi-card score">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Formateurs</div>
+          <div class="kpi-value"><span id="synthForm">—</span><span class="unit"> /5</span></div>
+          <div class="kpi-foot"><span id="synthFormN">0</span> retours</div>
+        </div>
+        <div class="kpi-card score">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Entreprises</div>
+          <div class="kpi-value"><span id="synthEntr">—</span><span class="unit"> /5</span></div>
+          <div class="kpi-foot"><span id="synthEntrN">0</span> retours</div>
+        </div>
+        <div class="kpi-card exploit">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>NOTE GLOBALE</div>
+          <div class="kpi-value score-value"><span id="synthGlobale">—</span><span class="unit"> /5</span></div>
+          <div class="kpi-foot">moyenne des 3 publics</div>
+        </div>
+      </div>
+
+      <div class="qual-panel">
+        <h3 class="qual-title">Analyse & actions (→ PAQ)</h3>
+        <div class="qual-grid">
+          <div class="qual-field">
+            <label>Points forts récurrents</label>
+            <textarea id="qual1" placeholder="Ex. Expertise formateurs, cas pratiques, qualité de l'accueil…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Points faibles récurrents</label>
+            <textarea id="qual2" placeholder="Ex. Rythme fin de journée, supports trop denses…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Écart chaud / froid (impact réel)</label>
+            <textarea id="qual3" placeholder="Ex. Satisfaction maintenue à froid, mise en pratique progressive…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Actions décidées → PAQ</label>
+            <textarea id="qual4" placeholder="Ex. Voir actions A04 et A07 dans l'onglet PAQ…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 7 : RÉCLAMATIONS ============ -->
+    <div class="tab-pane" data-pane="reclam">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">📋 Registre des réclamations · Ind. 31</div>
+        <div class="cockpit-hero-text"><b>Accusé de réception sous 48 h</b> obligatoire. Toute réclamation non clôturée dans les délais devient une alerte audit.</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Réclamations enregistrées
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="reclam">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une réclamation
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblReclam">
+            <thead><tr>
+              <th style="width:100px;">Date reçue</th>
+              <th style="width:130px;">Origine</th>
+              <th style="width:140px;">Type</th>
+              <th>Objet</th>
+              <th style="width:110px;">Gravité</th>
+              <th style="width:100px;">Accusé 48h</th>
+              <th style="width:110px;">Date réponse</th>
+              <th>Action corrective</th>
+              <th style="width:130px;">Statut</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyReclam"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 8 : PAQ ============ -->
+    <div class="tab-pane" data-pane="paq">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">📈 Plan d'amélioration qualité · Ind. 32</div>
+        <div class="cockpit-hero-text">Une ligne = une action. <b>Source → Action → Responsable → Délai → Statut.</b> C'est le journal vivant de la qualité.</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Actions d'amélioration
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="paq">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une action
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblPaq">
+            <thead><tr>
+              <th style="width:110px;">Détectée le</th>
+              <th style="width:140px;">Source</th>
+              <th>Problème / Opportunité</th>
+              <th>Action décidée</th>
+              <th style="width:140px;">Responsable</th>
+              <th style="width:110px;">Échéance</th>
+              <th style="width:100px;">Priorité</th>
+              <th style="width:130px;">Statut</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyPaq"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 9 : REVUES QUALITÉ ============ -->
+    <div class="tab-pane" data-pane="revues">
+      <div class="cockpit-hero">
+        <div class="cockpit-hero-title">🔄 Registre des revues qualité · Ind. 32</div>
+        <div class="cockpit-hero-text">Revues de direction, réunions qualité, conseils de perfectionnement (CFA). Une ligne par session, avec son CR.</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c7);"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Revues tenues
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="revues">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une revue
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblRevues">
+            <thead><tr>
+              <th style="width:110px;">Date</th>
+              <th style="width:200px;">Type</th>
+              <th>Participants</th>
+              <th>Décisions / Points clés</th>
+              <th style="width:140px;">CR réf.</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyRevues"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALE MODE D'EMPLOI ===== -->
+<div class="help-backdrop" id="helpBackdrop">
+  <div class="help-modal">
+    <div class="help-head">
+      <div>
+        <div class="help-eyebrow">Mode d'emploi · Cockpit C7</div>
+        <h2 class="help-title">Cockpit qualité<br>amélioration continue</h2>
+      </div>
+      <button class="help-close" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="help-section">
+      <h4>À quoi sert cet outil</h4>
+      <p>C'est <b>la pièce centrale du critère 7</b>. Un seul classeur regroupe tout ce que l'auditeur va chercher pour évaluer votre démarche d'amélioration continue (Ind. 30, 31, 32). Si ce cockpit est tenu à jour, le critère 7 est défendu.</p>
+    </div>
+    <div class="help-section">
+      <h4>Les 9 onglets et leur logique</h4>
+      <ul>
+        <li><b>Accueil</b> : 6 KPI globaux calculés en temps réel</li>
+        <li><b>Référentiel</b> : les 3 trames de questionnaires (lecture seule, à diffuser)</li>
+        <li><b>Saisie Bénéf / Form / Entr</b> : 1 ligne = 1 retour, notes 1-5. Moyennes auto en bas.</li>
+        <li><b>Synthèse</b> : consolidation des 3 publics → note globale Ind. 30</li>
+        <li><b>Réclamations</b> : registre Ind. 31 — accusé 48 h obligatoire</li>
+        <li><b>PAQ</b> : plan d'amélioration — l'action est l'unité de base Ind. 32</li>
+        <li><b>Revues</b> : revues de direction / conseils de perfectionnement Ind. 32</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Pièges fréquents en audit</h4>
+      <ul>
+        <li>Questionnaire à chaud uniquement (manque le « à froid » N+3 / N+6)</li>
+        <li>Pas de retour formateurs / entreprises (un seul public sondé)</li>
+        <li>Réclamations non tracées ou pas d'accusé 48 h</li>
+        <li>PAQ rempli juste avant l'audit — sans suivi réel sur l'année</li>
+        <li>Pas de revue de direction annuelle formalisée (Ind. 32 quasi-NC)</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Bonnes pratiques</h4>
+      <ul>
+        <li>Saisir les retours <b>au fil de l'eau</b>, pas en lot avant l'audit</li>
+        <li>PAQ vivant : chaque réclamation ou retour faible → action concrète tracée</li>
+        <li>Au moins <b>1 revue de direction / an</b> + 2 conseils de perfectionnement (CFA)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Sauvegardé</span></div>
+
+<script>
+/* =======================================================
+   THÈME
+======================================================= */
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function apply(t) { root.setAttribute('data-theme', t); }
+  function init() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  apply(init());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) apply(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+/* =======================================================
+   MOTEUR DU COCKPIT C7
+   Adaptation du moteur générique v3 pour gérer :
+   - 6 tables (3 saisies notation + 3 registres événementiels)
+   - Type "note" : input number 1-5 avec coloration auto
+   - Référentiel statique (3 questionnaires) injecté à l'init
+   - Moyennes en tfoot pour les 3 tables de saisie
+   - Agrégations cross-table (Accueil + Synthèse)
+======================================================= */
+
+// ============================================================
+//   RÉFÉRENTIEL STATIQUE DES QUESTIONNAIRES
+// ============================================================
+const QUESTIONNAIRES = [
+  {
+    num: '1', title: 'Questionnaire bénéficiaire', sub: 'à chaud + à froid',
+    items: [
+      { n: 1, txt: 'Les objectifs annoncés ont-ils été atteints ?', type: 'note' },
+      { n: 2, txt: 'Le contenu correspond-il à vos attentes initiales ?', type: 'note' },
+      { n: 3, txt: 'Qualité de l\'animation et de l\'expertise du formateur', type: 'note' },
+      { n: 4, txt: 'Clarté des explications et des supports', type: 'note' },
+      { n: 5, txt: 'Rythme et équilibre théorie / pratique', type: 'note' },
+      { n: 6, txt: 'Qualité de l\'accueil et de l\'information avant la formation', type: 'note' },
+      { n: 7, txt: 'Conditions matérielles (salle / plateforme)', type: 'note' },
+      { n: 8, txt: 'Respect des horaires et du programme', type: 'note' },
+      { n: 9, txt: '[À FROID N+3/N+6] Avez-vous mis en pratique les acquis ? (impact)', type: 'note' },
+      { n: 10, txt: '[À FROID] Avec le recul, la formation a-t-elle répondu à vos besoins ?', type: 'note' },
+      { n: 11, txt: 'Points forts de la formation ?', type: 'open' },
+      { n: 12, txt: 'Aspects à améliorer ?', type: 'open' },
+      { n: 13, txt: 'Recommanderiez-vous cette formation ? (Oui/Non + pourquoi)', type: 'open' },
+      { n: 14, txt: '[À FROID] Effets concrets identifiés (poste, missions, compétences) ?', type: 'open' },
+    ]
+  },
+  {
+    num: '2', title: 'Questionnaire formateur / équipe pédagogique', sub: '',
+    items: [
+      { n: 1, txt: 'Clarté des objectifs et du cahier des charges transmis', type: 'note' },
+      { n: 2, txt: 'Adéquation du programme au public réel', type: 'note' },
+      { n: 3, txt: 'Qualité des supports et ressources mis à disposition', type: 'note' },
+      { n: 4, txt: 'Conditions matérielles / techniques d\'intervention', type: 'note' },
+      { n: 5, txt: 'Qualité de la coordination pédagogique (briefing, échanges)', type: 'note' },
+      { n: 6, txt: 'Niveau de préparation des bénéficiaires (positionnement)', type: 'note' },
+      { n: 7, txt: 'Soutien de l\'organisme en cas de difficulté', type: 'note' },
+      { n: 8, txt: 'Satisfaction globale de la collaboration', type: 'note' },
+      { n: 9, txt: 'Points forts de l\'organisation pédagogique ?', type: 'open' },
+      { n: 10, txt: 'Difficultés rencontrées / axes d\'amélioration ?', type: 'open' },
+      { n: 11, txt: 'Suggestions pour améliorer la prestation ?', type: 'open' },
+    ]
+  },
+  {
+    num: '3', title: 'Questionnaire entreprise / financeur', sub: '',
+    items: [
+      { n: 1, txt: 'La prestation a-t-elle répondu au besoin exprimé ?', type: 'note' },
+      { n: 2, txt: 'Qualité de la relation et de la communication', type: 'note' },
+      { n: 3, txt: 'Effets observés sur le(s) collaborateur(s) formé(s)', type: 'note' },
+      { n: 4, txt: 'Qualité administrative (conventions, facturation, reporting)', type: 'note' },
+      { n: 5, txt: 'Respect des engagements (délais, contenu, modalités)', type: 'note' },
+      { n: 6, txt: '[CFA] Progression de l\'apprenti / qualité lien CFA-entreprise', type: 'note' },
+      { n: 7, txt: 'Points forts de la collaboration ?', type: 'open' },
+      { n: 8, txt: 'Axes d\'amélioration ?', type: 'open' },
+      { n: 9, txt: 'Recommanderiez-vous cet organisme ? (Oui/Non + pourquoi)', type: 'open' },
+    ]
+  }
+];
+
+// ============================================================
+//   APP_SCHEMA
+// ============================================================
+const APP_SCHEMA = {
+  id: 'cockpit-c7',
+  storageKey: 'qm:miniapp:cockpit-c7',
+  tables: {
+    benef: {
+      label: 'Saisie bénéficiaire',
+      toastLabel: 'Retour bénéficiaire ajouté',
+      noteCols: ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'],
+      columns: [
+        { id: 'date',    type: 'date',   label: 'Date' },
+        { id: 'action',  type: 'text',   label: 'Action / Session' },
+        { id: 'moment',  type: 'select', label: 'Moment', options: [
+          { value: 'C', label: 'Chaud' },
+          { value: 'F', label: 'Froid' }
+        ]},
+        { id: 'reco',    type: 'select', label: 'Reco', options: [
+          { value: 'O', label: 'Oui' },
+          { value: 'N', label: 'Non' }
+        ]},
+        { id: 'q1',  type: 'note', label: 'Q1' },
+        { id: 'q2',  type: 'note', label: 'Q2' },
+        { id: 'q3',  type: 'note', label: 'Q3' },
+        { id: 'q4',  type: 'note', label: 'Q4' },
+        { id: 'q5',  type: 'note', label: 'Q5' },
+        { id: 'q6',  type: 'note', label: 'Q6' },
+        { id: 'q7',  type: 'note', label: 'Q7' },
+        { id: 'q8',  type: 'note', label: 'Q8' },
+        { id: 'q9',  type: 'note', label: 'Q9' },
+        { id: 'q10', type: 'note', label: 'Q10' },
+        { id: 'verbatim', type: 'textarea', label: 'Verbatim' },
+      ]
+    },
+    form: {
+      label: 'Saisie formateur',
+      toastLabel: 'Retour formateur ajouté',
+      noteCols: ['q1','q2','q3','q4','q5','q6','q7','q8'],
+      columns: [
+        { id: 'date',    type: 'date',   label: 'Date' },
+        { id: 'action',  type: 'text',   label: 'Action / Session' },
+        { id: 'q1', type: 'note', label: 'Q1' },
+        { id: 'q2', type: 'note', label: 'Q2' },
+        { id: 'q3', type: 'note', label: 'Q3' },
+        { id: 'q4', type: 'note', label: 'Q4' },
+        { id: 'q5', type: 'note', label: 'Q5' },
+        { id: 'q6', type: 'note', label: 'Q6' },
+        { id: 'q7', type: 'note', label: 'Q7' },
+        { id: 'q8', type: 'note', label: 'Q8' },
+        { id: 'verbatim', type: 'textarea', label: 'Verbatim' },
+      ]
+    },
+    entr: {
+      label: 'Saisie entreprise',
+      toastLabel: 'Retour entreprise ajouté',
+      noteCols: ['q1','q2','q3','q4','q5','q6'],
+      columns: [
+        { id: 'date',    type: 'date',   label: 'Date' },
+        { id: 'action',  type: 'text',   label: 'Action / Session' },
+        { id: 'type',    type: 'select', label: 'Type', options: [
+          { value: 'E',  label: 'Entreprise' },
+          { value: 'F',  label: 'Financeur' },
+          { value: 'MA', label: 'Maître appr.' }
+        ]},
+        { id: 'reco',    type: 'select', label: 'Reco', options: [
+          { value: 'O', label: 'Oui' },
+          { value: 'N', label: 'Non' }
+        ]},
+        { id: 'q1', type: 'note', label: 'Q1' },
+        { id: 'q2', type: 'note', label: 'Q2' },
+        { id: 'q3', type: 'note', label: 'Q3' },
+        { id: 'q4', type: 'note', label: 'Q4' },
+        { id: 'q5', type: 'note', label: 'Q5' },
+        { id: 'q6', type: 'note', label: 'Q6' },
+        { id: 'verbatim', type: 'textarea', label: 'Verbatim' },
+      ]
+    },
+    reclam: {
+      label: 'Réclamations',
+      toastLabel: 'Réclamation enregistrée',
+      columns: [
+        { id: 'dateRecue', type: 'date',     label: 'Date reçue' },
+        { id: 'origine',   type: 'select',   label: 'Origine', options: [
+          { value: 'benef',    label: 'Bénéficiaire' },
+          { value: 'entr',     label: 'Entreprise' },
+          { value: 'finance',  label: 'Financeur' },
+          { value: 'ma',       label: 'Maître appr.' },
+          { value: 'autre',    label: 'Autre' }
+        ]},
+        { id: 'type',      type: 'select',   label: 'Type', options: [
+          { value: 'peda',   label: 'Pédagogique' },
+          { value: 'orga',   label: 'Organisationnel' },
+          { value: 'admin',  label: 'Administratif' },
+          { value: 'autre',  label: 'Autre' }
+        ]},
+        { id: 'objet',     type: 'textarea', label: 'Objet' },
+        { id: 'gravite',   type: 'select',   label: 'Gravité', options: [
+          { value: 'mineur',   label: 'Mineur' },
+          { value: 'modere',   label: 'Modéré' },
+          { value: 'majeur',   label: 'Majeur' },
+          { value: 'critique', label: 'Critique' }
+        ]},
+        { id: 'accuse',    type: 'select',   label: 'Accusé 48h', options: [
+          { value: 'oui', label: 'Oui' },
+          { value: 'non', label: 'Non' }
+        ]},
+        { id: 'dateRep',   type: 'date',     label: 'Date réponse' },
+        { id: 'action',    type: 'textarea', label: 'Action corrective' },
+        { id: 'statut',    type: 'select',   label: 'Statut', options: [
+          { value: 'cloturee', label: '✓ Clôturée' },
+          { value: 'cours',    label: '⏳ En cours' },
+          { value: 'retard',   label: '🚨 En retard' },
+          { value: 'recue',    label: '📥 Reçue' }
+        ]},
+      ]
+    },
+    paq: {
+      label: 'PAQ',
+      toastLabel: 'Action ajoutée au PAQ',
+      columns: [
+        { id: 'date',     type: 'date',     label: 'Détectée le' },
+        { id: 'source',   type: 'select',   label: 'Source', options: [
+          { value: 'satbenef',  label: 'Satisf. Bénéf.' },
+          { value: 'satform',   label: 'Satisf. Formateur' },
+          { value: 'satentr',   label: 'Satisf. Entreprise' },
+          { value: 'reclam',    label: 'Réclamation' },
+          { value: 'veille',    label: 'Veille' },
+          { value: 'auditint',  label: 'Audit interne' },
+          { value: 'auditext',  label: 'Audit externe' },
+          { value: 'conseilp',  label: 'Conseil perf.' },
+          { value: 'insertion', label: 'Insertion' }
+        ]},
+        { id: 'probleme', type: 'textarea', label: 'Problème / Opportunité' },
+        { id: 'action',   type: 'textarea', label: 'Action décidée' },
+        { id: 'resp',     type: 'text',     label: 'Responsable' },
+        { id: 'echeance', type: 'date',     label: 'Échéance' },
+        { id: 'priorite', type: 'select',   label: 'Priorité', options: [
+          { value: 'haute',   label: '🔴 Haute' },
+          { value: 'moyenne', label: '🟡 Moyenne' },
+          { value: 'basse',   label: '⚪ Basse' }
+        ]},
+        { id: 'statut',   type: 'select',   label: 'Statut', options: [
+          { value: 'terminee', label: '✓ Terminée' },
+          { value: 'cours',    label: '⏳ En cours' },
+          { value: 'demarrer', label: '📌 À démarrer' },
+          { value: 'retard',   label: '🚨 En retard' },
+          { value: 'abandon',  label: '❌ Abandonnée' }
+        ]},
+      ]
+    },
+    revues: {
+      label: 'Revues qualité',
+      toastLabel: 'Revue ajoutée',
+      columns: [
+        { id: 'date',         type: 'date',     label: 'Date' },
+        { id: 'type',         type: 'select',   label: 'Type', options: [
+          { value: 'direction', label: 'Revue de direction' },
+          { value: 'qualite',   label: 'Réunion qualité' },
+          { value: 'perf',      label: 'Conseil perfectionnement' },
+          { value: 'postaudit', label: 'Revue post-audit' }
+        ]},
+        { id: 'participants', type: 'textarea', label: 'Participants' },
+        { id: 'decisions',    type: 'textarea', label: 'Décisions / Points clés' },
+        { id: 'cr',           type: 'text',     label: 'CR réf.' },
+      ]
+    }
+  },
+  tabs: {
+    accueil:        [],
+    questionnaires: [],
+    benef:    ['benef'],
+    form:     ['form'],
+    entr:     ['entr'],
+    synthese: [],
+    reclam:   ['reclam'],
+    paq:      ['paq'],
+    revues:   ['revues']
+  },
+  freeFields: ['qual1', 'qual2', 'qual3', 'qual4']
+};
+
+// ============================================================
+//   SEED — données d'exemple
+// ============================================================
+const SEED = {
+  benef: [
+    { date: '2026-04-15', action: 'CPCE-2026-S01', moment: 'C', reco: 'O', q1: 5, q2: 4, q3: 5, q4: 4, q5: 4, q6: 5, q7: 4, q8: 5, q9: '', q10: '', verbatim: 'Excellente formation, formateur très clair' },
+    { date: '2026-04-15', action: 'CPCE-2026-S01', moment: 'C', reco: 'O', q1: 4, q2: 4, q3: 5, q4: 4, q5: 3, q6: 4, q7: 4, q8: 5, q9: '', q10: '', verbatim: 'Rythme un peu dense en fin de J2' },
+    { date: '2026-04-15', action: 'CPCE-2026-S01', moment: 'C', reco: 'O', q1: 5, q2: 5, q3: 5, q4: 5, q5: 4, q6: 5, q7: 5, q8: 5, q9: '', q10: '', verbatim: 'Top !' },
+    { date: '2026-03-20', action: 'BC-2026-S03',   moment: 'F', reco: 'O', q1: 4, q2: 4, q3: 4, q4: 4, q5: 4, q6: 4, q7: 4, q8: 4, q9: 5, q10: 5, verbatim: 'Effets concrets sur mon poste' },
+  ],
+  form: [
+    { date: '2026-04-30', action: 'CPCE-2026-S01', q1: 5, q2: 4, q3: 5, q4: 5, q5: 5, q6: 4, q7: 5, q8: 5, verbatim: 'Excellente coordination' },
+    { date: '2026-03-30', action: 'BC-2026-S03',   q1: 4, q2: 5, q3: 4, q4: 4, q5: 5, q6: 3, q7: 5, q8: 4, verbatim: 'Positionnement à renforcer' },
+  ],
+  entr: [
+    { date: '2026-05-01', action: 'CPCE-2026-S01', type: 'E', reco: 'O', q1: 4, q2: 5, q3: 4, q4: 5, q5: 5, q6: '', verbatim: 'Bonne réactivité de l\'équipe' },
+    { date: '2026-04-10', action: 'CFA-2026-S01',  type: 'MA', reco: 'O', q1: 4, q2: 4, q3: 4, q4: 4, q5: 5, q6: 4, verbatim: 'Apprenti motivé, lien CFA OK' },
+  ],
+  reclam: [
+    { dateRecue: '2026-03-05', origine: 'entr',  type: 'orga',  objet: 'Reporting financeur en retard',    gravite: 'mineur', accuse: 'oui', dateRep: '2026-03-07', action: 'Automatisation reporting', statut: 'cloturee' },
+    { dateRecue: '2026-02-12', origine: 'benef', type: 'peda',  objet: 'Rythme trop rapide module 3',      gravite: 'modere', accuse: 'oui', dateRep: '2026-02-20', action: 'Séquençage révisé S+1',    statut: 'cloturee' },
+  ],
+  paq: [
+    { date: '2026-03-12', source: 'veille',   probleme: 'Réforme CPF',                 action: 'Révision contrats + fiches web',     resp: 'Réf. qualité', echeance: '2026-03-31', priorite: 'haute',   statut: 'terminee' },
+    { date: '2026-03-05', source: 'reclam',   probleme: 'Reporting financeur en retard', action: 'Automatisation reporting',          resp: 'Direction',    echeance: '2026-04-30', priorite: 'haute',   statut: 'terminee' },
+    { date: '2026-01-30', source: 'satbenef', probleme: 'Rythme dense fin de J2',      action: 'Refonte séquençage module 3',        resp: 'Resp. péda',   echeance: '2026-02-28', priorite: 'moyenne', statut: 'terminee' },
+  ],
+  revues: [
+    { date: '2026-05-20', type: 'perf',      participants: 'Voir composition (CFA)',                       decisions: 'Taux insertion, réclamations, plan N+1', cr: 'PV-CP-2026-01' },
+    { date: '2026-01-15', type: 'direction', participants: 'Direction + Réf. qualité + Resp. péda',        decisions: 'Bilan 2025, objectifs 2026, validation PAQ', cr: 'RDD-2026-01' },
+  ],
+  qual1: '', qual2: '', qual3: '', qual4: ''
+};
+
+// ============================================================
+//   PERSISTANCE
+// ============================================================
+const STORAGE_KEY = APP_SCHEMA.storageKey;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) { console.warn('Load failed', e); }
+  return JSON.parse(JSON.stringify(SEED));
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('Sauvegardé');
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+// ============================================================
+//   HELPERS
+// ============================================================
+function tbodyIdFor(tableId) {
+  return 'tbody' + tableId.charAt(0).toUpperCase() + tableId.slice(1);
+}
+function tfootIdFor(tableId) {
+  return 'tfoot' + tableId.charAt(0).toUpperCase() + tableId.slice(1);
+}
+
+function noteColorAttrs(val) {
+  if (val === '' || val === null || val === undefined) return '';
+  const n = parseFloat(val);
+  if (isNaN(n)) return '';
+  if (n <= 2) return ' data-bad="1"';
+  if (n >= 5) return ' data-good="1"';
+  return '';
+}
+
+// ============================================================
+//   RENDU DES CELLULES
+// ============================================================
+function renderCell(col, row, tableId, rowIndex) {
+  const value = row[col.id] ?? '';
+  if (col.type === 'select') {
+    const opts = col.options.map(o => `<option value="${o.value}"${o.value === value ? ' selected' : ''}>${o.label}</option>`).join('');
+    return `<select class="cell-select" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"><option value="">—</option>${opts}</select>`;
+  }
+  if (col.type === 'date') {
+    return `<input type="date" class="cell-input" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+  }
+  if (col.type === 'textarea') {
+    return `<textarea class="cell-textarea" rows="1" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}">${value}</textarea>`;
+  }
+  if (col.type === 'note') {
+    const attrs = noteColorAttrs(value);
+    return `<span class="cell-note"><input type="number" min="1" max="5" step="1" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"${attrs} /></span>`;
+  }
+  const safe = String(value).replace(/"/g, '&quot;');
+  return `<input type="text" class="cell-input" value="${safe}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+}
+
+// ============================================================
+//   RENDU D'UNE TABLE
+// ============================================================
+function renderTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const rows = state[tableId] || [];
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (!tbody) return;
+  if (rows.length === 0) {
+    const colspan = schema.columns.length + 1;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-row">Aucune entrée pour le moment. Cliquez sur « Ajouter » pour commencer.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map((row, i) => {
+      const cells = schema.columns.map(col => `<td>${renderCell(col, row, tableId, i)}</td>`).join('');
+      return `<tr>
+        ${cells}
+        <td class="col-actions">
+          <button class="row-action danger" data-action="delete" data-tbl="${tableId}" data-row="${i}" title="Supprimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+    attachCellHandlers(tbody);
+    autosizeTextareas(tbody);
+  }
+
+  // Rendu du tfoot pour les tables avec noteCols
+  if (schema.noteCols) renderFooterMoyennes(tableId);
+}
+
+function renderFooterMoyennes(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  const tfoot = document.getElementById(tfootIdFor(tableId));
+  if (!tfoot) return;
+  const rows = state[tableId] || [];
+
+  // Pour chaque colonne, calcule la moyenne si c'est une note
+  const tds = schema.columns.map(col => {
+    if (col.type === 'note') {
+      const vals = rows.map(r => parseFloat(r[col.id])).filter(v => !isNaN(v) && v >= 1 && v <= 5);
+      if (vals.length === 0) return `<td>—</td>`;
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      return `<td><span class="moy-val">${avg.toFixed(2)}</span></td>`;
+    }
+    // Colonnes non-note : vide sauf la première
+    return `<td></td>`;
+  });
+
+  // Calcul note globale (moyenne des moyennes des colonnes notes)
+  const noteAverages = schema.noteCols.map(colId => {
+    const vals = rows.map(r => parseFloat(r[colId])).filter(v => !isNaN(v) && v >= 1 && v <= 5);
+    if (vals.length === 0) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }).filter(v => v !== null);
+  const globalAvg = noteAverages.length > 0
+    ? (noteAverages.reduce((a, b) => a + b, 0) / noteAverages.length).toFixed(2)
+    : '—';
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="${schema.columns.findIndex(c => c.type === 'note')}">MOYENNES PAR ITEM</td>
+    ${tds.slice(schema.columns.findIndex(c => c.type === 'note')).join('')}
+    <td></td>
+  </tr>
+  <tr>
+    <td colspan="${schema.columns.length}">NOTE GLOBALE (moyenne des items) → <span class="moy-val" style="font-size:15px;">${globalAvg}</span> / 5</td>
+    <td></td>
+  </tr>`;
+}
+
+function autosizeTextareas(scope) {
+  scope.querySelectorAll('textarea').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(32, ta.scrollHeight) + 'px';
+  });
+}
+
+function attachCellHandlers(scope) {
+  scope.querySelectorAll('.cell-input, .cell-select, .cell-textarea, .cell-note input').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const { tbl, row, col } = e.target.dataset;
+      let v = e.target.value;
+      // Cast les notes en nombre
+      if (e.target.type === 'number' && v !== '') v = parseFloat(v);
+      state[tbl][parseInt(row)][col] = v;
+      // Mise à jour visuelle de la couleur si c'est une note
+      if (e.target.type === 'number') {
+        e.target.removeAttribute('data-bad');
+        e.target.removeAttribute('data-good');
+        const attrs = noteColorAttrs(v);
+        if (attrs.includes('bad')) e.target.setAttribute('data-bad', '1');
+        if (attrs.includes('good')) e.target.setAttribute('data-good', '1');
+      }
+      saveState();
+      // Recalculer footer + KPI
+      if (APP_SCHEMA.tables[tbl].noteCols) renderFooterMoyennes(tbl);
+      computeAccueil();
+      computeSynthese();
+    });
+    el.addEventListener('input', (e) => {
+      if (e.target.tagName === 'TEXTAREA') {
+        e.target.style.height = 'auto';
+        e.target.style.height = Math.max(32, e.target.scrollHeight) + 'px';
+      }
+    });
+  });
+  scope.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      state[tbl].splice(parseInt(row), 1);
+      saveState();
+      renderTable(tbl);
+      updateCounts();
+      computeAccueil();
+      computeSynthese();
+    });
+  });
+}
+
+// ============================================================
+//   AJOUT D'UNE LIGNE
+// ============================================================
+function addRow(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const emptyRow = {};
+  schema.columns.forEach(col => {
+    if (col.type === 'date') emptyRow[col.id] = new Date().toISOString().slice(0,10);
+    else if (col.type === 'note') emptyRow[col.id] = '';
+    else emptyRow[col.id] = '';
+  });
+  state[tableId].unshift(emptyRow);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  showToast(schema.toastLabel || 'Entrée ajoutée');
+
+  renderTable(tableId);
+  updateCounts();
+  computeAccueil();
+  computeSynthese();
+
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (tbody) {
+    const firstRow = tbody.firstElementChild;
+    if (firstRow) {
+      firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstRow.classList.add('row-flash');
+      setTimeout(() => firstRow.classList.remove('row-flash'), 1200);
+      setTimeout(() => {
+        const firstInput = firstRow.querySelector('input[type="text"], textarea, input[type="number"]');
+        if (firstInput) firstInput.focus();
+      }, 350);
+    }
+  }
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => addRow(btn.dataset.add));
+});
+
+// ============================================================
+//   COMPTEURS D'ONGLETS
+// ============================================================
+function updateCounts() {
+  Object.entries(APP_SCHEMA.tabs).forEach(([tabId, tableIds]) => {
+    const total = tableIds.reduce((sum, tid) => sum + (state[tid] || []).length, 0);
+    const el = document.getElementById('cnt' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+    if (el) el.textContent = total;
+  });
+}
+
+// ============================================================
+//   CALCUL MOYENNES PAR PUBLIC
+// ============================================================
+function averageOfTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  const rows = state[tableId] || [];
+  if (rows.length === 0 || !schema.noteCols) return { avg: null, n: 0 };
+  const allNotes = [];
+  rows.forEach(r => {
+    schema.noteCols.forEach(c => {
+      const v = parseFloat(r[c]);
+      if (!isNaN(v) && v >= 1 && v <= 5) allNotes.push(v);
+    });
+  });
+  if (allNotes.length === 0) return { avg: null, n: rows.length };
+  return { avg: allNotes.reduce((a, b) => a + b, 0) / allNotes.length, n: rows.length };
+}
+
+// ============================================================
+//   SYNTHÈSE SATISFACTION (Ind. 30)
+// ============================================================
+function computeSynthese() {
+  const benef = averageOfTable('benef');
+  const form  = averageOfTable('form');
+  const entr  = averageOfTable('entr');
+
+  const set = (id, val, dec = 2) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (val === null || val === undefined) ? '—' : val.toFixed(dec);
+  };
+
+  set('synthBenef', benef.avg);
+  set('synthForm',  form.avg);
+  set('synthEntr',  entr.avg);
+  document.getElementById('synthBenefN').textContent = benef.n;
+  document.getElementById('synthFormN').textContent  = form.n;
+  document.getElementById('synthEntrN').textContent  = entr.n;
+
+  const present = [benef.avg, form.avg, entr.avg].filter(v => v !== null);
+  const globale = present.length > 0
+    ? present.reduce((a, b) => a + b, 0) / present.length
+    : null;
+  set('synthGlobale', globale);
+}
+
+// ============================================================
+//   ACCUEIL — 6 KPI globaux
+// ============================================================
+function computeAccueil() {
+  // 1. Note globale satisfaction
+  const benef = averageOfTable('benef');
+  const form  = averageOfTable('form');
+  const entr  = averageOfTable('entr');
+  const present = [benef.avg, form.avg, entr.avg].filter(v => v !== null);
+  const globale = present.length > 0 ? present.reduce((a, b) => a + b, 0) / present.length : null;
+  document.getElementById('kpiNote').textContent = globale === null ? '—' : globale.toFixed(2);
+
+  // 2. Taux de reco (bénéficiaires)
+  const benefs = state.benef || [];
+  const recos = benefs.filter(r => r.reco === 'O' || r.reco === 'N');
+  const recoOui = benefs.filter(r => r.reco === 'O').length;
+  const recoPct = recos.length > 0 ? Math.round((recoOui / recos.length) * 100) : 0;
+  document.getElementById('kpiReco').textContent = recoPct;
+
+  // 3. % réclamations clôturées
+  const reclams = state.reclam || [];
+  const clos = reclams.filter(r => r.statut === 'cloturee').length;
+  const reclamPct = reclams.length > 0 ? Math.round((clos / reclams.length) * 100) : 0;
+  document.getElementById('kpiReclam').textContent = reclamPct;
+
+  // 4. Réclamations en retard
+  const reclamRetard = reclams.filter(r => r.statut === 'retard').length;
+  document.getElementById('kpiReclamRetard').textContent = reclamRetard;
+
+  // 5. % PAQ terminé
+  const paqs = state.paq || [];
+  const term = paqs.filter(a => a.statut === 'terminee').length;
+  const paqPct = paqs.length > 0 ? Math.round((term / paqs.length) * 100) : 0;
+  document.getElementById('kpiPaq').textContent = paqPct;
+
+  // 6. PAQ en retard
+  const paqRetard = paqs.filter(a => a.statut === 'retard').length;
+  document.getElementById('kpiPaqRetard').textContent = paqRetard;
+}
+
+// ============================================================
+//   RÉFÉRENTIEL : injection du contenu des questionnaires
+// ============================================================
+function renderQuestionnaires() {
+  const container = document.getElementById('paneQuestionnaires');
+  if (!container) return;
+  // On ne garde que le hero (le 1er enfant)
+  const hero = container.querySelector('.cockpit-hero');
+
+  const blocks = QUESTIONNAIRES.map(q => {
+    const items = q.items.map(item => `
+      <div class="q-item">
+        <div class="q-item-num">${String(item.n).padStart(2, '0')}</div>
+        <div class="q-item-text">${item.txt}</div>
+        <div class="q-item-type ${item.type === 'open' ? 'open' : ''}">${item.type === 'note' ? 'Note 1-5' : 'Ouverte'}</div>
+      </div>`).join('');
+    return `<div class="q-block">
+      <div class="q-block-head">
+        <div class="q-block-num">${q.num}</div>
+        <div class="q-block-title">${q.title}</div>
+        ${q.sub ? `<div class="q-block-sub">${q.sub}</div>` : ''}
+      </div>
+      ${items}
+    </div>`;
+  }).join('');
+
+  container.innerHTML = '';
+  if (hero) container.appendChild(hero);
+  container.insertAdjacentHTML('beforeend', blocks);
+}
+
+// ============================================================
+//   ONGLETS
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-pane="${btn.dataset.tab}"]`).classList.add('active');
+    if (btn.dataset.tab === 'accueil') computeAccueil();
+    if (btn.dataset.tab === 'synthese') computeSynthese();
+  });
+});
+
+// ============================================================
+//   CHAMPS LIBRES
+// ============================================================
+APP_SCHEMA.freeFields.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = state[id] || '';
+  el.addEventListener('input', () => { state[id] = el.value; });
+  el.addEventListener('blur', () => saveState());
+});
+
+// ============================================================
+//   AIDE
+// ============================================================
+const helpBackdrop = document.getElementById('helpBackdrop');
+document.getElementById('openHelpBtn').addEventListener('click', () => {
+  helpBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+function closeHelp() {
+  helpBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+helpBackdrop.addEventListener('click', e => { if (e.target === helpBackdrop) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && helpBackdrop.classList.contains('open')) closeHelp(); });
+
+// ============================================================
+//   BOOT
+// ============================================================
+renderQuestionnaires();
+Object.keys(APP_SCHEMA.tables).forEach(tid => renderTable(tid));
+updateCounts();
+computeAccueil();
+computeSynthese();
+
+</script>
+</body>
+</html>

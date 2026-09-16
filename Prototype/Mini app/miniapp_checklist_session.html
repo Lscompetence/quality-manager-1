@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Mini-app · Check-list de session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --bg-elev-2: rgba(28,32,52,0.88);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.16; --aur-c2: 0.16; --aur-c3: 0.14;
+  --aur-c4: 0.16; --aur-c5: 0.14; --aur-c6: 0.20; --aur-c7: 0.14;
+  --aur-veil-start: rgba(3,4,10,0.6);
+  --aur-veil-end: rgba(3,4,10,0.94);
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-info: #6B89D0;
+  --danger: #EF5C5C;
+  --c6: #A755F8;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --bg-elev-2: rgba(255,254,250,0.92);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.10; --aur-c2: 0.10; --aur-c3: 0.08;
+  --aur-c4: 0.10; --aur-c5: 0.08; --aur-c6: 0.12; --aur-c7: 0.08;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end: rgba(244,247,250,0.92);
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-info: #3D5A99;
+  --danger: #C2410C;
+  --c6: #8530DB;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Catégorie environnement (C6 → violet) */
+[data-cat="AF"] { --aur-c2: 0.32; }
+[data-cat="BC"] { --aur-c4: 0.32; }
+[data-cat="VAE"] { --aur-c3: 0.30; }
+[data-cat="CFA"] { --aur-c6: 0.34; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR (identique à indicateur_11) */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; text-decoration: none; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33% { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66% { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; max-width: 1500px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER MINI-APP ===== */
+.app-header {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+}
+.ah-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ah-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 8px var(--c6); }
+.ah-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 40px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.ah-subtitle { font-size: 14.5px; color: var(--text-mute); max-width: 700px; line-height: 1.55; }
+.ah-indicators { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ah-ind-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--c6);
+}
+.ah-ind-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 6px var(--c6); }
+.ah-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 38px; border-radius: 11px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all .2s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+.btn-secondary svg { width: 13px; height: 13px; }
+
+/* ===== ONGLETS ===== */
+.tabs {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tab-btn {
+  padding: 9px 16px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  background: transparent; border: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px var(--amethyst-soft);
+}
+.tab-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-mute);
+}
+.tab-btn.active .tab-count { background: var(--amethyst-soft); color: var(--amethyst-br); }
+
+/* ===== PANNEAU TABLE (réutilisable) ===== */
+.panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .panel { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18); }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.panel-actions { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 12px -2px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 6px 18px -2px rgba(107,79,187,0.7); }
+.btn-add svg { width: 12px; height: 12px; }
+
+/* ===== TABLE (registre) ===== */
+.tbl-wrap { overflow-x: auto; }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 10px; font-weight: 600;
+  color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.tbl tbody tr { transition: background .15s; }
+.tbl tbody tr:hover { background: var(--surface); }
+.tbl td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.col-num { width: 50px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-faint); }
+.col-actions { width: 70px; text-align: right; }
+.row-action {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.row-action:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.row-action.danger:hover { color: var(--danger); }
+.row-action svg { width: 13px; height: 13px; }
+
+/* Inputs inline dans la table */
+.cell-input, .cell-select, .cell-textarea {
+  width: 100%; padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  resize: none;
+  line-height: 1.4;
+}
+.cell-input:hover, .cell-select:hover, .cell-textarea:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.cell-input:focus, .cell-select:focus, .cell-textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 26px;
+}
+.cell-select option {
+  background: #1a1d2e;
+  color: #F5F4EE;
+  padding: 8px;
+}
+[data-theme="light"] .cell-select option {
+  background: #FFFEFA;
+  color: #0F2A47;
+}
+
+/* Empty state */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Flash pour nouvelle ligne ajoutée */
+@keyframes rowFlash {
+  0%   { background: var(--amethyst-soft); }
+  100% { background: transparent; }
+}
+.tbl tbody tr.row-flash { animation: rowFlash 1.2s ease-out; }
+.tbl tbody tr.row-flash td { border-bottom-color: var(--amethyst-soft); }
+
+/* ===== ONGLET SYNTHÈSE — KPI cards ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+[data-theme="light"] .kpi-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--kpi-color, var(--c6)); opacity: 0.55;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.kpi-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--kpi-color, var(--c6)); box-shadow: 0 0 6px var(--kpi-color, var(--c6)); }
+.kpi-value {
+  font-family: 'Raleway'; font-weight: 300; font-size: 36px;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+.kpi-value .unit { font-size: 16px; color: var(--text-faint); margin-left: 4px; }
+.kpi-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 8px; }
+
+.kpi-card.cat-23 { --kpi-color: #6B89D0; }
+.kpi-card.cat-24 { --kpi-color: #5DC9A5; }
+.kpi-card.cat-25 { --kpi-color: #EB489B; }
+.kpi-card.total { --kpi-color: var(--c6); }
+.kpi-card.exploit { --kpi-color: var(--status-done); }
+.kpi-card.todo { --kpi-color: var(--status-progress); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: #3D5A99; }
+[data-theme="light"] .kpi-card.cat-24 { --kpi-color: #2BA785; }
+[data-theme="light"] .kpi-card.cat-25 { --kpi-color: #C82A7D; }
+
+/* Analyse qualitative */
+.qual-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+.qual-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 18px; }
+.qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.qual-field { display: flex; flex-direction: column; gap: 8px; }
+.qual-field label {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600;
+}
+.qual-field textarea {
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  min-height: 80px; resize: vertical;
+  line-height: 1.5;
+  transition: all .2s;
+}
+.qual-field textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Onglet panes */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .35s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Aide flottante */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .help-backdrop { background: rgba(15,42,71,0.32); }
+.help-backdrop.open { display: flex; opacity: 1; }
+.help-backdrop.open .help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.help-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  padding: 32px 36px;
+  max-width: 700px; width: 100%;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.help-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.help-eyebrow { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-title { font-family: 'Raleway'; font-weight: 300; font-size: 28px; color: var(--text); letter-spacing: -0.02em; }
+.help-close { width: 34px; height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text-mute); transition: all .2s; }
+.help-close:hover { background: var(--surface-2); color: var(--text); }
+.help-section { margin-bottom: 18px; }
+.help-section h4 { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-section p { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.help-section ul { list-style: none; padding: 0; }
+.help-section li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; }
+.help-section li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); opacity: 0.7; }
+.help-section li b { color: var(--text); }
+
+/* Animations */
+.app-header, .tabs, .panel, .kpi-grid, .qual-panel { opacity: 0; filter: blur(8px); animation: enter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.app-header { animation-delay: .1s; }
+.tabs { animation-delay: .2s; }
+.panel { animation-delay: .3s; }
+.kpi-grid { animation-delay: .3s; }
+.qual-panel { animation-delay: .42s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+
+/* === Barre de sélection de session active === */
+.session-bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 18px;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.session-bar-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 600;
+}
+.session-select {
+  padding: 8px 32px 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text);
+  appearance: none; cursor: pointer;
+  min-width: 280px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center;
+  transition: all .2s;
+}
+.session-select:hover { background-color: var(--surface-2); border-color: var(--border-strong); }
+.session-select:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background-color: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.session-select option { background: #1a1d2e; color: #F5F4EE; padding: 8px; }
+[data-theme="light"] .session-select option { background: #FFFEFA; color: #0F2A47; }
+
+.session-spacer { flex: 1; }
+.session-progress {
+  display: flex; align-items: center; gap: 10px;
+}
+.sp-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 600;
+}
+.sp-bar {
+  display: inline-block; width: 140px; height: 6px;
+  background: var(--surface-2); border-radius: 99px; overflow: hidden;
+  position: relative;
+}
+.sp-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--amethyst), var(--amethyst-br), var(--status-done));
+  border-radius: 99px;
+  transition: width .6s cubic-bezier(.22,1,.36,1);
+  width: 0%;
+}
+.sp-pct {
+  font-family: 'Raleway'; font-weight: 600; font-size: 13.5px;
+  color: var(--amethyst-br);
+  min-width: 40px; text-align: right;
+}
+
+/* === Formulaire d'identification (onglet 1) === */
+.form-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 32px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .form-card {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18);
+}
+.form-card-head {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.form-card-title {
+  font-family: 'Raleway'; font-size: 19px; font-weight: 500;
+  color: var(--text); display: flex; align-items: center; gap: 10px;
+}
+.form-card-sub {
+  font-size: 13px; color: var(--text-mute);
+  margin-top: 6px;
+}
+.form-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+}
+.form-row { display: flex; flex-direction: column; gap: 7px; }
+.form-row.full { grid-column: 1 / -1; }
+.form-row label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 600;
+}
+.form-input {
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit; font-size: 13.5px;
+  color: var(--text);
+  transition: all .2s;
+}
+.form-input:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* === Checklists groupées === */
+.checklist-group {
+  margin-bottom: 20px;
+}
+.checklist-group:last-child { margin-bottom: 0; }
+.cl-group-head {
+  display: flex; align-items: center; gap: 11px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.cl-group-letter {
+  width: 24px; height: 24px; border-radius: 7px;
+  display: grid; place-items: center;
+  background: var(--amethyst-soft);
+  color: var(--amethyst-br);
+  font-family: 'JetBrains Mono'; font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.cl-group-title {
+  font-family: 'Raleway'; font-size: 15px; font-weight: 500;
+  color: var(--text); flex: 1;
+}
+.cl-group-progress {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute); letter-spacing: 0.04em;
+}
+.cl-group-progress b { color: var(--status-done); font-weight: 600; }
+
+/* Items checklist */
+.cl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cl-table thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 9.5px; font-weight: 600;
+  color: var(--text-faint); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.cl-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.cl-table tr:last-child td { border-bottom: none; }
+.cl-num {
+  width: 30px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-faint);
+  padding-top: 14px;
+}
+.cl-action {
+  padding-top: 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.cl-meta {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute);
+  padding-top: 14px;
+  white-space: nowrap;
+}
+.cl-statut {
+  width: 140px;
+}
+.cl-obs {
+  width: 220px;
+}
+.cl-obs textarea {
+  width: 100%;
+  padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--text-soft);
+  resize: none; line-height: 1.4;
+  min-height: 32px;
+  transition: all .15s;
+}
+.cl-obs textarea:hover { border-color: var(--border); background: var(--surface); }
+.cl-obs textarea:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Pill statut checklist (cliquable) */
+.cl-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px 5px 9px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; border: 1px solid;
+  transition: all .2s; user-select: none;
+  position: relative;
+  white-space: nowrap;
+}
+.cl-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+.cl-pill.todo { color: var(--text-mute); background: var(--surface-2); border-color: var(--border); }
+.cl-pill.todo::before { background: var(--text-mute); }
+.cl-pill.done { color: var(--status-done); background: rgba(88,214,154,0.10); border-color: rgba(88,214,154,0.32); }
+.cl-pill.done::before { background: var(--status-done); box-shadow: 0 0 6px var(--status-done); }
+.cl-pill.na { color: var(--status-na); background: var(--surface); border-color: var(--border); opacity: 0.65; }
+.cl-pill.na::before { background: var(--status-na); }
+.cl-pill.alert { color: var(--danger); background: rgba(239,92,92,0.10); border-color: rgba(239,92,92,0.32); }
+.cl-pill.alert::before { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+[data-theme="light"] .cl-pill.done { background: rgba(14,159,110,0.10); border-color: rgba(14,159,110,0.30); }
+[data-theme="light"] .cl-pill.alert { background: rgba(194,65,12,0.10); border-color: rgba(194,65,12,0.32); }
+.cl-pill:hover { filter: brightness(1.1); }
+.cl-pill svg { width: 8px; height: 8px; opacity: 0.7; }
+
+/* Menu déroulant statut checklist */
+.cl-menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 30;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.5);
+  opacity: 0; pointer-events: none;
+  transform: translateY(-4px) scale(0.96);
+  transition: all .15s cubic-bezier(.22,1,.36,1);
+}
+[data-theme="light"] .cl-menu { box-shadow: 0 10px 30px -6px rgba(15,42,71,0.18); }
+.cl-pill.open + .cl-menu { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.cl-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-soft);
+  cursor: pointer; transition: background .15s;
+}
+.cl-menu-item:hover { background: var(--surface-2); color: var(--text); }
+.cl-menu-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.cl-menu-item.todo::before { background: var(--text-mute); }
+.cl-menu-item.done::before { background: var(--status-done); box-shadow: 0 0 5px var(--status-done); }
+.cl-menu-item.na::before { background: var(--status-na); }
+.cl-menu-item.alert::before { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+
+/* Bandeau d'avertissement */
+.warn-strip {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.22);
+  border-radius: 12px;
+  font-size: 12.5px; line-height: 1.45;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}
+.warn-strip svg { color: var(--status-progress); flex-shrink: 0; margin-top: 1px; }
+[data-theme="light"] .warn-strip { background: rgba(180,83,9,0.08); border-color: rgba(180,83,9,0.22); }
+
+/* Empty state pour session non sélectionnée */
+.empty-state {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px dashed var(--border-strong);
+  border-radius: 18px;
+  padding: 50px 30px;
+  text-align: center;
+}
+.empty-state-ic {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--amethyst-soft);
+  display: grid; place-items: center; margin: 0 auto 16px;
+  color: var(--amethyst-br);
+}
+.empty-state-title { font-family: 'Raleway'; font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.empty-state-text { font-size: 13.5px; color: var(--text-mute); max-width: 480px; margin: 0 auto 18px; line-height: 1.5; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 18px;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 9px;
+  transform: translateY(20px); opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none; z-index: 200;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="brand" href="home.html"><div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </a>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <a class="nav-item" href="dossier_dashboard.html">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </a>
+      <a class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </a>
+      <a class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </a>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <a class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></a>
+      <a class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></a>
+      <a class="nav-item" href="critere_03.html"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">40</span></a>
+      <a class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></a>
+      <a class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></a>
+      <a class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></a>
+      <a class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></a>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <a href="#">mini-apps</a><span class="sep">/</span>
+        <b>check-list de session</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER MINI-APP -->
+    <div class="app-header">
+      <div class="ah-left">
+        <div class="ah-eyebrow">Mini-app · Modèle M25</div>
+        <h1 class="ah-title">Check-list de session</h1>
+        <p class="ah-subtitle">Préparation, déroulement et clôture d'une session de formation. Document signé par le responsable de session — pièce d'audit centrale.</p>
+        <div class="ah-indicators">
+          <div class="ah-ind-pill">Ind. 9 · Conditions d'accueil</div>
+          <div class="ah-ind-pill">Ind. 17 · Moyens péda</div>
+          <div class="ah-ind-pill">Ind. 19 · FOAD</div>
+          <div class="ah-ind-pill">Ind. 26 · Handicap</div>
+        </div>
+      </div>
+      <div class="ah-right">
+        <button class="btn-secondary" id="openHelpBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Mode d'emploi
+        </button>
+      </div>
+    </div>
+
+    <!-- SÉLECTEUR DE SESSION ACTIVE -->
+    <div class="session-bar">
+      <div class="session-bar-label">Session active</div>
+      <select class="session-select" id="sessionSelect"></select>
+      <button class="btn-add" id="newSessionBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle session
+      </button>
+      <div class="session-spacer"></div>
+      <div class="session-progress" id="sessionProgress">
+        <span class="sp-label">Progression :</span>
+        <span class="sp-bar"><span class="sp-bar-fill" id="spBarFill"></span></span>
+        <span class="sp-pct" id="spPct">0%</span>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="identification">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.66A8 8 0 0 1 17 20.66"/></svg>
+        Identification
+      </button>
+      <button class="tab-btn" data-tab="avant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Avant
+        <span class="tab-count" id="cntAvant">0/0</span>
+      </button>
+      <button class="tab-btn" data-tab="pendant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Pendant
+        <span class="tab-count" id="cntPendant">0/0</span>
+      </button>
+      <button class="tab-btn" data-tab="apres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+        Après
+        <span class="tab-count" id="cntApres">0/0</span>
+      </button>
+      <button class="tab-btn" data-tab="suivi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Suivi sessions
+        <span class="tab-count" id="cntSuivi">0</span>
+      </button>
+    </div>
+
+    <!-- ============ ONGLET 1 : IDENTIFICATION ============ -->
+    <div class="tab-pane active" data-pane="identification">
+      <div class="form-card">
+        <div class="form-card-head">
+          <div class="form-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="19" height="19" style="color: var(--c6);"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.66A8 8 0 0 1 17 20.66"/></svg>
+            Identification de la session
+          </div>
+          <div class="form-card-sub">Saisi une seule fois — ces informations alimentent l'en-tête de toutes les check-lists et le registre de suivi.</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Code session</label>
+            <input type="text" class="form-input" data-meta="code" placeholder="Ex. SOF-CPCE-2026-S01">
+          </div>
+          <div class="form-row full">
+            <label>Intitulé</label>
+            <input type="text" class="form-input" data-meta="intitule" placeholder="Intitulé exact tel qu'au programme M5">
+          </div>
+          <div class="form-row">
+            <label>Date de début</label>
+            <input type="date" class="form-input" data-meta="dateDebut">
+          </div>
+          <div class="form-row">
+            <label>Date de fin</label>
+            <input type="date" class="form-input" data-meta="dateFin">
+          </div>
+          <div class="form-row">
+            <label>Nombre de bénéficiaires</label>
+            <input type="number" class="form-input" data-meta="nbBenef" placeholder="Ex. 10" min="0">
+          </div>
+          <div class="form-row full">
+            <label>Lieu / Plateforme</label>
+            <input type="text" class="form-input" data-meta="lieu" placeholder="Adresse — Salle XXX  ou  Zoom / Teams">
+          </div>
+          <div class="form-row full">
+            <label>Responsable de session</label>
+            <input type="text" class="form-input" data-meta="responsable" placeholder="Prénom NOM">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 2 : AVANT ============ -->
+    <div class="tab-pane" data-pane="avant">
+      <div class="warn-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Préparation logistique et pédagogique de la session. Tracer chaque item permet de prouver la <b>conformité Ind. 9</b> à l'audit.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Avant la session (J-7 à J0)
+          </div>
+        </div>
+        <div style="padding: 22px 26px;" id="checklistAvant"></div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 3 : PENDANT ============ -->
+    <div class="tab-pane" data-pane="pendant">
+      <div class="warn-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Routines quotidiennes, point mi-parcours et vigilance sécurité — pendant le déroulement de la session.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Pendant la session
+          </div>
+        </div>
+        <div style="padding: 22px 26px;" id="checklistPendant"></div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 4 : APRÈS ============ -->
+    <div class="tab-pane" data-pane="apres">
+      <div class="warn-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Clôture documentaire (J+0 à J+15) et suivi d'impact (à J+3 et J+6 mois) — assoit la conformité <b>Ind. 11, 30, 32</b>.</span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><polyline points="20 6 9 17 4 12"/></svg>
+            Après la session
+          </div>
+        </div>
+        <div style="padding: 22px 26px;" id="checklistApres"></div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 5 : SUIVI SESSIONS ============ -->
+    <div class="tab-pane" data-pane="suivi">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Registre annuel des sessions
+            <span style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-mute); margin-left:4px; font-weight:400;">une ligne par session — alimente le bilan qualité</span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="suivi">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une session
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblSuivi">
+            <thead><tr>
+              <th style="width:170px;">Code session</th>
+              <th>Intitulé</th>
+              <th style="width:110px;">Période</th>
+              <th style="width:75px;">Inscrits</th>
+              <th style="width:75px;">Présents</th>
+              <th style="width:75px;">Abandons</th>
+              <th style="width:90px;">Assiduité</th>
+              <th style="width:110px;">Satisfaction</th>
+              <th style="width:90px;">Réussite</th>
+              <th style="width:130px;">Clôture</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodySuivi"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALE MODE D'EMPLOI ===== -->
+<div class="help-backdrop" id="helpBackdrop">
+  <div class="help-modal">
+    <div class="help-head">
+      <div>
+        <div class="help-eyebrow">Mode d'emploi · Modèle M25</div>
+        <h2 class="help-title">Check-list<br>de session</h2>
+      </div>
+      <button class="help-close" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="help-section">
+      <h4>À quoi sert cet outil</h4>
+      <p>Trace la préparation, le déroulement et la clôture de <b>chaque session de formation</b>. C'est le document pivot pour démontrer la conformité Ind. 9 (conditions d'accueil), Ind. 17 (moyens), Ind. 19 (FOAD) et Ind. 26 (handicap) à l'audit.</p>
+    </div>
+    <div class="help-section">
+      <h4>Comment ça marche</h4>
+      <ul>
+        <li><b>Sélectionnez la session</b> sur laquelle vous travaillez (ou créez-en une nouvelle).</li>
+        <li><b>Remplissez l'Identification</b> une seule fois — réutilisée dans toutes les checklists.</li>
+        <li><b>Cochez les items</b> dans les onglets Avant / Pendant / Après au fur et à mesure.</li>
+        <li><b>Tenez le registre annuel</b> pour le pilotage qualité (Ind. 30, 31, 32).</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Légende des statuts</h4>
+      <ul>
+        <li><b>À faire</b> : item à réaliser</li>
+        <li><b>Fait</b> : élément réalisé et tracé</li>
+        <li><b>N/A</b> : non applicable à cette session</li>
+        <li><b>Anomalie</b> : point d'attention détecté — à documenter dans Observations</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Pièges fréquents en audit</h4>
+      <ul>
+        <li>Check-list remplie « à la va-vite » à la fin du parcours — incohérences sur les dates</li>
+        <li>Émargements quotidiens manquants (Ind. 9 quasi-systématiquement NC)</li>
+        <li>Pas d'évaluation à chaud collectée (Ind. 30 NC)</li>
+        <li>Pas d'évaluation à froid 6 mois (Ind. 32 NC)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Sauvegardé</span></div>
+
+<script>
+/* =======================================================
+   THÈME
+======================================================= */
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function apply(t) { root.setAttribute('data-theme', t); }
+  function init() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  apply(init());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) apply(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+/* =======================================================
+   MOTEUR GÉNÉRIQUE DE MINI-APP (v3 — sessions multiples)
+   Innovation : concept de "document parent" (session) qui
+   contient des sous-données (meta + 3 checklists). Plusieurs
+   sessions coexistent. Un sélecteur en haut détermine la session active.
+   La table "suivi" reste un registre classique.
+======================================================= */
+
+const APP_SCHEMA = {
+  id: 'checklist-session',
+  storageKey: 'qm:miniapp:checklist-session',
+
+  // Champs d'identification (métadonnées par session)
+  sessionMeta: ['code', 'intitule', 'dateDebut', 'dateFin', 'lieu', 'responsable', 'nbBenef'],
+
+  // Définition des 3 checklists (items prédéfinis, groupés)
+  checklists: {
+    avant: [
+      { letter: 'A', title: 'J-7 à J-3 — Préparation générale', items: [
+        { action: 'Convocations envoyées à tous les bénéficiaires (M22) avec accusé de réception', echeance: 'J-7',  resp: 'Administratif' },
+        { action: 'Test de positionnement (M19) et synthèse (M20) finalisés pour chaque inscrit', echeance: 'J-7',  resp: 'Pédagogique' },
+        { action: 'Demandes d\'aménagement PSH instruites — réponses transmises',                echeance: 'J-5',  resp: 'Réf. handicap' },
+        { action: 'Convocation et CV des intervenants externes confirmés',                       echeance: 'J-7',  resp: 'Pédagogique' },
+        { action: 'Préparation des supports : version définitive validée et numérisée',          echeance: 'J-5',  resp: 'Pédagogique' },
+        { action: 'Quiz et évaluations formatives préparés et déposés sur la plateforme',        echeance: 'J-5',  resp: 'Pédagogique' },
+        { action: 'Programme détaillé (M5) et synopsis (M21) communiqués aux bénéficiaires',     echeance: 'J-5',  resp: 'Administratif' },
+        { action: 'Contrats / conventions signés et archivés pour chaque inscrit',               echeance: 'J-3',  resp: 'Administratif' },
+      ]},
+      { letter: 'B', title: 'J-2 à J-1 — Logistique', items: [
+        { action: 'Salle réservée et configuration validée (cours / U / îlots)',                 echeance: 'J-2',  resp: 'Logistique' },
+        { action: 'Équipement audiovisuel testé : projecteur, son, connexion',                   echeance: 'J-1',  resp: 'Logistique' },
+        { action: 'Wifi visiteurs testé (vitesse, code d\'accès)',                              echeance: 'J-1',  resp: 'Logistique' },
+        { action: 'Restauration commandée / espace pause vérifié et approvisionné',              echeance: 'J-1',  resp: 'Logistique' },
+        { action: 'Plateforme FOAD : test de connexion et lien transmis aux bénéficiaires',      echeance: 'J-2',  resp: 'Pédagogique' },
+        { action: 'Lien classe virtuelle programmé et envoyé 24h avant',                         echeance: 'J-1',  resp: 'Pédagogique' },
+        { action: 'Supports imprimés et reliés en quantité suffisante',                          echeance: 'J-1',  resp: 'Administratif' },
+        { action: 'Badges nominatifs préparés (présentiel) / chevalets de table',                echeance: 'J-1',  resp: 'Administratif' },
+      ]},
+      { letter: 'C', title: 'J0 — Matin du jour d\'ouverture', items: [
+        { action: 'Salle ouverte et préparée 1h avant l\'horaire d\'arrivée',                   echeance: 'J0 8h00',  resp: 'Formateur' },
+        { action: 'Feuilles d\'émargement (M26) imprimées et prêtes',                            echeance: 'J0 8h30',  resp: 'Formateur' },
+        { action: 'Trousse de secours et matériel de sécurité vérifiés',                          echeance: 'J0 8h30',  resp: 'Logistique' },
+        { action: 'Accueil café / collation prêt',                                                echeance: 'J0 8h30',  resp: 'Logistique' },
+        { action: 'Briefing rapide avec co-intervenants (5 min)',                                 echeance: 'J0 8h45',  resp: 'Formateur' },
+        { action: 'Tour de table préparé + présentation organisme + sécurité (15 min)',           echeance: 'J0 9h00',  resp: 'Formateur' },
+        { action: 'Règlement intérieur et consignes sécurité communiqués et émargés',             echeance: 'J0 9h15',  resp: 'Formateur' },
+      ]},
+    ],
+    pendant: [
+      { letter: 'A', title: 'Routine quotidienne — chaque jour', items: [
+        { action: 'Émargement (M26) signé par tous les présents — matin',                        echeance: 'Quotidien 9h00',  resp: 'Formateur' },
+        { action: 'Émargement signé par tous les présents — après-midi',                         echeance: 'Quotidien 13h30', resp: 'Formateur' },
+        { action: 'Absences signalées au service administratif + tentative de joindre l\'absent', echeance: 'Quotidien',       resp: 'Administratif' },
+        { action: 'Activités du jour réalisées conformément au synopsis (M21)',                  echeance: 'Quotidien',       resp: 'Formateur' },
+        { action: 'Quiz / évaluation formative du jour réalisé et archivé',                      echeance: 'Quotidien',       resp: 'Pédagogique' },
+        { action: 'Tour de table de fin de journée : ressenti, blocages, ajustements',           echeance: 'Quotidien fin',   resp: 'Formateur' },
+      ]},
+      { letter: 'B', title: 'Point d\'étape mi-parcours', items: [
+        { action: 'Entretien individuel mi-parcours avec chaque bénéficiaire (M28)',             echeance: 'Mi-parcours',     resp: 'Formateur' },
+        { action: 'Ajustements pédagogiques formalisés et tracés (M28)',                         echeance: 'Mi-parcours',     resp: 'Formateur' },
+        { action: 'Synthèse mi-parcours transmise au responsable pédagogique',                   echeance: 'Mi-parcours +1j', resp: 'Formateur' },
+        { action: 'Si abandon potentiel détecté : déclenchement procédure de relance (M27)',     echeance: 'À l\'évén.',     resp: 'Pédagogique' },
+      ]},
+      { letter: 'C', title: 'Sécurité & vigilance', items: [
+        { action: 'Consignes de sécurité rappelées si nouvelle salle / changement de config',    echeance: 'Si besoin',       resp: 'Formateur' },
+        { action: 'Inventaire matériel réalisé en début et fin de journée',                      echeance: 'Quotidien',       resp: 'Formateur' },
+        { action: 'Incidents tracés sur registre de signalement (le cas échéant)',               echeance: 'À l\'évén.',     resp: 'Responsable' },
+      ]},
+    ],
+    apres: [
+      { letter: 'A', title: 'J+0 — Clôture immédiate', items: [
+        { action: 'Évaluation à chaud distribuée et collectée (Ind. 30)',                        echeance: 'J+0',  resp: 'Formateur' },
+        { action: 'Bilan oral collectif de fin de parcours (30-45 min)',                         echeance: 'J+0',  resp: 'Formateur' },
+        { action: 'Remerciements et information sur les démarches post-formation',               echeance: 'J+0',  resp: 'Formateur' },
+        { action: 'Salle remise en état et matériel rangé',                                      echeance: 'J+0',  resp: 'Logistique' },
+      ]},
+      { letter: 'B', title: 'J+1 à J+7 — Documents officiels', items: [
+        { action: 'PV de jury (M30) finalisé et signé — si certification',                       echeance: 'J+3',           resp: 'Pédagogique' },
+        { action: 'Grilles d\'évaluation des acquis (M29) finalisées',                          echeance: 'J+3',           resp: 'Formateur' },
+        { action: 'Attestation de fin de formation (M31) éditée pour chaque bénéficiaire',       echeance: 'J+5',           resp: 'Administratif' },
+        { action: 'Certificats de réalisation (M32) édités et transmis aux financeurs',          echeance: 'J+5',           resp: 'Administratif' },
+        { action: 'Attestation de présence éditée si demandée par employeur / FT',               echeance: 'À la demande',  resp: 'Administratif' },
+        { action: 'Synthèses individuelles de parcours envoyées aux bénéficiaires',              echeance: 'J+7',           resp: 'Pédagogique' },
+      ]},
+      { letter: 'C', title: 'J+7 à J+15 — Finalisation & suivi', items: [
+        { action: 'Dossier complet de chaque bénéficiaire archivé (papier + numérique)',         echeance: 'J+10',          resp: 'Administratif' },
+        { action: 'Facturation finalisée et envoyée aux financeurs',                             echeance: 'J+10',          resp: 'Comptable' },
+        { action: 'Mise à jour du registre annuel des sessions',                                 echeance: 'J+10',          resp: 'Pédagogique' },
+        { action: 'Synthèse des questionnaires à chaud : taux satisfaction, axes amélioration',  echeance: 'J+15',          resp: 'Qualité' },
+        { action: 'Réunion debriefing équipe pédagogique (si applicable)',                       echeance: 'J+15',          resp: 'Pédagogique' },
+        { action: 'Mise à jour des indicateurs annuels (M7) : présence, satisfaction, réussite', echeance: 'J+15',          resp: 'Qualité' },
+      ]},
+      { letter: 'D', title: 'J+3 mois / J+6 mois — Impact', items: [
+        { action: 'Évaluation à froid à J+3 mois envoyée et collectée',                          echeance: '+3 mois',       resp: 'Qualité' },
+        { action: 'Évaluation à froid à J+6 mois (insertion CFA / impact) — Ind. 29',            echeance: '+6 mois',       resp: 'Qualité' },
+        { action: 'Synthèse impact remontée à la direction pédagogique',                         echeance: '+6 mois',       resp: 'Qualité' },
+      ]},
+    ],
+  },
+
+  // Registre annuel des sessions (table classique)
+  tables: {
+    suivi: {
+      label: 'Suivi sessions',
+      toastLabel: 'Session ajoutée au registre',
+      columns: [
+        { id: 'code',         type: 'text',   label: 'Code session' },
+        { id: 'intitule',     type: 'text',   label: 'Intitulé' },
+        { id: 'periode',      type: 'text',   label: 'Période' },
+        { id: 'inscrits',     type: 'text',   label: 'Inscrits' },
+        { id: 'presents',     type: 'text',   label: 'Présents' },
+        { id: 'abandons',     type: 'text',   label: 'Abandons' },
+        { id: 'assiduite',    type: 'text',   label: 'Assiduité' },
+        { id: 'satisfaction', type: 'text',   label: 'Satisfaction' },
+        { id: 'reussite',     type: 'text',   label: 'Réussite' },
+        { id: 'cloture',      type: 'select', label: 'Clôture', options: [
+          { value: 'cours',    label: '🔄 En cours' },
+          { value: 'cloturee', label: '✓ Clôturée' },
+          { value: 'annulee',  label: '❌ Annulée' },
+        ]},
+      ]
+    }
+  },
+
+  tabs: {
+    identification: [],
+    avant:    [],  // checklist, pas table
+    pendant:  [],
+    apres:    [],
+    suivi:    ['suivi']
+  },
+
+  freeFields: []
+};
+
+const STATUS_OPTIONS = [
+  { id: 'todo',  label: 'À faire',  cls: 'todo' },
+  { id: 'done',  label: '☒ Fait',   cls: 'done' },
+  { id: 'na',    label: 'N/A',      cls: 'na'   },
+  { id: 'alert', label: '🚨 Anom.', cls: 'alert' },
+];
+
+/* =======================================================
+   SEED — sessions d'exemple
+======================================================= */
+function buildEmptyChecklists() {
+  const out = {};
+  for (const phase of ['avant', 'pendant', 'apres']) {
+    out[phase] = APP_SCHEMA.checklists[phase].map(group =>
+      group.items.map(() => ({ statut: 'todo', obs: '' }))
+    );
+  }
+  return out;
+}
+
+function newSessionId() {
+  return 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+// Trois sessions seed avec progressions différentes
+const SEED = (() => {
+  const s1 = newSessionId();
+  const s2 = newSessionId();
+  const s3 = newSessionId();
+  const sessions = {};
+
+  // Session 1 — Bilan complet (toutes cochées)
+  const cl1 = buildEmptyChecklists();
+  for (const phase of ['avant', 'pendant', 'apres']) {
+    cl1[phase].forEach(group => group.forEach(item => { item.statut = 'done'; }));
+  }
+  sessions[s1] = {
+    id: s1,
+    meta: {
+      code: 'SOF-CPCE-2026-S01',
+      intitule: 'Création & Pilotage Cellule Entrepreneuriat',
+      dateDebut: '2026-01-12', dateFin: '2026-01-30',
+      lieu: 'So Forma — Salle Atelier 2',
+      responsable: 'Sofia Mansour',
+      nbBenef: '10'
+    },
+    checklists: cl1
+  };
+
+  // Session 2 — En cours (avant + pendant cochés, après en partie)
+  const cl2 = buildEmptyChecklists();
+  cl2.avant.forEach(g => g.forEach(i => { i.statut = 'done'; }));
+  cl2.pendant.forEach(g => g.forEach(i => { i.statut = 'done'; }));
+  cl2.apres[0].forEach(i => { i.statut = 'done'; });  // J+0 fait
+  cl2.apres[1][0].statut = 'done';                     // PV de jury fait
+  cl2.apres[1][2].statut = 'done';                     // attestation faite
+  sessions[s2] = {
+    id: s2,
+    meta: {
+      code: 'SOF-BC-2026-S03',
+      intitule: 'Bilan de compétences — session mars',
+      dateDebut: '2026-03-04', dateFin: '2026-03-25',
+      lieu: 'Distanciel Teams',
+      responsable: 'Yacine Belkacem',
+      nbBenef: '8'
+    },
+    checklists: cl2
+  };
+
+  // Session 3 — Nouvelle (rien coché)
+  sessions[s3] = {
+    id: s3,
+    meta: {
+      code: 'SOF-CFA-2026-S05',
+      intitule: 'Apprentissage CFA — promo 2026-2028',
+      dateDebut: '2026-09-15', dateFin: '2026-09-30',
+      lieu: 'CFA Régional Bordeaux',
+      responsable: 'Marie Dupont',
+      nbBenef: '12'
+    },
+    checklists: buildEmptyChecklists()
+  };
+
+  return {
+    sessions,
+    activeSessionId: s1,
+    suivi: [
+      { code: 'SOF-CPCE-2026-S01', intitule: 'Création & Pilotage Cellule Entrepreneuriat', periode: 'Jan 2026',  inscrits: '10', presents: '9',  abandons: '1', assiduite: '90%', satisfaction: '92%', reussite: '89%', cloture: 'cloturee' },
+      { code: 'SOF-BC-2026-S03',   intitule: 'Bilan de compétences — session mars',         periode: 'Mars 2026', inscrits: '8',  presents: '8',  abandons: '0', assiduite: '100%', satisfaction: '95%', reussite: '100%', cloture: 'cours' },
+    ]
+  };
+})();
+
+/* =======================================================
+   PERSISTANCE
+======================================================= */
+const STORAGE_KEY = APP_SCHEMA.storageKey;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) { console.warn('Load failed', e); }
+  return JSON.parse(JSON.stringify(SEED));
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('Sauvegardé');
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+/* =======================================================
+   HELPERS — session active
+======================================================= */
+function activeSession() {
+  return state.sessions[state.activeSessionId];
+}
+
+function sessionDisplayName(s) {
+  const code = s.meta.code || '(sans code)';
+  const intitule = s.meta.intitule || 'Session sans titre';
+  return `${code} — ${intitule}`;
+}
+
+/* =======================================================
+   SÉLECTEUR DE SESSION
+======================================================= */
+function renderSessionSelect() {
+  const sel = document.getElementById('sessionSelect');
+  const ids = Object.keys(state.sessions);
+  sel.innerHTML = ids.map(id => {
+    const s = state.sessions[id];
+    const selected = id === state.activeSessionId ? ' selected' : '';
+    return `<option value="${id}"${selected}>${sessionDisplayName(s)}</option>`;
+  }).join('');
+}
+
+document.getElementById('sessionSelect').addEventListener('change', (e) => {
+  state.activeSessionId = e.target.value;
+  saveState();
+  renderAll();
+});
+
+document.getElementById('newSessionBtn').addEventListener('click', () => {
+  const id = newSessionId();
+  state.sessions[id] = {
+    id,
+    meta: { code: '', intitule: 'Nouvelle session', dateDebut: '', dateFin: '', lieu: '', responsable: '', nbBenef: '' },
+    checklists: buildEmptyChecklists()
+  };
+  state.activeSessionId = id;
+  saveState();
+  showToast('Session créée');
+  renderAll();
+  // Aller sur l'onglet Identification et focus le 1er champ
+  document.querySelector('[data-tab="identification"]').click();
+  setTimeout(() => {
+    const firstInput = document.querySelector('[data-meta="code"]');
+    if (firstInput) firstInput.focus();
+  }, 350);
+});
+
+/* =======================================================
+   FORMULAIRE IDENTIFICATION
+======================================================= */
+function renderIdentification() {
+  const s = activeSession();
+  if (!s) return;
+  document.querySelectorAll('[data-meta]').forEach(input => {
+    const key = input.dataset.meta;
+    input.value = s.meta[key] || '';
+  });
+}
+
+document.querySelectorAll('[data-meta]').forEach(input => {
+  input.addEventListener('input', () => {
+    const s = activeSession();
+    if (!s) return;
+    s.meta[input.dataset.meta] = input.value;
+  });
+  input.addEventListener('blur', () => {
+    saveState();
+    // Rafraîchir le sélecteur (le nom de session change)
+    renderSessionSelect();
+  });
+});
+
+/* =======================================================
+   CHECKLISTS GROUPÉES (avant / pendant / apres)
+======================================================= */
+function renderChecklist(phase) {
+  const s = activeSession();
+  if (!s) return;
+  const container = document.getElementById('checklist' + phase.charAt(0).toUpperCase() + phase.slice(1));
+  if (!container) return;
+  const def = APP_SCHEMA.checklists[phase];
+  const values = s.checklists[phase];
+
+  container.innerHTML = def.map((group, gi) => {
+    const items = group.items.map((item, ii) => {
+      const v = values[gi][ii];
+      const statusObj = STATUS_OPTIONS.find(o => o.id === v.statut) || STATUS_OPTIONS[0];
+      return `<tr>
+        <td class="cl-num">${String(ii + 1).padStart(2, '0')}</td>
+        <td class="cl-action">${item.action}</td>
+        <td class="cl-meta">${item.echeance}</td>
+        <td class="cl-meta">${item.resp}</td>
+        <td class="cl-statut">
+          <span style="position:relative; display:inline-block;">
+            <button class="cl-pill ${statusObj.cls}" data-phase="${phase}" data-gi="${gi}" data-ii="${ii}">${statusObj.label}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="cl-menu">
+              ${STATUS_OPTIONS.map(o => `<div class="cl-menu-item ${o.cls}" data-status="${o.id}">${o.label}</div>`).join('')}
+            </div>
+          </span>
+        </td>
+        <td class="cl-obs"><textarea data-phase="${phase}" data-gi="${gi}" data-ii="${ii}" placeholder="—">${v.obs || ''}</textarea></td>
+      </tr>`;
+    }).join('');
+
+    const doneCount = values[gi].filter(v => v.statut === 'done').length;
+    const naCount = values[gi].filter(v => v.statut === 'na').length;
+    const totalCount = values[gi].length;
+    const effectiveTotal = totalCount - naCount;
+    const progress = effectiveTotal > 0 ? `<b>${doneCount}</b>/${effectiveTotal} fait${doneCount > 1 ? 's' : ''}` : '—';
+
+    return `<div class="checklist-group">
+      <div class="cl-group-head">
+        <div class="cl-group-letter">${group.letter}</div>
+        <div class="cl-group-title">${group.title}</div>
+        <div class="cl-group-progress">${progress}</div>
+      </div>
+      <table class="cl-table">
+        <thead><tr>
+          <th class="cl-num">#</th>
+          <th>Action / Vérification</th>
+          <th class="cl-meta">Échéance</th>
+          <th class="cl-meta">Responsable</th>
+          <th class="cl-statut">Statut</th>
+          <th class="cl-obs">Observations</th>
+        </tr></thead>
+        <tbody>${items}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  attachChecklistHandlers(container, phase);
+}
+
+function attachChecklistHandlers(scope, phase) {
+  // Pills cliquables
+  scope.querySelectorAll('.cl-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = pill.classList.contains('open');
+      document.querySelectorAll('.cl-pill.open').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) pill.classList.add('open');
+    });
+  });
+  scope.querySelectorAll('.cl-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pill = item.closest('span').querySelector('.cl-pill');
+      const newStatus = item.dataset.status;
+      const { phase: p, gi, ii } = pill.dataset;
+      const s = activeSession();
+      s.checklists[p][parseInt(gi)][parseInt(ii)].statut = newStatus;
+      saveState();
+      renderChecklist(p);
+      updateCounts();
+      updateProgress();
+    });
+  });
+  // Observations
+  scope.querySelectorAll('textarea[data-phase]').forEach(ta => {
+    ta.addEventListener('input', () => {
+      const { phase: p, gi, ii } = ta.dataset;
+      const s = activeSession();
+      s.checklists[p][parseInt(gi)][parseInt(ii)].obs = ta.value;
+      // autosize
+      ta.style.height = 'auto';
+      ta.style.height = Math.max(32, ta.scrollHeight) + 'px';
+    });
+    ta.addEventListener('blur', () => saveState());
+    // autosize init
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(32, ta.scrollHeight) + 'px';
+  });
+}
+
+// Fermer les menus en cliquant ailleurs
+document.addEventListener('click', () => {
+  document.querySelectorAll('.cl-pill.open').forEach(p => p.classList.remove('open'));
+});
+
+/* =======================================================
+   COMPTEURS & PROGRESSION
+======================================================= */
+function countChecklistPhase(phase) {
+  const s = activeSession();
+  if (!s) return { done: 0, total: 0 };
+  let done = 0, total = 0;
+  s.checklists[phase].forEach(group => {
+    group.forEach(item => {
+      if (item.statut === 'na') return;  // exclu
+      total++;
+      if (item.statut === 'done') done++;
+    });
+  });
+  return { done, total };
+}
+
+function updateCounts() {
+  for (const phase of ['avant', 'pendant', 'apres']) {
+    const { done, total } = countChecklistPhase(phase);
+    const el = document.getElementById('cnt' + phase.charAt(0).toUpperCase() + phase.slice(1));
+    if (el) el.textContent = `${done}/${total}`;
+  }
+  const cntSuivi = document.getElementById('cntSuivi');
+  if (cntSuivi) cntSuivi.textContent = (state.suivi || []).length;
+}
+
+function updateProgress() {
+  const s = activeSession();
+  if (!s) {
+    document.getElementById('spPct').textContent = '0%';
+    document.getElementById('spBarFill').style.width = '0%';
+    return;
+  }
+  let done = 0, total = 0;
+  for (const phase of ['avant', 'pendant', 'apres']) {
+    const c = countChecklistPhase(phase);
+    done += c.done; total += c.total;
+  }
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('spPct').textContent = pct + '%';
+  document.getElementById('spBarFill').style.width = pct + '%';
+}
+
+/* =======================================================
+   REGISTRE "SUIVI" — table classique (moteur générique)
+======================================================= */
+function tbodyIdFor(tableId) {
+  return 'tbody' + tableId.charAt(0).toUpperCase() + tableId.slice(1);
+}
+
+function renderCell(col, row, tableId, rowIndex) {
+  const value = row[col.id] || '';
+  if (col.type === 'select') {
+    const opts = col.options.map(o => `<option value="${o.value}"${o.value === value ? ' selected' : ''}>${o.label}</option>`).join('');
+    return `<select class="cell-select" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"><option value="">—</option>${opts}</select>`;
+  }
+  if (col.type === 'date') {
+    return `<input type="date" class="cell-input" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+  }
+  if (col.type === 'textarea') {
+    return `<textarea class="cell-textarea" rows="1" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}">${value}</textarea>`;
+  }
+  const safe = String(value).replace(/"/g, '&quot;');
+  return `<input type="text" class="cell-input" value="${safe}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+}
+
+function renderTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const rows = state[tableId] || [];
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (!tbody) return;
+  if (rows.length === 0) {
+    const colspan = schema.columns.length + 1;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-row">Aucune session dans le registre. Cliquez sur « Ajouter une session » pour commencer.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((row, i) => {
+    const cells = schema.columns.map(col => `<td>${renderCell(col, row, tableId, i)}</td>`).join('');
+    return `<tr>
+      ${cells}
+      <td class="col-actions">
+        <button class="row-action danger" data-action="delete" data-tbl="${tableId}" data-row="${i}" title="Supprimer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+  attachTableHandlers(tbody);
+}
+
+function attachTableHandlers(scope) {
+  scope.querySelectorAll('.cell-input, .cell-select, .cell-textarea').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const { tbl, row, col } = e.target.dataset;
+      state[tbl][parseInt(row)][col] = e.target.value;
+      saveState();
+    });
+  });
+  scope.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      state[tbl].splice(parseInt(row), 1);
+      saveState();
+      renderTable(tbl);
+      updateCounts();
+    });
+  });
+}
+
+function addRow(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const emptyRow = {};
+  schema.columns.forEach(col => emptyRow[col.id] = col.type === 'date' ? new Date().toISOString().slice(0,10) : '');
+  state[tableId].unshift(emptyRow);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  showToast(schema.toastLabel || 'Entrée ajoutée');
+  renderTable(tableId);
+  updateCounts();
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (tbody) {
+    const firstRow = tbody.firstElementChild;
+    if (firstRow) {
+      firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstRow.classList.add('row-flash');
+      setTimeout(() => firstRow.classList.remove('row-flash'), 1200);
+      setTimeout(() => {
+        const firstTextInput = firstRow.querySelector('input[type="text"]');
+        if (firstTextInput) firstTextInput.focus();
+      }, 350);
+    }
+  }
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => addRow(btn.dataset.add));
+});
+
+/* =======================================================
+   ONGLETS
+======================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-pane="${btn.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+/* =======================================================
+   AIDE
+======================================================= */
+const helpBackdrop = document.getElementById('helpBackdrop');
+document.getElementById('openHelpBtn').addEventListener('click', () => {
+  helpBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+function closeHelp() {
+  helpBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+helpBackdrop.addEventListener('click', e => { if (e.target === helpBackdrop) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && helpBackdrop.classList.contains('open')) closeHelp(); });
+
+/* =======================================================
+   RENDU GLOBAL
+======================================================= */
+function renderAll() {
+  renderSessionSelect();
+  renderIdentification();
+  for (const phase of ['avant', 'pendant', 'apres']) renderChecklist(phase);
+  for (const tid of Object.keys(APP_SCHEMA.tables)) renderTable(tid);
+  updateCounts();
+  updateProgress();
+}
+
+renderAll();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Mini-app · Check-list examen & certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --bg-elev-2: rgba(28,32,52,0.88);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.16; --aur-c2: 0.16; --aur-c3: 0.14;
+  --aur-c4: 0.16; --aur-c5: 0.14; --aur-c6: 0.20; --aur-c7: 0.14;
+  --aur-veil-start: rgba(3,4,10,0.6);
+  --aur-veil-end: rgba(3,4,10,0.94);
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-info: #6B89D0;
+  --danger: #EF5C5C;
+  --c6: #A755F8;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --bg-elev-2: rgba(255,254,250,0.92);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.10; --aur-c2: 0.10; --aur-c3: 0.08;
+  --aur-c4: 0.10; --aur-c5: 0.08; --aur-c6: 0.12; --aur-c7: 0.08;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end: rgba(244,247,250,0.92);
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-info: #3D5A99;
+  --danger: #C2410C;
+  --c6: #8530DB;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Catégorie environnement (C6 → violet) */
+[data-cat="AF"] { --aur-c2: 0.32; }
+[data-cat="BC"] { --aur-c4: 0.32; }
+[data-cat="VAE"] { --aur-c3: 0.30; }
+[data-cat="CFA"] { --aur-c6: 0.34; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR (identique à indicateur_11) */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; text-decoration: none; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33% { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66% { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; max-width: 1500px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER MINI-APP ===== */
+.app-header {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+}
+.ah-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ah-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 8px var(--c6); }
+.ah-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 40px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.ah-subtitle { font-size: 14.5px; color: var(--text-mute); max-width: 700px; line-height: 1.55; }
+.ah-indicators { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ah-ind-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--c6);
+}
+.ah-ind-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 6px var(--c6); }
+.ah-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 38px; border-radius: 11px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all .2s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+.btn-secondary svg { width: 13px; height: 13px; }
+
+/* ===== ONGLETS ===== */
+.tabs {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tab-btn {
+  padding: 9px 16px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  background: transparent; border: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px var(--amethyst-soft);
+}
+.tab-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-mute);
+}
+.tab-btn.active .tab-count { background: var(--amethyst-soft); color: var(--amethyst-br); }
+
+/* ===== PANNEAU TABLE (réutilisable) ===== */
+.panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .panel { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18); }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.panel-actions { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 12px -2px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 6px 18px -2px rgba(107,79,187,0.7); }
+.btn-add svg { width: 12px; height: 12px; }
+
+/* ===== TABLE (registre) ===== */
+.tbl-wrap { overflow-x: auto; }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 10px; font-weight: 600;
+  color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.tbl tbody tr { transition: background .15s; }
+.tbl tbody tr:hover { background: var(--surface); }
+.tbl td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.col-num { width: 50px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-faint); }
+.col-actions { width: 70px; text-align: right; }
+.row-action {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.row-action:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.row-action.danger:hover { color: var(--danger); }
+.row-action svg { width: 13px; height: 13px; }
+
+/* Inputs inline dans la table */
+.cell-input, .cell-select, .cell-textarea {
+  width: 100%; padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  resize: none;
+  line-height: 1.4;
+}
+.cell-input:hover, .cell-select:hover, .cell-textarea:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.cell-input:focus, .cell-select:focus, .cell-textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 26px;
+}
+.cell-select option {
+  background: #1a1d2e;
+  color: #F5F4EE;
+  padding: 8px;
+}
+[data-theme="light"] .cell-select option {
+  background: #FFFEFA;
+  color: #0F2A47;
+}
+
+/* Empty state */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Flash pour nouvelle ligne ajoutée */
+@keyframes rowFlash {
+  0%   { background: var(--amethyst-soft); }
+  100% { background: transparent; }
+}
+.tbl tbody tr.row-flash { animation: rowFlash 1.2s ease-out; }
+.tbl tbody tr.row-flash td { border-bottom-color: var(--amethyst-soft); }
+
+/* ===== ONGLET SYNTHÈSE — KPI cards ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+[data-theme="light"] .kpi-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--kpi-color, var(--c6)); opacity: 0.55;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.kpi-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--kpi-color, var(--c6)); box-shadow: 0 0 6px var(--kpi-color, var(--c6)); }
+.kpi-value {
+  font-family: 'Raleway'; font-weight: 300; font-size: 36px;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+.kpi-value .unit { font-size: 16px; color: var(--text-faint); margin-left: 4px; }
+.kpi-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 8px; }
+
+.kpi-card.cat-23 { --kpi-color: #6B89D0; }
+.kpi-card.cat-24 { --kpi-color: #5DC9A5; }
+.kpi-card.cat-25 { --kpi-color: #EB489B; }
+.kpi-card.total { --kpi-color: var(--c6); }
+.kpi-card.exploit { --kpi-color: var(--status-done); }
+.kpi-card.todo { --kpi-color: var(--status-progress); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: #3D5A99; }
+[data-theme="light"] .kpi-card.cat-24 { --kpi-color: #2BA785; }
+[data-theme="light"] .kpi-card.cat-25 { --kpi-color: #C82A7D; }
+
+/* Analyse qualitative */
+.qual-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+.qual-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 18px; }
+.qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.qual-field { display: flex; flex-direction: column; gap: 8px; }
+.qual-field label {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600;
+}
+.qual-field textarea {
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  min-height: 80px; resize: vertical;
+  line-height: 1.5;
+  transition: all .2s;
+}
+.qual-field textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Onglet panes */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .35s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Aide flottante */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .help-backdrop { background: rgba(15,42,71,0.32); }
+.help-backdrop.open { display: flex; opacity: 1; }
+.help-backdrop.open .help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.help-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  padding: 32px 36px;
+  max-width: 700px; width: 100%;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.help-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.help-eyebrow { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-title { font-family: 'Raleway'; font-weight: 300; font-size: 28px; color: var(--text); letter-spacing: -0.02em; }
+.help-close { width: 34px; height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text-mute); transition: all .2s; }
+.help-close:hover { background: var(--surface-2); color: var(--text); }
+.help-section { margin-bottom: 18px; }
+.help-section h4 { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-section p { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.help-section ul { list-style: none; padding: 0; }
+.help-section li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; }
+.help-section li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); opacity: 0.7; }
+.help-section li b { color: var(--text); }
+
+/* Animations */
+.app-header, .tabs, .panel, .kpi-grid, .qual-panel { opacity: 0; filter: blur(8px); animation: enter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.app-header { animation-delay: .1s; }
+.tabs { animation-delay: .2s; }
+.panel { animation-delay: .3s; }
+.kpi-grid { animation-delay: .3s; }
+.qual-panel { animation-delay: .42s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+
+/* === Barre de sélection de session active === */
+.session-bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 18px;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.session-bar-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 600;
+}
+.session-select {
+  padding: 8px 32px 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text);
+  appearance: none; cursor: pointer;
+  min-width: 280px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center;
+  transition: all .2s;
+}
+.session-select:hover { background-color: var(--surface-2); border-color: var(--border-strong); }
+.session-select:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background-color: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.session-select option { background: #1a1d2e; color: #F5F4EE; padding: 8px; }
+[data-theme="light"] .session-select option { background: #FFFEFA; color: #0F2A47; }
+
+.session-spacer { flex: 1; }
+.session-progress {
+  display: flex; align-items: center; gap: 10px;
+}
+.sp-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 600;
+}
+.sp-bar {
+  display: inline-block; width: 140px; height: 6px;
+  background: var(--surface-2); border-radius: 99px; overflow: hidden;
+  position: relative;
+}
+.sp-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--amethyst), var(--amethyst-br), var(--status-done));
+  border-radius: 99px;
+  transition: width .6s cubic-bezier(.22,1,.36,1);
+  width: 0%;
+}
+.sp-pct {
+  font-family: 'Raleway'; font-weight: 600; font-size: 13.5px;
+  color: var(--amethyst-br);
+  min-width: 40px; text-align: right;
+}
+
+/* === Formulaire d'identification (onglet 1) === */
+.form-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 32px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .form-card {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18);
+}
+.form-card-head {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.form-card-title {
+  font-family: 'Raleway'; font-size: 19px; font-weight: 500;
+  color: var(--text); display: flex; align-items: center; gap: 10px;
+}
+.form-card-sub {
+  font-size: 13px; color: var(--text-mute);
+  margin-top: 6px;
+}
+.form-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+}
+.form-row { display: flex; flex-direction: column; gap: 7px; }
+.form-row.full { grid-column: 1 / -1; }
+.form-row label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 600;
+}
+.form-input {
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit; font-size: 13.5px;
+  color: var(--text);
+  transition: all .2s;
+}
+.form-input:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* === Checklists groupées === */
+.checklist-group {
+  margin-bottom: 20px;
+}
+.checklist-group:last-child { margin-bottom: 0; }
+.cl-group-head {
+  display: flex; align-items: center; gap: 11px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.cl-group-letter {
+  width: 24px; height: 24px; border-radius: 7px;
+  display: grid; place-items: center;
+  background: var(--amethyst-soft);
+  color: var(--amethyst-br);
+  font-family: 'JetBrains Mono'; font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.cl-group-title {
+  font-family: 'Raleway'; font-size: 15px; font-weight: 500;
+  color: var(--text); flex: 1;
+}
+.cl-group-progress {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute); letter-spacing: 0.04em;
+}
+.cl-group-progress b { color: var(--status-done); font-weight: 600; }
+
+/* Items checklist */
+.cl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cl-table thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 9.5px; font-weight: 600;
+  color: var(--text-faint); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.cl-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.cl-table tr:last-child td { border-bottom: none; }
+.cl-num {
+  width: 30px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-faint);
+  padding-top: 14px;
+}
+.cl-action {
+  padding-top: 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.cl-meta {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute);
+  padding-top: 14px;
+  white-space: nowrap;
+}
+.cl-statut {
+  width: 140px;
+}
+.cl-obs {
+  width: 220px;
+}
+.cl-obs textarea {
+  width: 100%;
+  padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--text-soft);
+  resize: none; line-height: 1.4;
+  min-height: 32px;
+  transition: all .15s;
+}
+.cl-obs textarea:hover { border-color: var(--border); background: var(--surface); }
+.cl-obs textarea:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Pill statut checklist (cliquable) */
+.cl-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px 5px 9px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; border: 1px solid;
+  transition: all .2s; user-select: none;
+  position: relative;
+  white-space: nowrap;
+}
+.cl-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+.cl-pill.todo { color: var(--text-mute); background: var(--surface-2); border-color: var(--border); }
+.cl-pill.todo::before { background: var(--text-mute); }
+.cl-pill.done { color: var(--status-done); background: rgba(88,214,154,0.10); border-color: rgba(88,214,154,0.32); }
+.cl-pill.done::before { background: var(--status-done); box-shadow: 0 0 6px var(--status-done); }
+.cl-pill.na { color: var(--status-na); background: var(--surface); border-color: var(--border); opacity: 0.65; }
+.cl-pill.na::before { background: var(--status-na); }
+.cl-pill.alert { color: var(--danger); background: rgba(239,92,92,0.10); border-color: rgba(239,92,92,0.32); }
+.cl-pill.alert::before { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+[data-theme="light"] .cl-pill.done { background: rgba(14,159,110,0.10); border-color: rgba(14,159,110,0.30); }
+[data-theme="light"] .cl-pill.alert { background: rgba(194,65,12,0.10); border-color: rgba(194,65,12,0.32); }
+.cl-pill:hover { filter: brightness(1.1); }
+.cl-pill svg { width: 8px; height: 8px; opacity: 0.7; }
+
+/* Menu déroulant statut checklist */
+.cl-menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 30;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.5);
+  opacity: 0; pointer-events: none;
+  transform: translateY(-4px) scale(0.96);
+  transition: all .15s cubic-bezier(.22,1,.36,1);
+}
+[data-theme="light"] .cl-menu { box-shadow: 0 10px 30px -6px rgba(15,42,71,0.18); }
+.cl-pill.open + .cl-menu { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.cl-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-soft);
+  cursor: pointer; transition: background .15s;
+}
+.cl-menu-item:hover { background: var(--surface-2); color: var(--text); }
+.cl-menu-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.cl-menu-item.todo::before { background: var(--text-mute); }
+.cl-menu-item.done::before { background: var(--status-done); box-shadow: 0 0 5px var(--status-done); }
+.cl-menu-item.na::before { background: var(--status-na); }
+.cl-menu-item.alert::before { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+
+/* Bandeau d'avertissement */
+.warn-strip {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.22);
+  border-radius: 12px;
+  font-size: 12.5px; line-height: 1.45;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}
+.warn-strip svg { color: var(--status-progress); flex-shrink: 0; margin-top: 1px; }
+[data-theme="light"] .warn-strip { background: rgba(180,83,9,0.08); border-color: rgba(180,83,9,0.22); }
+
+/* Empty state pour session non sélectionnée */
+.empty-state {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px dashed var(--border-strong);
+  border-radius: 18px;
+  padding: 50px 30px;
+  text-align: center;
+}
+.empty-state-ic {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--amethyst-soft);
+  display: grid; place-items: center; margin: 0 auto 16px;
+  color: var(--amethyst-br);
+}
+.empty-state-title { font-family: 'Raleway'; font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.empty-state-text { font-size: 13.5px; color: var(--text-mute); max-width: 480px; margin: 0 auto 18px; line-height: 1.5; }
+
+
+.cl-pill.absent { color: var(--danger); background: rgba(239,92,92,0.10); border-color: rgba(239,92,92,0.32); }
+.cl-pill.absent::before { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+.cl-menu-item.absent::before { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+[data-theme="light"] .cl-pill.absent { background: rgba(194,65,12,0.10); border-color: rgba(194,65,12,0.32); }
+
+
+/* === Composant Pièces Jointes (généralisé) === */
+.cell-attachments { display: flex; justify-content: center; align-items: center; }
+.pj-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-mute);
+  cursor: pointer;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600;
+  transition: all .15s;
+}
+.pj-btn:hover { background: var(--surface-2); border-color: var(--amethyst-soft); color: var(--text); }
+.pj-btn.has-content { background: var(--amethyst-soft-2); border-color: var(--amethyst-soft); color: var(--amethyst-br); }
+.pj-btn.has-content:hover { background: var(--amethyst-soft); }
+.pj-btn svg { opacity: 0.85; }
+.pj-badge {
+  min-width: 16px; height: 16px;
+  display: inline-grid; place-items: center;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 9.5px; padding: 0 4px;
+}
+.pj-btn.has-content .pj-badge { background: var(--amethyst); color: white; border-color: var(--amethyst); }
+.pj-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .pj-backdrop { background: rgba(15,42,71,0.32); }
+.pj-backdrop.open { display: flex; opacity: 1; }
+.pj-backdrop.open .pj-modal { transform: translateY(0) scale(1); opacity: 1; }
+.pj-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  max-width: 720px; width: 100%;
+  max-height: calc(100vh - 80px); overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+  display: flex; flex-direction: column;
+}
+.pj-head {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 18px; flex-shrink: 0;
+}
+.pj-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--amethyst-br); letter-spacing: 0.22em;
+  text-transform: uppercase; font-weight: 600; margin-bottom: 6px;
+}
+.pj-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 22px;
+  color: var(--text); margin-bottom: 6px;
+}
+.pj-context { font-size: 12.5px; color: var(--text-mute); }
+.pj-close {
+  width: 34px; height: 34px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  color: var(--text-mute);
+  transition: all .2s; flex-shrink: 0;
+}
+.pj-close:hover { background: var(--surface-2); color: var(--text); }
+.pj-body { padding: 22px 28px 28px; overflow-y: auto; flex: 1; }
+.pj-add-section {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 22px;
+}
+.pj-add-card {
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 12px;
+  padding: 18px 16px;
+  background: var(--surface);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+.pj-add-card:hover {
+  border-color: var(--amethyst-br);
+  background: var(--amethyst-soft-2);
+}
+.pj-add-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--amethyst-soft-2);
+  color: var(--amethyst-br);
+  display: grid; place-items: center;
+}
+.pj-add-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.pj-add-desc { font-size: 11.5px; color: var(--text-mute); line-height: 1.4; }
+input.pj-file-input { display: none; }
+.pj-list-title {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.18em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 12px;
+}
+.pj-list { display: flex; flex-direction: column; gap: 8px; }
+.pj-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: background .15s;
+}
+.pj-item:hover { background: var(--surface-2); }
+.pj-item-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--amethyst-soft-2);
+  color: var(--amethyst-br);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.pj-item-info { flex: 1; min-width: 0; }
+.pj-item-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pj-item-meta {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); margin-top: 2px;
+  display: flex; gap: 10px;
+}
+.pj-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.pj-item-btn {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-mute);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all .15s;
+}
+.pj-item-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+.pj-item-btn.delete:hover { background: rgba(239,92,92,0.10); color: var(--danger); border-color: rgba(239,92,92,0.30); }
+.pj-empty {
+  text-align: center; padding: 24px;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-style: italic;
+}
+.pj-ref-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  margin-top: 8px;
+}
+.pj-ref-input:focus {
+  outline: none; border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.pj-ref-actions { display: flex; gap: 8px; margin-top: 10px; }
+.pj-ref-cancel, .pj-ref-add {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.pj-ref-add {
+  background: var(--amethyst);
+  color: white;
+  border-color: var(--amethyst);
+}
+.pj-ref-add:hover { background: var(--amethyst-br); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 18px;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 9px;
+  transform: translateY(20px); opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none; z-index: 200;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="brand" href="home.html"><div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </a>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <a class="nav-item" href="dossier_dashboard.html">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </a>
+      <a class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </a>
+      <a class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </a>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <a class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></a>
+      <a class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></a>
+      <a class="nav-item" href="critere_03.html"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">40</span></a>
+      <a class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></a>
+      <a class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></a>
+      <a class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></a>
+      <a class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></a>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <a href="#">mini-apps</a><span class="sep">/</span>
+        <b>check-list examen & certification</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER MINI-APP -->
+    <div class="app-header">
+      <div class="ah-left">
+        <div class="ah-eyebrow">Mini-app · Modèle M32d</div>
+        <h1 class="ah-title">Check-list examen & certification</h1>
+        <p class="ah-subtitle">Contrôle de la préparation d'une session d'examen menant à une certification. À remplir <b>avant chaque session</b>. Un règlement certificateur non respecté = <b>NC majeure quasi-systématique</b>.</p>
+        <div class="ah-indicators">
+          <div class="ah-ind-pill">Ind. 16 · Examen & certification</div>
+        </div>
+      </div>
+      <div class="ah-right">
+        <button class="btn-secondary" id="openHelpBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Mode d'emploi
+        </button>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="checklist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Check-list session
+        <span class="tab-count" id="cntChecklist">0/0</span>
+      </button>
+      <button class="tab-btn" data-tab="registre">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Registre sessions
+        <span class="tab-count" id="cntRegistre">0</span>
+      </button>
+    </div>
+
+    <!-- ============ ONGLET 1 : CHECK-LIST ACTIVE ============ -->
+    <div class="tab-pane active" data-pane="checklist">
+      <div class="warn-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Check-list à remplir <b>AVANT chaque session d'examen</b> menant à une certification RNCP / RS — 29 points organisés en 5 phases.</span>
+      </div>
+
+      <!-- Sélecteur de session active -->
+      <div style="background:var(--bg-elev); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin-bottom:18px; display:flex; align-items:center; gap:14px;">
+        <span style="font-family:'JetBrains Mono'; font-size:10px; color:var(--text-mute); letter-spacing:0.16em; text-transform:uppercase; font-weight:600;">Session active</span>
+        <select id="sessionSelect" style="flex:1; max-width:520px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:inherit; font-size:13px;"></select>
+        <button id="newSessionBtn" class="btn-add" style="flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouvelle session
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c3);"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Points de contrôle — 5 phases
+          </div>
+        </div>
+        <div style="padding: 22px 26px;" id="checklistChecklist"></div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 2 : REGISTRE SESSIONS ============ -->
+    <div class="tab-pane" data-pane="registre">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c3);"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+            Sessions de certification — historique
+            <span style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-mute); margin-left:4px; font-weight:400;">conformité globale</span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" data-add="registre">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une session
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblRegistre">
+            <thead><tr>
+              <th style="width:130px;">Date</th>
+              <th>Certification</th>
+              <th style="width:180px;">Certificateur</th>
+              <th style="width:120px;">Nb candidats</th>
+              <th style="width:170px;">Résultats Admis/Total</th>
+              <th style="width:140px;">PV archivé</th>
+              <th style="width:90px; text-align:center;">PJ</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyRegistre"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALE PIÈCES JOINTES ===== -->
+<div class="pj-backdrop" id="pjBackdrop">
+  <div class="pj-modal" id="pjContent"></div>
+</div>
+
+<!-- ===== MODALE MODE D'EMPLOI ===== -->
+<div class="help-backdrop" id="helpBackdrop">
+  <div class="help-modal">
+    <div class="help-head">
+      <div>
+        <div class="help-eyebrow">Mode d'emploi · Modèle M32d</div>
+        <h2 class="help-title">Check-list examen<br>& certification · Ind. 16</h2>
+      </div>
+      <button class="help-close" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="help-section">
+      <h4>À quoi sert cet outil</h4>
+      <p>Check-list de contrôle à remplir <b>AVANT chaque session</b> d'examen menant à une certification (RNCP / RS). 29 points de contrôle en 5 phases. Pièce centrale de l'<b>indicateur 16</b>.</p>
+    </div>
+    <div class="help-section">
+      <h4>Les 5 phases</h4>
+      <ul>
+        <li><b>Phase 1 — Documentation</b> (permanent) : règlement, référentiel, modèles, note PSH</li>
+        <li><b>Phase 2 — Préparation</b> (J-60 à J-30) : salle, jury, aménagements PSH, convocations</li>
+        <li><b>Phase 3 — Veille</b> (J-7 à J-1) : sujets, émargement, briefing jury, matériel PSH</li>
+        <li><b>Phase 4 — Jour J</b> : installation, identité, surveillance, récupération copies</li>
+        <li><b>Phase 5 — Après</b> (J+ à J+15) : délibération, PV signé, notification, archivage</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Pièges fréquents en audit</h4>
+      <ul>
+        <li><b>Règlement certificateur non respecté</b> = NC majeure quasi-systématique</li>
+        <li>PV jury non signé par TOUS les membres</li>
+        <li>Aménagements PSH non tracés</li>
+        <li>Pas de preuves d'envoi des convocations</li>
+        <li>Dossier session incomplet ou non archivé</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Sauvegardé</span></div>
+
+<script>
+/* =======================================================
+   THÈME
+======================================================= */
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function apply(t) { root.setAttribute('data-theme', t); }
+  function init() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  apply(init());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) apply(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+/* =======================================================
+   MOTEUR — Check-list Examen & Certification (M32d, Ind. 16)
+======================================================= */
+
+const CHECKLIST_DEF = [
+  { letter: '1', title: 'PHASE 1 — Documentation préalable', items: [
+    { delai: 'Permanent', action: "Règlement d'examen du certificateur téléchargé et daté" },
+    { delai: 'Permanent', action: "Référentiel de certification et d'évaluation disponibles" },
+    { delai: 'Permanent', action: "Modèles officiels imposés par le certificateur récupérés" },
+    { delai: 'Permanent', action: "Note du certificateur sur les aménagements PSH consultée" },
+  ]},
+  { letter: '2', title: 'PHASE 2 — Préparation (J-60 à J-30)', items: [
+    { delai: 'J-60', action: "Planification de la session validée (date, lieu, durée)" },
+    { delai: 'J-60', action: "Salle réservée et matériel anticipé" },
+    { delai: 'J-45', action: "Jury désigné par écrit (lettre de mission)" },
+    { delai: 'J-45', action: "Composition jury conforme aux ratios du certificateur" },
+    { delai: 'J-45', action: "Vérification absence de conflits d'intérêts (jury)" },
+    { delai: 'J-45', action: "Aménagements PSH demandés et validés (M45)" },
+    { delai: 'J-30', action: "Convocations préparées (M23) et envoyées" },
+    { delai: 'J-30', action: "Preuves d'envoi des convocations conservées" },
+  ]},
+  { letter: '3', title: 'PHASE 3 — Veille de session (J-7 à J-1)', items: [
+    { delai: 'J-7',  action: "Sujets / supports d'examen réceptionnés et vérifiés" },
+    { delai: 'J-7',  action: "Liste émargement candidats préparée" },
+    { delai: 'J-3',  action: "Briefing du jury fait (rôles, modalités, déroulé)" },
+    { delai: 'J-3',  action: "Matériel d'aménagement PSH prêt et testé" },
+    { delai: 'J-1',  action: "Confirmation présence / absence remontée" },
+  ]},
+  { letter: '4', title: 'PHASE 4 — Jour J', items: [
+    { delai: 'J',    action: "Salle et matériel installés conformément" },
+    { delai: 'J',    action: "Émargement des candidats à l'arrivée" },
+    { delai: 'J',    action: "Vérification d'identité des candidats" },
+    { delai: 'J',    action: "Aménagements PSH effectivement mis en œuvre" },
+    { delai: 'J',    action: "Surveillance de la session conforme (durée, neutralité)" },
+    { delai: 'J',    action: "Récupération et identification des copies / productions" },
+  ]},
+  { letter: '5', title: 'PHASE 5 — Après la session', items: [
+    { delai: 'J / J+',  action: "Délibération du jury tenue" },
+    { delai: 'J+',      action: "PV signé par TOUS les membres du jury (M30)" },
+    { delai: 'J+15',    action: "Décisions notifiées aux candidats (par écrit)" },
+    { delai: 'J+15',    action: "Demande de délivrance certification au certificateur" },
+    { delai: 'J+15',    action: "Dossier complet de session archivé" },
+    { delai: 'Permanent', action: "Délai de conservation appliqué (règle certificateur)" },
+  ]},
+];
+
+const APP_SCHEMA = {
+  id: 'checklist-examen',
+  storageKey: 'qm:miniapp:checklist-examen',
+  checklists: { checklist: CHECKLIST_DEF },
+  tables: {
+    registre: {
+      label: 'Registre sessions',
+      toastLabel: 'Session ajoutée',
+      columns: [
+        { id: 'date',          type: 'date',   label: 'Date' },
+        { id: 'certif',        type: 'text',   label: 'Certification' },
+        { id: 'certificateur', type: 'text',   label: 'Certificateur' },
+        { id: 'nbCand',        type: 'text',   label: 'Nb candidats' },
+        { id: 'resultats',     type: 'text',   label: 'Résultats Admis/Total' },
+        { id: 'pv',            type: 'select', label: 'PV archivé', options: [
+          { value: 'oui',      label: '✓ Archivé' },
+          { value: 'cours',    label: '⏳ En cours' },
+          { value: 'manquant', label: '❌ Manquant' }
+        ]},
+        { id: 'pj', type: 'attachments', label: 'PJ' }
+      ]
+    }
+  },
+  tabs: { checklist: [], registre: ['registre'] },
+  freeFields: []
+};
+
+const STATUS_OPTIONS = [
+  { id: 'todo',    label: 'À vérifier', cls: 'todo' },
+  { id: 'done',    label: '✓ OK',       cls: 'done' },
+  { id: 'partial', label: '⚠ Partiel',  cls: 'alert' },
+  { id: 'absent',  label: '❌ NON',     cls: 'absent' },
+  { id: 'na',      label: 'N/A',        cls: 'na' },
+];
+
+function emptyChecklistState() {
+  return CHECKLIST_DEF.map(group => group.items.map(() => ({ statut: 'todo', ref: '', commentaire: '' })));
+}
+
+const SEED = {
+  // Une session = { id, label, date, etat: 'open'|'close', data: emptyChecklist() }
+  sessions: [
+    {
+      id: 's1',
+      label: 'BTS MCO — Session juin 2027',
+      date: '2027-06-15',
+      data: (function() {
+        const d = emptyChecklistState();
+        // Quelques items pré-cochés
+        d[0][0] = { statut: 'done', ref: 'Règlement v2.3', commentaire: 'Téléchargé 01/03/2027' };
+        d[0][1] = { statut: 'done', ref: '', commentaire: '' };
+        d[0][2] = { statut: 'done', ref: '', commentaire: '' };
+        d[0][3] = { statut: 'partial', ref: '', commentaire: 'À relire pour les 2 candidats PSH' };
+        d[1][0] = { statut: 'done', ref: 'Salle 4', commentaire: '' };
+        d[1][1] = { statut: 'done', ref: '', commentaire: '' };
+        d[1][2] = { statut: 'absent', ref: '', commentaire: 'Lettre de mission à formaliser sous 48h' };
+        return d;
+      })()
+    },
+    {
+      id: 's2',
+      label: 'CAP Cuisine — Session juin 2027',
+      date: '2027-06-20',
+      data: emptyChecklistState()
+    }
+  ],
+  activeSessionId: 's1',
+  registre: [
+    { date: '2027-06-15', certif: 'BTS MCO',     certificateur: 'Ministère ESR',       nbCand: '18', resultats: '16/18', pv: 'oui' },
+    { date: '2027-06-20', certif: 'CAP Cuisine', certificateur: 'Ministère Éducation', nbCand: '12', resultats: '11/12', pv: 'oui' },
+  ]
+};
+
+const STORAGE_KEY = APP_SCHEMA.storageKey;
+function loadState() {
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch(e) {}
+  return JSON.parse(JSON.stringify(SEED));
+}
+let state = loadState();
+function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); showToast('Sauvegardé'); } catch(e) {} }
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function activeSession() {
+  return (state.sessions || []).find(s => s.id === state.activeSessionId) || (state.sessions || [])[0];
+}
+
+// === Rendu checklist ===
+function renderChecklist() {
+  const container = document.getElementById('checklistChecklist');
+  if (!container) return;
+  const sess = activeSession();
+  if (!sess) {
+    container.innerHTML = '<div class="empty-row" style="padding:30px; text-align:center;">Aucune session active. Créez une nouvelle session.</div>';
+    return;
+  }
+  const values = sess.data;
+
+  container.innerHTML = CHECKLIST_DEF.map((group, gi) => {
+    const items = group.items.map((item, ii) => {
+      const v = values[gi][ii];
+      const statusObj = STATUS_OPTIONS.find(o => o.id === v.statut) || STATUS_OPTIONS[0];
+      return `<tr>
+        <td class="cl-num">${String(ii + 1).padStart(2, '0')}</td>
+        <td class="cl-meta">${item.delai}</td>
+        <td class="cl-action">${item.action}</td>
+        <td class="cl-statut">
+          <span style="position:relative; display:inline-block;">
+            <button class="cl-pill ${statusObj.cls}" data-gi="${gi}" data-ii="${ii}">${statusObj.label}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="cl-menu">
+              ${STATUS_OPTIONS.map(o => `<div class="cl-menu-item ${o.cls}" data-status="${o.id}">${o.label}</div>`).join('')}
+            </div>
+          </span>
+        </td>
+        <td class="cl-obs"><input type="text" data-gi="${gi}" data-ii="${ii}" data-field="ref" value="${(v.ref||'').replace(/"/g, '&quot;')}" placeholder="Référence" style="width:100%; padding:6px 9px; background:transparent; border:1px solid transparent; border-radius:7px; font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-soft);"></td>
+        <td class="cl-obs"><textarea data-gi="${gi}" data-ii="${ii}" data-field="commentaire" rows="1" placeholder="Action / commentaire">${v.commentaire||''}</textarea></td>
+      </tr>`;
+    }).join('');
+
+    const doneCount = values[gi].filter(v => v.statut === 'done').length;
+    const naCount = values[gi].filter(v => v.statut === 'na').length;
+    const totalCount = values[gi].length;
+    const effectiveTotal = totalCount - naCount;
+    const progress = effectiveTotal > 0 ? `<b>${doneCount}</b>/${effectiveTotal} OK` : '—';
+
+    return `<div class="checklist-group">
+      <div class="cl-group-head">
+        <div class="cl-group-letter">${group.letter}</div>
+        <div class="cl-group-title">${group.title}</div>
+        <div class="cl-group-progress">${progress}</div>
+      </div>
+      <table class="cl-table">
+        <thead><tr>
+          <th class="cl-num">#</th>
+          <th class="cl-meta">Délai</th>
+          <th>Point de contrôle</th>
+          <th class="cl-statut">Statut</th>
+          <th class="cl-obs">Référence</th>
+          <th class="cl-obs">Commentaire</th>
+        </tr></thead>
+        <tbody>${items}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  attachChecklistHandlers(container);
+  updateCounts();
+}
+
+function attachChecklistHandlers(scope) {
+  scope.querySelectorAll('.cl-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = pill.classList.contains('open');
+      document.querySelectorAll('.cl-pill.open').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) pill.classList.add('open');
+    });
+  });
+  scope.querySelectorAll('.cl-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pill = item.closest('span').querySelector('.cl-pill');
+      const newStatus = item.dataset.status;
+      const { gi, ii } = pill.dataset;
+      const sess = activeSession();
+      sess.data[parseInt(gi)][parseInt(ii)].statut = newStatus;
+      saveState();
+      renderChecklist();
+    });
+  });
+  scope.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('input', () => {
+      const { gi, ii, field } = el.dataset;
+      const sess = activeSession();
+      sess.data[parseInt(gi)][parseInt(ii)][field] = el.value;
+      if (el.tagName === 'TEXTAREA') {
+        el.style.height = 'auto';
+        el.style.height = Math.max(30, el.scrollHeight) + 'px';
+      }
+    });
+    el.addEventListener('blur', () => saveState());
+    if (el.tagName === 'TEXTAREA') {
+      el.style.height = 'auto';
+      el.style.height = Math.max(30, el.scrollHeight) + 'px';
+    }
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.cl-pill.open').forEach(p => p.classList.remove('open'));
+});
+
+// === Sélecteur de session ===
+function renderSessionSelect() {
+  const sel = document.getElementById('sessionSelect');
+  if (!sel) return;
+  sel.innerHTML = (state.sessions || []).map(s =>
+    `<option value="${s.id}"${s.id === state.activeSessionId ? ' selected' : ''}>${s.label}${s.date ? ' · ' + s.date : ''}</option>`
+  ).join('');
+}
+
+document.getElementById('sessionSelect').addEventListener('change', (e) => {
+  state.activeSessionId = e.target.value;
+  saveState();
+  renderChecklist();
+});
+
+document.getElementById('newSessionBtn').addEventListener('click', () => {
+  const label = prompt('Intitulé de la session :', 'Nouvelle session');
+  if (!label) return;
+  const id = 's' + Date.now();
+  state.sessions.push({
+    id, label,
+    date: new Date().toISOString().slice(0,10),
+    data: emptyChecklistState()
+  });
+  state.activeSessionId = id;
+  saveState();
+  renderSessionSelect();
+  renderChecklist();
+});
+
+// === Table registre ===
+
+// ============================================================
+//   COMPOSANT GÉNÉRIQUE — PIÈCES JOINTES
+// ============================================================
+const PJ_MAX_SIZE = 5 * 1024 * 1024;
+let pjCurrentContext = null;
+
+function pjEnsureArray(row, colId) {
+  if (!Array.isArray(row[colId])) row[colId] = [];
+  return row[colId];
+}
+function pjFormatSize(bytes) {
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+  return (bytes / 1024 / 1024).toFixed(2) + ' Mo';
+}
+function pjIconForMime(mime) {
+  if (!mime) return 'file';
+  if (mime.startsWith('image/')) return 'image';
+  if (mime === 'application/pdf') return 'pdf';
+  return 'file';
+}
+function pjIconSvg(kind) {
+  if (kind === 'image') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  if (kind === 'pdf') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+}
+
+function pjBuildContext(row) {
+  return row.objet || row.designation || row.intitule || row.nom || row.action ||
+         row.beneficiaire || row.titre || row.theme || row.info || row.thematique ||
+         row.partenaire || row.evenement || row.date || 'Ligne';
+}
+
+function openPjModal(tableId, rowIndex, colId) {
+  const row = state[tableId][rowIndex];
+  const attachments = pjEnsureArray(row, colId);
+  pjCurrentContext = { tableId, rowIndex, colId };
+
+  const contextLabel = pjBuildContext(row);
+
+  const modal = document.getElementById('pjContent');
+  modal.innerHTML = `
+    <div class="pj-head">
+      <div>
+        <div class="pj-eyebrow">Preuves attachées</div>
+        <h2 class="pj-title">Pièces jointes</h2>
+        <div class="pj-context">${contextLabel}</div>
+      </div>
+      <button class="pj-close" id="pjClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="pj-body">
+      <div class="pj-add-section">
+        <label class="pj-add-card" id="pjUploadCard">
+          <input type="file" class="pj-file-input" id="pjFileInput" accept=".pdf,image/*">
+          <div class="pj-add-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="pj-add-title">Charger un fichier</div>
+          <div class="pj-add-desc">PDF, JPG, PNG · 5 Mo max<br>Stocké dans l'application</div>
+        </label>
+        <div class="pj-add-card" id="pjRefCard">
+          <div class="pj-add-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <div class="pj-add-title">Référencer un lien</div>
+          <div class="pj-add-desc">Google Drive, SharePoint<br>ou chemin réseau</div>
+        </div>
+      </div>
+      <div id="pjRefForm" style="display:none; padding:14px; background:var(--surface); border:1px solid var(--amethyst-soft); border-radius:12px; margin-bottom:20px;">
+        <div style="font-size:12px; color:var(--text-mute); margin-bottom:6px;">Nom du document :</div>
+        <input type="text" id="pjRefName" class="pj-ref-input" placeholder="Ex. Facture matériel ABC" style="margin-top:0;">
+        <div style="font-size:12px; color:var(--text-mute); margin: 10px 0 6px;">URL / chemin du document :</div>
+        <input type="text" id="pjRefUrl" class="pj-ref-input" placeholder="https://drive.google.com/... ou chemin réseau" style="margin-top:0;">
+        <div class="pj-ref-actions">
+          <button class="pj-ref-cancel" id="pjRefCancel">Annuler</button>
+          <button class="pj-ref-add" id="pjRefSubmit">Ajouter la référence</button>
+        </div>
+      </div>
+      <div class="pj-list-title">${attachments.length} pièce${attachments.length > 1 ? 's' : ''} jointe${attachments.length > 1 ? 's' : ''}</div>
+      <div class="pj-list" id="pjList">
+        ${attachments.length === 0
+          ? '<div class="pj-empty">Aucune pièce jointe. Utilisez les zones ci-dessus pour en ajouter.</div>'
+          : attachments.map((a, ai) => pjRenderItem(a, ai)).join('')
+        }
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pjClose').addEventListener('click', closePjModal);
+
+  const fileInput = document.getElementById('pjFileInput');
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > PJ_MAX_SIZE) {
+      showToast('Fichier trop volumineux (max 5 Mo)');
+      fileInput.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      attachments.push({
+        type: 'upload',
+        name: file.name,
+        dataUrl: ev.target.result,
+        size: file.size,
+        mime: file.type,
+        addedAt: new Date().toISOString()
+      });
+      saveState();
+      renderTable(pjCurrentContext.tableId);
+      openPjModal(pjCurrentContext.tableId, pjCurrentContext.rowIndex, pjCurrentContext.colId);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('pjRefCard').addEventListener('click', () => {
+    document.getElementById('pjRefForm').style.display = 'block';
+    document.getElementById('pjRefName').focus();
+  });
+  document.getElementById('pjRefCancel').addEventListener('click', () => {
+    document.getElementById('pjRefForm').style.display = 'none';
+    document.getElementById('pjRefName').value = '';
+    document.getElementById('pjRefUrl').value = '';
+  });
+  document.getElementById('pjRefSubmit').addEventListener('click', () => {
+    const name = document.getElementById('pjRefName').value.trim();
+    const url = document.getElementById('pjRefUrl').value.trim();
+    if (!name || !url) {
+      showToast('Nom et URL requis');
+      return;
+    }
+    attachments.push({
+      type: 'ref', name: name, url: url, addedAt: new Date().toISOString()
+    });
+    saveState();
+    renderTable(pjCurrentContext.tableId);
+    openPjModal(pjCurrentContext.tableId, pjCurrentContext.rowIndex, pjCurrentContext.colId);
+  });
+
+  pjAttachListHandlers();
+
+  const backdrop = document.getElementById('pjBackdrop');
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function pjRenderItem(att, idx) {
+  const kind = pjIconForMime(att.mime);
+  const icon = att.type === 'ref'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+    : pjIconSvg(kind);
+  const meta = att.type === 'upload'
+    ? `<span>${pjFormatSize(att.size || 0)}</span><span>${att.mime || 'fichier'}</span>`
+    : `<span>Lien externe</span><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px; display:inline-block;">${att.url}</span>`;
+  return `<div class="pj-item">
+    <div class="pj-item-icon">${icon}</div>
+    <div class="pj-item-info">
+      <div class="pj-item-name">${att.name}</div>
+      <div class="pj-item-meta">${meta}</div>
+    </div>
+    <div class="pj-item-actions">
+      <button class="pj-item-btn" data-pj-action="open" data-pj-idx="${idx}" title="Ouvrir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+      <button class="pj-item-btn delete" data-pj-action="delete" data-pj-idx="${idx}" title="Supprimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function pjAttachListHandlers() {
+  document.querySelectorAll('[data-pj-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.pjIdx);
+      const action = btn.dataset.pjAction;
+      const row = state[pjCurrentContext.tableId][pjCurrentContext.rowIndex];
+      const attachments = row[pjCurrentContext.colId];
+      if (action === 'open') {
+        const att = attachments[idx];
+        if (att.type === 'upload') {
+          const w = window.open();
+          if (w) {
+            if (att.mime && att.mime.startsWith('image/')) {
+              w.document.write(`<img src="${att.dataUrl}" style="max-width:100%; height:auto;">`);
+            } else {
+              w.document.write(`<iframe src="${att.dataUrl}" style="width:100%; height:100vh; border:none;"></iframe>`);
+            }
+          }
+        } else {
+          window.open(att.url, '_blank');
+        }
+      } else if (action === 'delete') {
+        if (confirm('Supprimer cette pièce jointe ?')) {
+          attachments.splice(idx, 1);
+          saveState();
+          renderTable(pjCurrentContext.tableId);
+          openPjModal(pjCurrentContext.tableId, pjCurrentContext.rowIndex, pjCurrentContext.colId);
+        }
+      }
+    });
+  });
+}
+
+function closePjModal() {
+  document.getElementById('pjBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+  pjCurrentContext = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const b = document.getElementById('pjBackdrop');
+    if (b && b.classList.contains('open')) closePjModal();
+  }
+});
+
+document.getElementById('pjBackdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('pjBackdrop')) closePjModal();
+});
+
+function tbodyIdFor(tid) { return 'tbody' + tid.charAt(0).toUpperCase() + tid.slice(1); }
+
+function renderCell(col, row, tableId, rowIndex) {
+  const value = row[col.id] ?? '';
+    if (col.type === 'attachments') {
+    const list = Array.isArray(value) ? value : [];
+    const cls = list.length > 0 ? 'has-content' : '';
+    return `<span class="cell-attachments">
+      <button class="pj-btn ${cls}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" data-action="pj-open">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        <span class="pj-badge">${list.length}</span>
+      </button>
+    </span>`;
+  }
+  if (col.type === 'select') {
+    const opts = col.options.map(o => `<option value="${o.value}"${o.value === value ? ' selected' : ''}>${o.label}</option>`).join('');
+    return `<select class="cell-select" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"><option value="">—</option>${opts}</select>`;
+  }
+  if (col.type === 'date') return `<input type="date" class="cell-input" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+  if (col.type === 'textarea') return `<textarea class="cell-textarea" rows="1" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}">${value}</textarea>`;
+  const safe = String(value).replace(/"/g, '&quot;');
+  return `<input type="text" class="cell-input" value="${safe}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+}
+
+function renderTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const rows = state[tableId] || [];
+  const tbody = document.getElementById(tbodyIdFor(tableId));
+  if (!tbody) return;
+  if (rows.length === 0) {
+    const colspan = schema.columns.length + 1;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-row">Aucune session enregistrée.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((row, i) => {
+    const cells = schema.columns.map(col => `<td>${renderCell(col, row, tableId, i)}</td>`).join('');
+    return `<tr>${cells}<td class="col-actions">
+      <button class="row-action danger" data-action="delete" data-tbl="${tableId}" data-row="${i}" title="Supprimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </button>
+    </td></tr>`;
+  }).join('');
+  attachCellHandlers(tbody);
+}
+
+function attachCellHandlers(scope) {
+  scope.querySelectorAll('.cell-input, .cell-select, .cell-textarea').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const { tbl, row, col } = e.target.dataset;
+      state[tbl][parseInt(row)][col] = e.target.value;
+      saveState();
+    });
+  });
+    scope.querySelectorAll('[data-action="pj-open"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row, col } = btn.dataset;
+      openPjModal(tbl, parseInt(row), col);
+    });
+  });
+  scope.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      state[tbl].splice(parseInt(row), 1);
+      saveState();
+      renderTable(tbl);
+      updateCounts();
+    });
+  });
+}
+
+function addRow(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  if (!schema) return;
+  const emptyRow = {};
+  schema.columns.forEach(col => {
+    if (col.type === 'date') emptyRow[col.id] = new Date().toISOString().slice(0,10);
+    else if (col.type === 'attachments') emptyRow[col.id] = [];
+    else emptyRow[col.id] = '';
+  });
+  state[tableId].unshift(emptyRow);
+  saveState();
+  showToast(schema.toastLabel || 'Ajouté');
+  renderTable(tableId);
+  updateCounts();
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => addRow(btn.dataset.add));
+});
+
+function updateCounts() {
+  // Compteur checklist
+  const sess = activeSession();
+  if (sess) {
+    let done = 0, total = 0;
+    sess.data.forEach(g => g.forEach(it => { if (it.statut !== 'na') { total++; if (it.statut === 'done') done++; } }));
+    const el = document.getElementById('cntChecklist');
+    if (el) el.textContent = `${done}/${total}`;
+  }
+  const reg = document.getElementById('cntRegistre');
+  if (reg) reg.textContent = (state.registre || []).length;
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-pane="${btn.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+const helpBackdrop = document.getElementById('helpBackdrop');
+document.getElementById('openHelpBtn').addEventListener('click', () => {
+  helpBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+function closeHelp() { helpBackdrop.classList.remove('open'); document.body.style.overflow = ''; }
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+helpBackdrop.addEventListener('click', e => { if (e.target === helpBackdrop) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && helpBackdrop.classList.contains('open')) closeHelp(); });
+
+renderSessionSelect();
+renderChecklist();
+renderTable('registre');
+updateCounts();
+
+</script>
+</body>
+</html>

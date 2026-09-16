@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Mini-app · Tableau de veille</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(20,24,44,0.82);
+  --bg-elev-2: rgba(28,32,52,0.88);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+  --aur-c1: 0.16; --aur-c2: 0.16; --aur-c3: 0.14;
+  --aur-c4: 0.16; --aur-c5: 0.14; --aur-c6: 0.20; --aur-c7: 0.14;
+  --aur-veil-start: rgba(3,4,10,0.6);
+  --aur-veil-end: rgba(3,4,10,0.94);
+  --status-done: #58D69A;
+  --status-progress: #F59E0B;
+  --status-todo: #6F7180;
+  --status-info: #6B89D0;
+  --danger: #EF5C5C;
+  --c6: #A755F8;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.85);
+  --bg-elev-2: rgba(255,254,250,0.92);
+  --surface: rgba(15,42,71,0.04);
+  --surface-2: rgba(15,42,71,0.08);
+  --border: rgba(15,42,71,0.13);
+  --border-strong: rgba(15,42,71,0.22);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.14);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+  --aur-c1: 0.10; --aur-c2: 0.10; --aur-c3: 0.08;
+  --aur-c4: 0.10; --aur-c5: 0.08; --aur-c6: 0.12; --aur-c7: 0.08;
+  --aur-veil-start: rgba(244,247,250,0.55);
+  --aur-veil-end: rgba(244,247,250,0.92);
+  --status-done: #0E9F6E;
+  --status-progress: #B45309;
+  --status-todo: #6F7B8C;
+  --status-info: #3D5A99;
+  --danger: #C2410C;
+  --c6: #8530DB;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+
+/* Catégorie environnement (C6 → violet) */
+[data-cat="AF"] { --aur-c2: 0.32; }
+[data-cat="BC"] { --aur-c4: 0.32; }
+[data-cat="VAE"] { --aur-c3: 0.30; }
+[data-cat="CFA"] { --aur-c6: 0.34; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR (identique à indicateur_11) */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .2s; }
+.brand:hover { opacity: 0.85; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.dossier-context { margin-top: 18px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+.dossier-context::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 14px var(--cat-accent, var(--amethyst-br)); opacity: 0.85; }
+.dc-label { font-family: 'JetBrains Mono'; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500; }
+.dc-type { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--cat-accent, var(--amethyst-br)); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.dc-type::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cat-accent, var(--amethyst-br)); box-shadow: 0 0 6px var(--cat-accent, var(--amethyst-br)); }
+.dc-cat { font-family: 'Raleway'; font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.2; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; text-decoration: none; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-num { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-faint); width: 18px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.nav-pct { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* AURORA */
+.aurora-stage { position: absolute; top: 0; left: 230px; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px); animation: auroraDrift 30s ease-in-out infinite; }
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33% { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66% { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 0%, var(--aur-veil-start) 60%, var(--aur-veil-end) 100%); }
+.aurora-grain { position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; max-width: 1500px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumb a { color: var(--text-mute); text-decoration: none; transition: color .15s; }
+.crumb a:hover { color: var(--amethyst-br); }
+.crumb .sep { color: var(--text-faint); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease; }
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+/* ===== HEADER MINI-APP ===== */
+.app-header {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+}
+.ah-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.ah-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 8px var(--c6); }
+.ah-title {
+  font-family: 'Raleway'; font-weight: 300; font-size: 40px;
+  color: var(--text); line-height: 1.05; letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.ah-subtitle { font-size: 14.5px; color: var(--text-mute); max-width: 700px; line-height: 1.55; }
+.ah-indicators { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ah-ind-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--c6);
+}
+.ah-ind-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); box-shadow: 0 0 6px var(--c6); }
+.ah-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 38px; border-radius: 11px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all .2s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+.btn-secondary svg { width: 13px; height: 13px; }
+
+/* ===== ONGLETS ===== */
+.tabs {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tab-btn {
+  padding: 9px 16px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  background: transparent; border: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px var(--amethyst-soft);
+}
+.tab-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-mute);
+}
+.tab-btn.active .tab-count { background: var(--amethyst-soft); color: var(--amethyst-br); }
+
+/* ===== PANNEAU TABLE (réutilisable) ===== */
+.panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .panel { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 20px -6px rgba(15,42,71,0.10), 0 18px 40px -16px rgba(15,42,71,0.18); }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.panel-actions { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 12px -2px rgba(107,79,187,0.5);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), 0 6px 18px -2px rgba(107,79,187,0.7); }
+.btn-add svg { width: 12px; height: 12px; }
+
+/* ===== TABLE (registre) ===== */
+.tbl-wrap { overflow-x: auto; }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl thead th {
+  text-align: left;
+  font-family: 'JetBrains Mono'; font-size: 10px; font-weight: 600;
+  color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.tbl tbody tr { transition: background .15s; }
+.tbl tbody tr:hover { background: var(--surface); }
+.tbl td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text-soft);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.col-num { width: 50px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-faint); }
+.col-actions { width: 70px; text-align: right; }
+.row-action {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-mute); cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.row-action:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.row-action.danger:hover { color: var(--danger); }
+.row-action svg { width: 13px; height: 13px; }
+
+/* Inputs inline dans la table */
+.cell-input, .cell-select, .cell-textarea {
+  width: 100%; padding: 6px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  resize: none;
+  line-height: 1.4;
+}
+.cell-input:hover, .cell-select:hover, .cell-textarea:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.cell-input:focus, .cell-select:focus, .cell-textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.cell-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%239474FF' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 26px;
+}
+.cell-select option {
+  background: #1a1d2e;
+  color: #F5F4EE;
+  padding: 8px;
+}
+[data-theme="light"] .cell-select option {
+  background: #FFFEFA;
+  color: #0F2A47;
+}
+
+/* Empty state */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Flash pour nouvelle ligne ajoutée */
+@keyframes rowFlash {
+  0%   { background: var(--amethyst-soft); }
+  100% { background: transparent; }
+}
+.tbl tbody tr.row-flash { animation: rowFlash 1.2s ease-out; }
+.tbl tbody tr.row-flash td { border-bottom-color: var(--amethyst-soft); }
+
+/* ===== ONGLET SYNTHÈSE — KPI cards ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 14px -4px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+[data-theme="light"] .kpi-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 14px -4px rgba(15,42,71,0.08); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--kpi-color, var(--c6)); opacity: 0.55;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.kpi-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--kpi-color, var(--c6)); box-shadow: 0 0 6px var(--kpi-color, var(--c6)); }
+.kpi-value {
+  font-family: 'Raleway'; font-weight: 300; font-size: 36px;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+.kpi-value .unit { font-size: 16px; color: var(--text-faint); margin-left: 4px; }
+.kpi-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 8px; }
+
+.kpi-card.cat-23 { --kpi-color: #6B89D0; }
+.kpi-card.cat-24 { --kpi-color: #5DC9A5; }
+.kpi-card.cat-25 { --kpi-color: #EB489B; }
+.kpi-card.total { --kpi-color: var(--c6); }
+.kpi-card.exploit { --kpi-color: var(--status-done); }
+.kpi-card.todo { --kpi-color: var(--status-progress); }
+[data-theme="light"] .kpi-card.cat-23 { --kpi-color: #3D5A99; }
+[data-theme="light"] .kpi-card.cat-24 { --kpi-color: #2BA785; }
+[data-theme="light"] .kpi-card.cat-25 { --kpi-color: #C82A7D; }
+
+/* Analyse qualitative */
+.qual-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 20px -6px rgba(0,0,0,0.35);
+}
+.qual-title { font-family: 'Raleway'; font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 18px; }
+.qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.qual-field { display: flex; flex-direction: column; gap: 8px; }
+.qual-field label {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600;
+}
+.qual-field textarea {
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text);
+  min-height: 80px; resize: vertical;
+  line-height: 1.5;
+  transition: all .2s;
+}
+.qual-field textarea:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+
+/* Onglet panes */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .35s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Aide flottante */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(14px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0; transition: opacity .3s;
+}
+[data-theme="light"] .help-backdrop { background: rgba(15,42,71,0.32); }
+.help-backdrop.open { display: flex; opacity: 1; }
+.help-backdrop.open .help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.help-modal {
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  padding: 32px 36px;
+  max-width: 700px; width: 100%;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  transform: translateY(20px) scale(0.98); opacity: 0;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.help-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.help-eyebrow { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--c6); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-title { font-family: 'Raleway'; font-weight: 300; font-size: 28px; color: var(--text); letter-spacing: -0.02em; }
+.help-close { width: 34px; height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text-mute); transition: all .2s; }
+.help-close:hover { background: var(--surface-2); color: var(--text); }
+.help-section { margin-bottom: 18px; }
+.help-section h4 { font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--text-mute); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.help-section p { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.help-section ul { list-style: none; padding: 0; }
+.help-section li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; }
+.help-section li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--c6); opacity: 0.7; }
+.help-section li b { color: var(--text); }
+
+/* Animations */
+.app-header, .tabs, .panel, .kpi-grid, .qual-panel { opacity: 0; filter: blur(8px); animation: enter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.app-header { animation-delay: .1s; }
+.tabs { animation-delay: .2s; }
+.panel { animation-delay: .3s; }
+.kpi-grid { animation-delay: .3s; }
+.qual-panel { animation-delay: .42s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 18px;
+  background: var(--bg-elev-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 9px;
+  transform: translateY(20px); opacity: 0;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none; z-index: 200;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-done); box-shadow: 0 0 8px var(--status-done); }
+</style>
+</head>
+<body data-cat="AF">
+
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="brand" href="home.html"><div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </a>
+    <div class="dossier-context" style="--cat-accent: #5DC9A5;">
+      <div class="dc-label">Dossier en cours</div>
+      <div class="dc-type">Surveillance</div>
+      <div class="dc-cat">Actions de formation</div>
+    </div>
+    <div class="nav-block">
+      <a class="nav-item" href="dossier_dashboard.html">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+        Vue d'ensemble
+      </a>
+      <a class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents
+      </a>
+      <a class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Mini-apps
+      </a>
+    </div>
+    <div class="nav-block">
+      <div class="nav-label">Critères</div>
+      <a class="nav-item"><span class="nav-num">01</span><span class="nav-dot" style="background:#F0997B; color:#F0997B"></span>Information du public<span class="nav-pct">100</span></a>
+      <a class="nav-item"><span class="nav-num">02</span><span class="nav-dot" style="background:#5DC9A5; color:#5DC9A5"></span>Conception de l'offre<span class="nav-pct">82</span></a>
+      <a class="nav-item" href="critere_03.html"><span class="nav-num">03</span><span class="nav-dot" style="background:#EF9E28; color:#EF9E28"></span>Mise en œuvre<span class="nav-pct">40</span></a>
+      <a class="nav-item"><span class="nav-num">04</span><span class="nav-dot" style="background:#6B89D0; color:#6B89D0"></span>Moyens péda.<span class="nav-pct">75</span></a>
+      <a class="nav-item"><span class="nav-num">05</span><span class="nav-dot" style="background:#6BBE54; color:#6BBE54"></span>Équipe<span class="nav-pct">50</span></a>
+      <a class="nav-item"><span class="nav-num">06</span><span class="nav-dot" style="background:#A755F8; color:#A755F8"></span>Environnement<span class="nav-pct">61</span></a>
+      <a class="nav-item"><span class="nav-num">07</span><span class="nav-dot" style="background:#EB489B; color:#EB489B"></span>Amélioration<span class="nav-pct">67</span></a>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">
+        <a href="home.html">accueil</a><span class="sep">/</span>
+        <a href="dossier_dashboard.html">surveillance · actions de formation</a><span class="sep">/</span>
+        <a href="#">mini-apps</a><span class="sep">/</span>
+        <b>tableau de veille tri-thématique</b>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span>
+          <span class="ic-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HEADER MINI-APP -->
+    <div class="app-header">
+      <div class="ah-left">
+        <div class="ah-eyebrow">Mini-app · Modèle M44</div>
+        <h1 class="ah-title">Tableau de veille tri-thématique</h1>
+        <p class="ah-subtitle">Tableau unique consolidant les trois veilles obligatoires. Chaque ligne capte une information, son <b>impact</b> sur vos prestations, et l'<b>action</b> qui en découle.</p>
+        <div class="ah-indicators">
+          <div class="ah-ind-pill">Ind. 23 · Légale</div>
+          <div class="ah-ind-pill">Ind. 24 · Métiers</div>
+          <div class="ah-ind-pill">Ind. 25 · Pédago</div>
+        </div>
+      </div>
+      <div class="ah-right">
+        <button class="btn-secondary" id="openHelpBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Mode d'emploi
+        </button>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="veille">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Tableau de veille
+        <span class="tab-count" id="cntVeille">0</span>
+      </button>
+      <button class="tab-btn" data-tab="sources">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Sources de référence
+        <span class="tab-count" id="cntSources">0</span>
+      </button>
+      <button class="tab-btn" data-tab="synthese">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Synthèse & bilan
+      </button>
+    </div>
+
+    <!-- ============ ONGLET 1 : TABLEAU DE VEILLE ============ -->
+    <div class="tab-pane active" data-pane="veille">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            Informations captées
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" id="addVeilleBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une entrée
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblVeille">
+            <thead><tr>
+              <th style="width:110px;">Date</th>
+              <th style="width:170px;">Catégorie</th>
+              <th style="width:160px;">Source</th>
+              <th>Information captée</th>
+              <th>Impact sur prestations</th>
+              <th>Action décidée</th>
+              <th style="width:150px;">Statut</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodyVeille"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 2 : SOURCES ============ -->
+    <div class="tab-pane" data-pane="sources">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17" style="color: var(--c6);"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Sources surveillées
+          </div>
+          <div class="panel-actions">
+            <button class="btn-add" id="addSourceBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une source
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblSources">
+            <thead><tr>
+              <th style="width:200px;">Catégorie</th>
+              <th>Source</th>
+              <th>URL / Accès</th>
+              <th style="width:160px;">Périodicité</th>
+              <th class="col-actions"></th>
+            </tr></thead>
+            <tbody id="tbodySources"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ONGLET 3 : SYNTHÈSE ============ -->
+    <div class="tab-pane" data-pane="synthese">
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Total entrées</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-foot">informations captées</div>
+        </div>
+        <div class="kpi-card cat-23">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>⚖ Ind. 23 · Légale</div>
+          <div class="kpi-value" id="kpiCat23">0</div>
+          <div class="kpi-foot">veille légale</div>
+        </div>
+        <div class="kpi-card cat-24">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>💼 Ind. 24 · Métiers</div>
+          <div class="kpi-value" id="kpiCat24">0</div>
+          <div class="kpi-foot">veille métiers</div>
+        </div>
+        <div class="kpi-card cat-25">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>🎓 Ind. 25 · Pédago</div>
+          <div class="kpi-value" id="kpiCat25">0</div>
+          <div class="kpi-foot">veille pédagogique</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card exploit">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Actions faites</div>
+          <div class="kpi-value" id="kpiDone">0</div>
+          <div class="kpi-foot">exploitation effective</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>En cours</div>
+          <div class="kpi-value" id="kpiProgress">0</div>
+          <div class="kpi-foot">actions en cours</div>
+        </div>
+        <div class="kpi-card todo">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>À traiter</div>
+          <div class="kpi-value" id="kpiTodo">0</div>
+          <div class="kpi-foot">items en attente</div>
+        </div>
+        <div class="kpi-card exploit">
+          <div class="kpi-label"><span class="kpi-label-dot"></span>Taux d'exploitation</div>
+          <div class="kpi-value"><span id="kpiRate">0</span><span class="unit">%</span></div>
+          <div class="kpi-foot">actions faites / total</div>
+        </div>
+      </div>
+
+      <div class="qual-panel">
+        <h3 class="qual-title">Analyse qualitative — bilan pour l'audit</h3>
+        <div class="qual-grid">
+          <div class="qual-field">
+            <label>Évolutions majeures captées</label>
+            <textarea id="qual1" placeholder="Ex. Réforme CPF, révision RNCP du domaine X…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Impact concret sur les prestations</label>
+            <textarea id="qual2" placeholder="Ex. 4 programmes refondus, 2 contrats mis à jour…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Sources les plus utiles</label>
+            <textarea id="qual3" placeholder="Ex. Centre Inffo et France Compétences…"></textarea>
+          </div>
+          <div class="qual-field">
+            <label>Axes d'amélioration de la veille N+1</label>
+            <textarea id="qual4" placeholder="Ex. Ajouter une source sectorielle, automatiser alertes…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALE MODE D'EMPLOI ===== -->
+<div class="help-backdrop" id="helpBackdrop">
+  <div class="help-modal">
+    <div class="help-head">
+      <div>
+        <div class="help-eyebrow">Mode d'emploi · Modèle M44</div>
+        <h2 class="help-title">Tableau de veille<br>tri-thématique</h2>
+      </div>
+      <button class="help-close" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="help-section">
+      <h4>À quoi sert cet outil</h4>
+      <p>Tableau unique consolidant les trois veilles obligatoires de Qualiopi. Chaque ligne représente une information captée, accompagnée de son <b>impact</b> sur vos prestations et de l'<b>action</b> qui en découle. C'est la preuve la plus simple et la plus convaincante des indicateurs 23, 24 et 25.</p>
+    </div>
+    <div class="help-section">
+      <h4>Les trois catégories de veille</h4>
+      <ul>
+        <li><b>⚖ Ind. 23 — Légale</b> : le CADRE change. Lois, décrets, CPF, RGPD, Qualiopi, financements.</li>
+        <li><b>💼 Ind. 24 — Métiers</b> : sur QUOI on forme. RNCP/RS, compétences émergentes, métiers en tension.</li>
+        <li><b>🎓 Ind. 25 — Pédago</b> : COMMENT on forme. Méthodes, neurosciences, outils LMS, IA pédagogique.</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Pièges fréquents en audit</h4>
+      <ul>
+        <li>Veille = liste de newsletters non lues, sans exploitation tracée</li>
+        <li>Absence de colonne « impact » : on capte mais on ne mesure pas</li>
+        <li>Veille concentrée la semaine avant l'audit (datée à la va-vite)</li>
+        <li>Veille non diffusée à l'équipe (pas de trace de communication)</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>Bonnes pratiques</h4>
+      <ul>
+        <li>Tenir le registre de manière <b>régulière</b> (au moins mensuelle)</li>
+        <li>Pour chaque entrée, remplir <b>impact ET action</b> (sinon NC mineure quasi-systématique)</li>
+        <li>Conserver les sources dans l'onglet dédié pour démontrer la diversification</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Sauvegardé</span></div>
+
+<script>
+/* =======================================================
+   THÈME
+======================================================= */
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+  function apply(t) { root.setAttribute('data-theme', t); }
+  function init() {
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s === 'dark' || s === 'light') return s; } catch(e) {}
+    return mql.matches ? 'light' : 'dark';
+  }
+  apply(init());
+  try { mql.addEventListener('change', e => { if (!localStorage.getItem(STORAGE_KEY)) apply(e.matches ? 'light' : 'dark'); }); } catch(e) {}
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+  });
+})();
+
+/* =======================================================
+   MOTEUR GÉNÉRIQUE DE MINI-APP
+   Le schéma déclaratif ci-dessous décrit la mini-app
+   complètement. Pour une autre mini-app, on change juste
+   ce schéma — le moteur d'affichage reste identique.
+======================================================= */
+const APP_SCHEMA = {
+  id: 'tableau-veille',
+  storageKey: 'qm:miniapp:tableau-veille',
+  tables: {
+    veille: {
+      label: 'Tableau de veille',
+      columns: [
+        { id: 'date',     type: 'date',     label: 'Date' },
+        { id: 'cat',      type: 'select',   label: 'Catégorie', options: [
+          { value: '23', label: '⚖ Ind. 23 · Légale' },
+          { value: '24', label: '💼 Ind. 24 · Métiers' },
+          { value: '25', label: '🎓 Ind. 25 · Pédago' },
+        ]},
+        { id: 'source',   type: 'text',     label: 'Source' },
+        { id: 'info',     type: 'textarea', label: 'Information captée' },
+        { id: 'impact',   type: 'textarea', label: 'Impact' },
+        { id: 'action',   type: 'textarea', label: 'Action' },
+        { id: 'statut',   type: 'select',   label: 'Statut', options: [
+          { value: 'done',     label: '✓ Action faite' },
+          { value: 'progress', label: '⏳ En cours' },
+          { value: 'todo',     label: '📌 À traiter' },
+          { value: 'info',     label: 'ℹ Info (pas d\'action)' },
+        ]},
+      ]
+    },
+    sources: {
+      label: 'Sources',
+      columns: [
+        { id: 'cat',    type: 'select', label: 'Catégorie', options: [
+          { value: '23', label: '⚖ Ind. 23 · Légale' },
+          { value: '24', label: '💼 Ind. 24 · Métiers' },
+          { value: '25', label: '🎓 Ind. 25 · Pédago' },
+        ]},
+        { id: 'source', type: 'text',   label: 'Source' },
+        { id: 'url',    type: 'text',   label: 'URL / Accès' },
+        { id: 'period', type: 'select', label: 'Périodicité', options: [
+          { value: 'hebdo', label: 'Hebdomadaire' },
+          { value: 'mensuel', label: 'Mensuelle' },
+          { value: 'trim', label: 'Trimestrielle' },
+          { value: 'sem', label: 'Semestrielle' },
+          { value: 'annuel', label: 'Annuelle' },
+        ]},
+      ]
+    }
+  },
+  // Champs libres (analyse qualitative)
+  freeFields: ['qual1', 'qual2', 'qual3', 'qual4']
+};
+
+/* =======================================================
+   DONNÉES INITIALES (seed) — repris du Excel original
+======================================================= */
+const SEED = {
+  veille: [
+    { date: '2026-04-20', cat: '24', source: 'Observatoire branche', info: 'Compétence « IA générative » émergente secteur tertiaire', impact: 'Opportunité nouveau module catalogue', action: 'Étude de faisabilité lancée', statut: 'todo' },
+    { date: '2026-04-02', cat: '23', source: 'Légifrance', info: 'Décret évolution conditions Qualiopi sous-traitance', impact: 'Convention sous-traitant à vérifier', action: 'Revue M41 Article 3 — fait le 10/04/26', statut: 'done' },
+    { date: '2026-03-15', cat: '25', source: 'ThotCursus', info: 'Article : classe inversée et engagement adultes', impact: 'Opportunité d\'amélioration de l\'engagement', action: 'Test sur 1 session pilote — CR prévu', statut: 'progress' },
+    { date: '2026-02-03', cat: '24', source: 'France Compétences', info: 'Révision fiche RNCP35634 (bloc 2 modifié)', impact: 'Programme du module désaligné du référentiel', action: 'Refonte M5 module concerné — fait le 28/02/26', statut: 'done' },
+    { date: '2026-01-12', cat: '23', source: 'Centre Inffo', info: 'Réforme CPF : reste à charge de 100 € au 02/05/2024', impact: 'Mention obligatoire sur fiches web + contrats', action: 'Mise à jour M1 + M6 — fait le 20/01/26', statut: 'done' },
+  ],
+  sources: [
+    { cat: '23', source: 'Légifrance', url: 'legifrance.gouv.fr', period: 'mensuel' },
+    { cat: '23', source: 'Centre Inffo', url: 'centre-inffo.fr', period: 'hebdo' },
+    { cat: '23', source: 'France Compétences', url: 'francecompetences.fr', period: 'mensuel' },
+    { cat: '24', source: 'Observatoire de branche', url: '[url à compléter]', period: 'trim' },
+    { cat: '24', source: 'France Travail — tensions emploi', url: 'francetravail.fr', period: 'trim' },
+    { cat: '24', source: 'CEREQ / DARES', url: 'cereq.fr / dares.travail-emploi.gouv.fr', period: 'sem' },
+    { cat: '25', source: 'ThotCursus', url: 'thotcursus.com', period: 'mensuel' },
+    { cat: '25', source: 'Sydologie', url: 'sydologie.com', period: 'mensuel' },
+    { cat: '25', source: 'FormaVox', url: 'formavox.com', period: 'mensuel' },
+  ],
+  qual1: '', qual2: '', qual3: '', qual4: ''
+};
+
+/* =======================================================
+   PERSISTANCE (localStorage en attendant window.storage)
+======================================================= */
+const STORAGE_KEY = APP_SCHEMA.storageKey;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) { console.warn('Load failed', e); }
+  return JSON.parse(JSON.stringify(SEED));
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('Sauvegardé');
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+/* Toast helper */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+/* =======================================================
+   RENDU GÉNÉRIQUE D'UNE LIGNE
+======================================================= */
+function renderCell(col, row, tableId, rowIndex) {
+  const value = row[col.id] || '';
+  if (col.type === 'select') {
+    const opts = col.options.map(o => `<option value="${o.value}"${o.value === value ? ' selected' : ''}>${o.label}</option>`).join('');
+    return `<select class="cell-select" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}"><option value="">—</option>${opts}</select>`;
+  }
+  if (col.type === 'date') {
+    return `<input type="date" class="cell-input" value="${value}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+  }
+  if (col.type === 'textarea') {
+    const safe = String(value).replace(/"/g, '&quot;');
+    return `<textarea class="cell-textarea" rows="1" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}">${value}</textarea>`;
+  }
+  // text par défaut
+  const safe = String(value).replace(/"/g, '&quot;');
+  return `<input type="text" class="cell-input" value="${safe}" data-tbl="${tableId}" data-row="${rowIndex}" data-col="${col.id}" />`;
+}
+
+function renderTable(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  const rows = state[tableId] || [];
+  const tbody = document.getElementById('tbody' + tableId.charAt(0).toUpperCase() + tableId.slice(1));
+  if (!tbody) return;
+  if (rows.length === 0) {
+    const colspan = schema.columns.length + 1;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-row">Aucune entrée pour le moment. Cliquez sur « Ajouter » pour commencer.</td></tr>`;
+    return;
+  }
+  // Les nouvelles entrées sont ajoutées au début du state (unshift), donc
+  // l'affichage suit naturellement l'ordre du state (plus récent en haut).
+  tbody.innerHTML = rows.map((row, i) => {
+    const cells = schema.columns.map(col => `<td>${renderCell(col, row, tableId, i)}</td>`).join('');
+    return `<tr>
+      ${cells}
+      <td class="col-actions">
+        <button class="row-action danger" data-action="delete" data-tbl="${tableId}" data-row="${i}" title="Supprimer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+  attachCellHandlers(tbody);
+  autosizeTextareas(tbody);
+}
+
+function autosizeTextareas(scope) {
+  scope.querySelectorAll('textarea').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(34, ta.scrollHeight) + 'px';
+  });
+}
+
+function attachCellHandlers(scope) {
+  scope.querySelectorAll('.cell-input, .cell-select, .cell-textarea').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const { tbl, row, col } = e.target.dataset;
+      state[tbl][parseInt(row)][col] = e.target.value;
+      saveState();
+      computeSynthese();
+    });
+    el.addEventListener('input', (e) => {
+      if (e.target.tagName === 'TEXTAREA') {
+        e.target.style.height = 'auto';
+        e.target.style.height = Math.max(34, e.target.scrollHeight) + 'px';
+      }
+    });
+  });
+  scope.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { tbl, row } = btn.dataset;
+      state[tbl].splice(parseInt(row), 1);
+      saveState();
+      renderTable(tbl);
+      updateCounts();
+      computeSynthese();
+    });
+  });
+}
+
+/* =======================================================
+   AJOUT / SUPPRESSION
+======================================================= */
+function addRow(tableId) {
+  const schema = APP_SCHEMA.tables[tableId];
+  const emptyRow = {};
+  schema.columns.forEach(col => emptyRow[col.id] = col.type === 'date' ? new Date().toISOString().slice(0,10) : '');
+  // Ajout en début de liste : les nouvelles entrées apparaissent en haut
+  state[tableId].unshift(emptyRow);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  const labels = { veille: 'Entrée ajoutée', sources: 'Source ajoutée' };
+  showToast(labels[tableId] || 'Ajouté');
+
+  renderTable(tableId);
+  updateCounts();
+  computeSynthese();
+
+  // Feedback visuel : scroll vers la première ligne (la nouvelle), highlight, focus
+  const tbodyId = 'tbody' + tableId.charAt(0).toUpperCase() + tableId.slice(1);
+  const tbody = document.getElementById(tbodyId);
+  if (tbody) {
+    const firstRow = tbody.firstElementChild;
+    if (firstRow) {
+      firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstRow.classList.add('row-flash');
+      setTimeout(() => firstRow.classList.remove('row-flash'), 1200);
+      setTimeout(() => {
+        const firstTextInput = firstRow.querySelector('input[type="text"], textarea');
+        if (firstTextInput) firstTextInput.focus();
+      }, 350);
+    }
+  }
+}
+
+document.getElementById('addVeilleBtn').addEventListener('click', () => addRow('veille'));
+document.getElementById('addSourceBtn').addEventListener('click', () => addRow('sources'));
+
+/* =======================================================
+   COMPTEURS D'ONGLETS
+======================================================= */
+function updateCounts() {
+  document.getElementById('cntVeille').textContent = state.veille.length;
+  document.getElementById('cntSources').textContent = state.sources.length;
+}
+
+/* =======================================================
+   CALCUL SYNTHÈSE (moteur de formules simple)
+======================================================= */
+function computeSynthese() {
+  const v = state.veille || [];
+  const total = v.length;
+  const c23 = v.filter(r => r.cat === '23').length;
+  const c24 = v.filter(r => r.cat === '24').length;
+  const c25 = v.filter(r => r.cat === '25').length;
+  const done = v.filter(r => r.statut === 'done').length;
+  const prog = v.filter(r => r.statut === 'progress').length;
+  const todo = v.filter(r => r.statut === 'todo').length;
+  const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiCat23').textContent = c23;
+  document.getElementById('kpiCat24').textContent = c24;
+  document.getElementById('kpiCat25').textContent = c25;
+  document.getElementById('kpiDone').textContent = done;
+  document.getElementById('kpiProgress').textContent = prog;
+  document.getElementById('kpiTodo').textContent = todo;
+  document.getElementById('kpiRate').textContent = rate;
+}
+
+/* =======================================================
+   ONGLETS
+======================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-pane="${btn.dataset.tab}"]`).classList.add('active');
+    if (btn.dataset.tab === 'synthese') computeSynthese();
+  });
+});
+
+/* =======================================================
+   CHAMPS LIBRES (analyse qualitative)
+======================================================= */
+APP_SCHEMA.freeFields.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = state[id] || '';
+  el.addEventListener('input', () => {
+    state[id] = el.value;
+  });
+  el.addEventListener('blur', () => saveState());
+});
+
+/* =======================================================
+   AIDE
+======================================================= */
+const helpBackdrop = document.getElementById('helpBackdrop');
+document.getElementById('openHelpBtn').addEventListener('click', () => {
+  helpBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+function closeHelp() {
+  helpBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+helpBackdrop.addEventListener('click', e => { if (e.target === helpBackdrop) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && helpBackdrop.classList.contains('open')) closeHelp(); });
+
+/* =======================================================
+   BOOT
+======================================================= */
+renderTable('veille');
+renderTable('sources');
+updateCounts();
+computeSynthese();
+</script>
+</body>
+</html>

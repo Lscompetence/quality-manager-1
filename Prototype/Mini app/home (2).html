@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== THÈME SOMBRE (défaut) ===== */
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(8,10,20,0.55);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --text: #F5F4EE;
+  --text-soft: #E2E0DA;
+  --text-mute: #C2C2CA;
+  --text-faint: #9596A2;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.18);
+  --amethyst-soft-2: rgba(148,116,255,0.06);
+
+  /* Aurore (alpha plus fort en sombre) */
+  --aur-c1: 0.28; --aur-c2: 0.28; --aur-c3: 0.22;
+  --aur-c4: 0.28; --aur-c5: 0.22; --aur-c6: 0.30; --aur-c7: 0.25;
+  --aur-veil-start: rgba(3,4,10,0.45);
+  --aur-veil-end:   rgba(3,4,10,0.88);
+
+  /* Gradient texte titre */
+  --title-grad-start: #FFFFFF;
+  --title-grad-mid:   #C09BFF;
+  --title-grad-end:   #9474FF;
+
+  /* Couleurs critères / types */
+  --c1: #F0997B; --c2: #5DC9A5; --c3: #EF9E28; --c4: #6B89D0;
+  --c5: #6BBE54; --c6: #A755F8; --c7: #EB489B;
+  --t-initial: #9474FF; --t-surv: #5DC9A5; --t-renew: #EB489B;
+
+  /* Ombres */
+  --shadow-card: 0 4px 12px -4px rgba(0,0,0,0.4);
+  --shadow-card-hover: inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 32px -8px rgba(0,0,0,0.5);
+
+  --status-on: #58D69A;
+  --grain-opacity: 0.04;
+  --grain-blend: normal;
+}
+
+/* ===== THÈME CLAIR ===== */
+[data-theme="light"] {
+  --bg: #BFD9F0;
+  --bg-gradient: linear-gradient(180deg, #A8CDED 0%, #C9DEEC 25%, #E8E2D0 65%, #F8E9CC 100%);
+  --bg-elev: rgba(255,253,247,0.78);
+  --surface: rgba(15,42,71,0.03);
+  --surface-2: rgba(15,42,71,0.06);
+  --border: rgba(15,42,71,0.09);
+  --border-strong: rgba(15,42,71,0.2);
+  --text: #0F2A47;
+  --text-soft: #3D5673;
+  --text-mute: #6F7B8C;
+  --text-faint: #A8B0BD;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #5A3FAB;
+  --amethyst-soft: rgba(107,79,187,0.13);
+  --amethyst-soft-2: rgba(107,79,187,0.05);
+
+  /* Aurore en clair : douce, posée sur le dégradé */
+  --aur-c1: 0.20; --aur-c2: 0.20; --aur-c3: 0.16;
+  --aur-c4: 0.20; --aur-c5: 0.16; --aur-c6: 0.20; --aur-c7: 0.18;
+  --aur-veil-start: rgba(244,247,250,0.4);
+  --aur-veil-end:   rgba(244,247,250,0.88);
+
+  --title-grad-start: #0F2A47;
+  --title-grad-mid:   #6B4FBB;
+  --title-grad-end:   #5A3FAB;
+
+  --c1: #E2754B; --c2: #2BA785; --c3: #D17A0E; --c4: #3D5A99;
+  --c5: #4A9E36; --c6: #8530DB; --c7: #C82A7D;
+  --t-initial: #5A3FAB; --t-surv: #2BA785; --t-renew: #C82A7D;
+
+  --shadow-card: 0 2px 6px -2px rgba(15,42,71,0.07), 0 14px 28px -12px rgba(15,42,71,0.14);
+  --shadow-card-hover: 0 4px 12px -4px rgba(15,42,71,0.10), 0 20px 44px -10px rgba(15,42,71,0.2);
+
+  --status-on: #0E9F6E;
+  --grain-opacity: 0.025;
+  --grain-blend: multiply;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { transition: background-color .45s ease, color .45s ease; }
+body { font-family: 'Raleway', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+[data-theme="light"] body { background: var(--bg-gradient); background-attachment: fixed; }
+
+/* Transition douce des éléments thématisés */
+.sidebar, .aurora-stage, .aurora-veil, .dossier, .filter-btn,
+.filters, .user-pill, .icon-btn, .d-pg-track, .user-card, .brand {
+  transition: background-color .45s ease, border-color .45s ease, color .45s ease, box-shadow .45s ease;
+}
+
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--bg-elev); backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%); border-right: 1px solid var(--border); padding: 24px 18px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 24px; border-bottom: 1px solid var(--border); }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #2C5A9E 0%, #6B4FBB 50%, #9474FF 100%); display: grid; place-items: center; color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.04em; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px -8px rgba(107,79,187,0.7); }
+.brand-name { font-weight: 600; font-size: 14.5px; }
+.brand-edition { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px; }
+.nav-block { margin-top: 22px; }
+.nav-label { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; padding: 0 12px 9px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: var(--text-soft); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1px; transition: all .2s; }
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2)); color: var(--text); box-shadow: inset 0 0 0 1px var(--amethyst-soft); }
+.nav-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.spacer { flex: 1; }
+.user-card { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 11px; }
+.user-av { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 11px; color: white; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-meta { font-family: 'JetBrains Mono'; font-size: 9.5px; color: var(--text-faint); margin-top: 3px; }
+
+/* ===== AURORA BACKGROUND ===== */
+.aurora-stage {
+  position: absolute; top: 0; left: 230px; right: 0; bottom: 0;
+  z-index: 0; overflow: hidden;
+}
+.aurora-canvas {
+  position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240,153,123,var(--aur-c1)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93,201,165,var(--aur-c2)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239,158,40,var(--aur-c3)) 0%, transparent 50%),
+    radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107,137,208,var(--aur-c4)) 0%, transparent 50%),
+    radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107,190,84,var(--aur-c5)) 0%, transparent 50%),
+    radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167,85,248,var(--aur-c6)) 0%, transparent 50%),
+    radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235,72,155,var(--aur-c7)) 0%, transparent 50%);
+  filter: blur(40px);
+  animation: auroraDrift 30s ease-in-out infinite;
+}
+@keyframes auroraDrift {
+  0%, 100% { transform: scale(1) rotate(0deg) translate(0, 0); }
+  33%      { transform: scale(1.1) rotate(2deg) translate(2%, -2%); }
+  66%      { transform: scale(0.95) rotate(-1deg) translate(-1%, 2%); }
+}
+.aurora-veil {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 0%, var(--aur-veil-start) 55%, var(--aur-veil-end) 100%);
+}
+.aurora-grain {
+  position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* MAIN */
+.main { padding: 28px 60px 80px; min-width: 0; position: relative; z-index: 2; display: flex; flex-direction: column; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
+.crumb { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); }
+.crumb b { color: var(--amethyst-br); font-weight: 500; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 11px; display: grid; place-items: center; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+/* Theme toggle */
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .ic-sun, .theme-toggle .ic-moon {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  transition: transform .5s cubic-bezier(.6,-0.05,.3,1.4), opacity .35s ease;
+}
+[data-theme="dark"] .theme-toggle .ic-sun { transform: translateY(-130%) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .theme-toggle .ic-moon { transform: translateY(0) rotate(0); opacity: 1; }
+[data-theme="light"] .theme-toggle .ic-sun { transform: translateY(0) rotate(0); opacity: 1; color: #B45309; }
+[data-theme="light"] .theme-toggle .ic-moon { transform: translateY(130%) rotate(90deg); opacity: 0; }
+
+.user-pill { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 5px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-soft); cursor: pointer; transition: all .2s; }
+.user-pill:hover { border-color: var(--border-strong); }
+.user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2C5A9E, #6B4FBB); display: grid; place-items: center; font-weight: 700; font-size: 10px; color: white; }
+
+/* ===== HERO CENTRAL ===== */
+.hero {
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 24px;
+  padding: 30px 0 50px;
+}
+.eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute);
+  letter-spacing: 0.32em; text-transform: uppercase;
+}
+.hero-q {
+  font-family: 'Raleway'; font-weight: 100; font-size: 88px;
+  line-height: 0.95; color: var(--text); letter-spacing: -0.04em;
+  text-shadow: 0 4px 40px rgba(0,0,0,0.4);
+  max-width: 1000px;
+}
+.hero-q b {
+  font-weight: 300;
+  background: linear-gradient(135deg, var(--title-grad-start) 0%, var(--title-grad-mid) 40%, var(--title-grad-end) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .hero-q { text-shadow: 0 2px 20px rgba(15,42,71,0.06); }
+.hero-sub {
+  font-size: 16px; color: var(--text-soft);
+  max-width: 600px; line-height: 1.6;
+  margin-top: -4px;
+}
+
+/* BOUTON 3D principal */
+.btn-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 0 28px; height: 56px;
+  border-radius: 16px;
+  font-family: 'Raleway'; font-size: 15px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  letter-spacing: 0.005em; margin-top: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.2),
+    0 1px 0 rgba(0,0,0,0.3),
+    0 10px 28px -8px rgba(107,79,187,0.75),
+    0 22px 48px -10px rgba(107,79,187,0.55);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+  position: relative; overflow: hidden;
+}
+.btn-cta::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 50%);
+  pointer-events: none; border-radius: inherit;
+}
+.btn-cta:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.42),
+    0 14px 36px -8px rgba(107,79,187,0.9),
+    0 28px 60px -10px rgba(107,79,187,0.65);
+}
+.btn-cta:active { transform: translateY(-1px); }
+.btn-cta svg { width: 18px; height: 18px; }
+
+/* ===== FILTERS ===== */
+.filters-wrap {
+  display: flex; justify-content: center;
+  margin: 60px 0 30px;
+}
+.filters {
+  display: inline-flex;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  -webkit-backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.filter-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-family: 'Raleway'; font-size: 13px; font-weight: 500;
+  color: var(--text-mute);
+  background: transparent; border: none; cursor: pointer;
+  transition: all .22s cubic-bezier(.22,1,.36,1);
+}
+.filter-btn:hover { color: var(--text-soft); }
+.filter-btn.active {
+  background: linear-gradient(180deg, var(--amethyst-soft), var(--amethyst-soft-2));
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 0 0 1px var(--amethyst-soft);
+}
+.filter-count {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 1px 7px; border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-mute);
+}
+.filter-btn.active .filter-count {
+  background: var(--amethyst-soft); color: var(--amethyst-br);
+}
+
+/* ===== GRID DOSSIERS ===== */
+.dossiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dossier {
+  position: relative;
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  -webkit-backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 22px 20px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    var(--shadow-card);
+}
+.dossier::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 24px var(--accent), 0 0 48px var(--accent-soft);
+  opacity: 0.7;
+  transition: all .3s;
+}
+.dossier:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-card-hover), 0 0 0 1px var(--accent-soft);
+}
+.dossier:hover::before { height: 3px; opacity: 1; }
+
+/* (variants t-initial / t-surv / t-renew définis plus haut avec support thème) */
+
+.d-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 18px;
+}
+.d-type {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--accent);
+}
+.d-type::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+.d-status {
+  font-family: 'JetBrains Mono'; font-size: 9.5px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  font-weight: 500; color: var(--text-faint);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.d-status.open::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--status-on); box-shadow: 0 0 8px var(--status-on);
+  animation: pulse 1.8s infinite;
+}
+.d-status.closed::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-faint);
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.d-status.open { color: var(--status-on); }
+
+.dossier.t-initial { --accent: var(--t-initial); --accent-soft: rgba(148,116,255,0.3); }
+.dossier.t-surv    { --accent: var(--t-surv); --accent-soft: rgba(93,201,165,0.3); }
+.dossier.t-renew   { --accent: var(--t-renew); --accent-soft: rgba(235,72,155,0.3); }
+[data-theme="light"] .dossier.t-initial { --accent-soft: rgba(90,63,171,0.25); }
+[data-theme="light"] .dossier.t-surv    { --accent-soft: rgba(43,167,133,0.25); }
+[data-theme="light"] .dossier.t-renew   { --accent-soft: rgba(200,42,125,0.25); }
+
+.d-cat {
+  font-family: 'Raleway'; font-weight: 200; font-size: 36px;
+  color: var(--text); line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.d-cat b { font-weight: 400; }
+.d-subcat {
+  font-size: 13.5px; color: var(--text-mute);
+  margin-bottom: 22px; font-weight: 500;
+}
+
+/* Progression */
+.d-progress { margin-bottom: 18px; }
+.d-pg-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px;
+}
+.d-pg-label { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+.d-pg-val { font-family: 'Raleway'; font-weight: 500; font-size: 18px; color: var(--text); letter-spacing: -0.01em; }
+.d-pg-val small { font-size: 11px; color: var(--text-faint); margin-left: 2px; }
+.d-pg-track {
+  height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden;
+}
+.d-pg-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent-soft) 0%, var(--accent) 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 12px var(--accent-soft);
+  animation: grow 1.2s cubic-bezier(.22,1,.36,1) forwards;
+  width: 0;
+}
+@keyframes grow { to { width: var(--w); } }
+
+/* Footer dossier */
+.d-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.d-meta {
+  font-family: 'JetBrains Mono'; font-size: 11.5px;
+  color: var(--text-mute); letter-spacing: 0.04em; font-weight: 500;
+}
+.d-meta b { color: var(--text-soft); font-weight: 600; }
+.d-arrow {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--amethyst-soft-2);
+  display: grid; place-items: center;
+  color: var(--amethyst-br);
+  transition: all .25s;
+}
+.dossier:hover .d-arrow {
+  background: var(--amethyst-soft);
+  transform: translateX(2px);
+}
+
+/* État clôturé : un peu plus discret */
+.dossier.closed { opacity: 0.7; }
+.dossier.closed:hover { opacity: 1; }
+
+/* Animations */
+.hero, .filters-wrap, .dossiers { opacity: 0; filter: blur(10px); animation: enter 1s cubic-bezier(.22,1,.36,1) forwards; }
+.hero { animation-delay: .1s; }
+.filters-wrap { animation-delay: .35s; }
+.dossiers { animation-delay: .5s; }
+@keyframes enter { to { opacity: 1; filter: blur(0); } }
+
+/* Dossier stagger */
+.dossier { opacity: 0; animation: dossierEnter .8s cubic-bezier(.22,1,.36,1) forwards; }
+.dossier:nth-child(1) { animation-delay: .55s; }
+.dossier:nth-child(2) { animation-delay: .62s; }
+.dossier:nth-child(3) { animation-delay: .69s; }
+.dossier:nth-child(4) { animation-delay: .76s; }
+.dossier:nth-child(5) { animation-delay: .83s; }
+.dossier:nth-child(6) { animation-delay: .9s; }
+@keyframes dossierEnter { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.dossier.closed { animation-name: dossierEnterClosed; }
+@keyframes dossierEnterClosed { from { opacity: 0; transform: translateY(20px); } to { opacity: 0.7; transform: translateY(0); } }
+
+/* ==========================================================
+   MODALE DE CRÉATION D'UN NOUVEAU DOSSIER
+========================================================== */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(3,4,10,0.55);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 40px 20px;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+[data-theme="light"] .modal-backdrop {
+  background: rgba(15,42,71,0.32);
+}
+.modal-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+.modal-backdrop.open .modal {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal {
+  position: relative;
+  width: 100%; max-width: 720px;
+  background: var(--bg-elev);
+  backdrop-filter: blur(50px) saturate(160%);
+  -webkit-backdrop-filter: blur(50px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: 36px 40px 32px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 30px 80px -20px rgba(0,0,0,0.6),
+    0 60px 120px -40px rgba(107,79,187,0.3);
+  transform: translateY(20px) scale(0.98);
+  opacity: 0;
+  transition: transform .45s cubic-bezier(.22,1,.36,1), opacity .35s ease;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+[data-theme="light"] .modal {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 20px 60px -16px rgba(15,42,71,0.2),
+    0 40px 100px -30px rgba(107,79,187,0.18);
+}
+
+.modal-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 28px;
+}
+.modal-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10.5px;
+  color: var(--amethyst-br); letter-spacing: 0.22em;
+  text-transform: uppercase; font-weight: 500;
+  margin-bottom: 8px;
+}
+.modal-title {
+  font-family: 'Raleway'; font-weight: 200; font-size: 36px;
+  color: var(--text); line-height: 1.1; letter-spacing: -0.025em;
+}
+.modal-title b {
+  font-weight: 400;
+  background: linear-gradient(135deg, var(--title-grad-start) 0%, var(--title-grad-mid) 60%, var(--title-grad-end) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.modal-close {
+  width: 36px; height: 36px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; cursor: pointer;
+  display: grid; place-items: center;
+  color: var(--text-mute);
+  transition: all .2s;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+/* Stepper */
+.stepper {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.step-item {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1;
+  transition: opacity .3s ease;
+}
+.step-item.future { opacity: 0.45; }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: 'JetBrains Mono'; font-size: 12px; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-mute);
+  transition: all .35s cubic-bezier(.22,1,.36,1);
+}
+.step-item.active .step-num {
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 100%);
+  border-color: rgba(255,255,255,0.18);
+  color: white;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 16px -4px rgba(107,79,187,0.6);
+}
+.step-item.done .step-num {
+  background: var(--amethyst-soft);
+  border-color: var(--amethyst-soft);
+  color: var(--amethyst-br);
+}
+.step-label {
+  font-size: 12.5px; font-weight: 600; color: var(--text-soft);
+  letter-spacing: -0.005em;
+}
+.step-item.active .step-label { color: var(--text); }
+.step-item.future .step-label { color: var(--text-faint); }
+.step-line {
+  flex: 1; height: 1px; background: var(--border); max-width: 60px;
+}
+
+/* Panneaux d'étape */
+.step-pane { display: none; }
+.step-pane.active { display: block; animation: stepIn .45s cubic-bezier(.22,1,.36,1); }
+@keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.step-question {
+  font-family: 'Raleway'; font-weight: 400; font-size: 22px;
+  color: var(--text); margin-bottom: 6px; letter-spacing: -0.015em;
+}
+.step-help {
+  font-size: 13.5px; color: var(--text-mute);
+  margin-bottom: 24px; max-width: 540px;
+}
+
+/* Options sélectionnables (cards 3D) */
+.opt-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.opt-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.opt-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.opt-card {
+  position: relative; overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-soft);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+}
+.opt-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--opt-accent, var(--amethyst-br));
+  box-shadow: 0 0 18px var(--opt-accent, var(--amethyst-br));
+  opacity: 0; transition: opacity .25s;
+}
+.opt-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+.opt-card.selected {
+  border-color: var(--opt-accent, var(--amethyst-br));
+  background: var(--surface-2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 0 0 1px var(--opt-accent, var(--amethyst-br)),
+    0 0 30px -8px var(--opt-accent, var(--amethyst-br));
+}
+.opt-card.selected::before { opacity: 1; }
+.opt-num {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--opt-accent, var(--amethyst-br));
+  letter-spacing: 0.18em; font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.opt-title {
+  font-family: 'Raleway'; font-weight: 500; font-size: 17px;
+  color: var(--text); line-height: 1.15;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.opt-desc {
+  font-size: 12px; color: var(--text-mute);
+  line-height: 1.45;
+}
+
+/* Variantes type d'audit */
+.opt-card.t-initial { --opt-accent: var(--t-initial); }
+.opt-card.t-surv    { --opt-accent: var(--t-surv); }
+.opt-card.t-renew   { --opt-accent: var(--t-renew); }
+.opt-card.cat-af    { --opt-accent: #5DC9A5; }
+.opt-card.cat-bc    { --opt-accent: #6B89D0; }
+.opt-card.cat-vae   { --opt-accent: #EF9E28; }
+.opt-card.cat-cfa   { --opt-accent: #A755F8; }
+[data-theme="light"] .opt-card.cat-af  { --opt-accent: #2BA785; }
+[data-theme="light"] .opt-card.cat-bc  { --opt-accent: #3D5A99; }
+[data-theme="light"] .opt-card.cat-vae { --opt-accent: #D17A0E; }
+[data-theme="light"] .opt-card.cat-cfa { --opt-accent: #8530DB; }
+
+/* Étape 3 : date + clonage */
+.field { margin-bottom: 22px; }
+.field-label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--text-soft); margin-bottom: 8px;
+}
+.field-input, .field-select {
+  width: 100%; padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit; font-size: 14px;
+  color: var(--text);
+  transition: all .2s;
+}
+.field-input:focus, .field-select:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 4px var(--amethyst-soft-2);
+}
+.field-select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1L6 6L11 1' stroke='%239474FF' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 38px;
+}
+
+.toggle-clone {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.toggle-clone:hover { background: var(--surface-2); }
+.toggle-clone.active { background: var(--amethyst-soft-2); border-color: var(--amethyst-soft); }
+.toggle-clone-check {
+  width: 22px; height: 22px; border-radius: 7px;
+  border: 1.5px solid var(--border-strong);
+  display: grid; place-items: center; flex-shrink: 0;
+  transition: all .2s; margin-top: 1px;
+}
+.toggle-clone.active .toggle-clone-check {
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 100%);
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 8px -2px rgba(107,79,187,0.5);
+}
+.toggle-clone-check svg { opacity: 0; transition: opacity .2s; color: white; }
+.toggle-clone.active .toggle-clone-check svg { opacity: 1; }
+.toggle-clone-text { flex: 1; }
+.toggle-clone-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 3px; }
+.toggle-clone-desc { font-size: 12.5px; color: var(--text-mute); line-height: 1.45; }
+
+.clone-source {
+  margin-top: 12px;
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s ease;
+}
+.toggle-clone.active + .clone-source { max-height: 200px; }
+
+/* Doublon warning */
+.duplicate-warn {
+  display: none; align-items: flex-start; gap: 12px;
+  padding: 14px 16px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.28);
+  border-radius: 12px;
+  margin-top: 20px;
+}
+.duplicate-warn.visible { display: flex; animation: stepIn .35s; }
+.duplicate-warn-ic {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(245,158,11,0.18);
+  color: #F59E0B;
+  display: grid; place-items: center; flex-shrink: 0;
+  margin-top: 1px;
+}
+.duplicate-warn-text { flex: 1; font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+.duplicate-warn-text b { color: var(--text); font-weight: 600; }
+
+/* Footer modale */
+.modal-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.btn-ghost {
+  height: 42px; padding: 0 18px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 11px; font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-soft); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all .2s;
+}
+.btn-ghost:hover { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+.btn-ghost:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-modal-next {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 22px;
+  border-radius: 11px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  color: white; cursor: pointer;
+  background: linear-gradient(180deg, #9474FF 0%, #6B4FBB 50%, #5A3FAB 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.32),
+    inset 0 -1px 0 rgba(0,0,0,0.2),
+    0 6px 18px -4px rgba(107,79,187,0.6),
+    0 14px 32px -10px rgba(107,79,187,0.4);
+  transition: all .25s cubic-bezier(.22,1,.36,1);
+  position: relative; overflow: hidden;
+}
+.btn-modal-next:disabled {
+  opacity: 0.35; cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-modal-next:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    0 10px 24px -4px rgba(107,79,187,0.8),
+    0 22px 48px -10px rgba(107,79,187,0.55);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Q</div>
+      <div><div class="brand-name">Quality Manager</div><div class="brand-edition">LS Compétences</div></div>
+    </div>
+    <div class="nav-block">
+      <div class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Accueil
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Mes dossiers
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Paramètres organisme
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="user-card">
+      <div class="user-av">SF</div>
+      <div><div class="user-name">So Forma</div><div class="user-meta">SIRET 829 ··· 712</div></div>
+    </div>
+  </aside>
+
+  <!-- AURORA -->
+  <div class="aurora-stage">
+    <div class="aurora-canvas"></div>
+    <div class="aurora-veil"></div>
+    <div class="aurora-grain"></div>
+  </div>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="crumb">qualitymanager <b>/ accueil</b></div>
+      <div class="topbar-right">
+        <button class="icon-btn" title="Recherche">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+        <button class="icon-btn theme-toggle" title="Changer de thème" id="themeToggle" aria-label="Changer de thème">
+          <span class="ic-sun">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+          </span>
+          <span class="ic-moon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </span>
+        </button>
+        <div class="user-pill"><div class="av">SF</div>So Forma</div>
+      </div>
+    </div>
+
+    <!-- HERO CENTRÉ -->
+    <div class="hero">
+      <div class="eyebrow">Bienvenue · So Forma</div>
+      <h1 class="hero-q">Préparez votre prochain<br><b>audit en sérénité.</b></h1>
+      <p class="hero-sub">Chaque dossier est un audit. Démarrez-en un nouveau, ou reprenez un dossier en cours pour continuer à monter vos preuves.</p>
+
+      <button class="btn-cta" id="openModalBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Démarrer un nouveau dossier
+      </button>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="filters-wrap">
+      <div class="filters">
+        <button class="filter-btn active">Tous <span class="filter-count">6</span></button>
+        <button class="filter-btn">En cours <span class="filter-count">3</span></button>
+        <button class="filter-btn">Clôturés <span class="filter-count">3</span></button>
+      </div>
+    </div>
+
+    <!-- DOSSIERS -->
+    <div class="dossiers">
+
+      <!-- En cours -->
+      <div class="dossier t-surv">
+        <div class="d-head">
+          <div class="d-type">Surveillance</div>
+          <div class="d-status open">En cours</div>
+        </div>
+        <div class="d-cat">Actions de<br><b>formation</b></div>
+        <div class="d-subcat">Périmètre AF · ouvert le 12 mars 2026</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture</div>
+            <div class="d-pg-val">68<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:68%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit prévu <b>oct. 2027</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier t-surv">
+        <div class="d-head">
+          <div class="d-type">Surveillance</div>
+          <div class="d-status open">En cours</div>
+        </div>
+        <div class="d-cat">Apprentissage<br><b>CFA</b></div>
+        <div class="d-subcat">Périmètre CFA · ouvert le 12 mars 2026</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture</div>
+            <div class="d-pg-val">42<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:42%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit prévu <b>oct. 2027</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier t-surv">
+        <div class="d-head">
+          <div class="d-type">Surveillance</div>
+          <div class="d-status open">En cours</div>
+        </div>
+        <div class="d-cat">Bilans de<br><b>compétences</b></div>
+        <div class="d-subcat">Périmètre BC · ouvert le 28 avr. 2026</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture</div>
+            <div class="d-pg-val">15<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:15%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit prévu <b>oct. 2027</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clôturés -->
+      <div class="dossier t-initial closed">
+        <div class="d-head">
+          <div class="d-type">Initial</div>
+          <div class="d-status closed">Clôturé</div>
+        </div>
+        <div class="d-cat">Actions de<br><b>formation</b></div>
+        <div class="d-subcat">Périmètre AF · clôturé le 18 oct. 2024</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture finale</div>
+            <div class="d-pg-val">96<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:96%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit obtenu <b>oct. 2024</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier t-initial closed">
+        <div class="d-head">
+          <div class="d-type">Initial</div>
+          <div class="d-status closed">Clôturé</div>
+        </div>
+        <div class="d-cat">Apprentissage<br><b>CFA</b></div>
+        <div class="d-subcat">Périmètre CFA · clôturé le 18 oct. 2024</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture finale</div>
+            <div class="d-pg-val">91<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:91%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit obtenu <b>oct. 2024</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier t-initial closed">
+        <div class="d-head">
+          <div class="d-type">Initial</div>
+          <div class="d-status closed">Clôturé</div>
+        </div>
+        <div class="d-cat">Validation acquis<br><b>VAE</b></div>
+        <div class="d-subcat">Périmètre VAE · clôturé le 18 oct. 2024</div>
+        <div class="d-progress">
+          <div class="d-pg-head">
+            <div class="d-pg-label">Couverture finale</div>
+            <div class="d-pg-val">88<small>%</small></div>
+          </div>
+          <div class="d-pg-track"><div class="d-pg-fill" style="--w:88%"></div></div>
+        </div>
+        <div class="d-foot">
+          <div class="d-meta">Audit obtenu <b>oct. 2024</b></div>
+          <div class="d-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- =====================================================
+     MODALE — CRÉER UN NOUVEAU DOSSIER
+===================================================== -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Nouveau dossier</div>
+        <h2 class="modal-title" id="modalTitle">Préparons votre<br><b>prochain audit.</b></h2>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper" id="stepper">
+      <div class="step-item active" data-step="1">
+        <div class="step-num">1</div>
+        <div class="step-label">Type d'audit</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item future" data-step="2">
+        <div class="step-num">2</div>
+        <div class="step-label">Catégorie</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item future" data-step="3">
+        <div class="step-num">3</div>
+        <div class="step-label">Date &amp; reprise</div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 1 — TYPE D'AUDIT -->
+    <div class="step-pane active" data-pane="1">
+      <h3 class="step-question">Quel type d'audit préparez-vous ?</h3>
+      <p class="step-help">Le type détermine la portée du dossier dans votre cycle Qualiopi. Chaque cycle se compose d'un audit Initial, puis d'audits de Surveillance et d'un Renouvellement.</p>
+      <div class="opt-grid cols-3">
+        <button class="opt-card t-initial" data-type="initial">
+          <div class="opt-num">Initial</div>
+          <div class="opt-title">Première certification</div>
+          <div class="opt-desc">Pour obtenir Qualiopi pour la première fois sur une catégorie de prestation.</div>
+        </button>
+        <button class="opt-card t-surv" data-type="surveillance">
+          <div class="opt-num">Surveillance</div>
+          <div class="opt-title">Audit de suivi</div>
+          <div class="opt-desc">Mi-cycle, après 14 à 22 mois — vérification du maintien des exigences.</div>
+        </button>
+        <button class="opt-card t-renew" data-type="renouvellement">
+          <div class="opt-num">Renouvellement</div>
+          <div class="opt-title">Recertification</div>
+          <div class="opt-desc">Tous les 3 ans, audit complet pour renouveler la certification Qualiopi.</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 — CATÉGORIE -->
+    <div class="step-pane" data-pane="2">
+      <h3 class="step-question">Pour quelle catégorie de prestation ?</h3>
+      <p class="step-help">Une catégorie par dossier. Cela permet d'avoir des preuves dédiées et de ne pas mélanger des indicateurs qui ne s'appliquent pas. Vous pourrez créer d'autres dossiers pour les autres catégories.</p>
+      <div class="opt-grid cols-2">
+        <button class="opt-card cat-af" data-cat="AF">
+          <div class="opt-num">AF</div>
+          <div class="opt-title">Actions de formation</div>
+          <div class="opt-desc">Formations professionnelles continues, le périmètre le plus courant.</div>
+        </button>
+        <button class="opt-card cat-bc" data-cat="BC">
+          <div class="opt-num">BC</div>
+          <div class="opt-title">Bilans de compétences</div>
+          <div class="opt-desc">Prestations de bilan de compétences en propre.</div>
+        </button>
+        <button class="opt-card cat-vae" data-cat="VAE">
+          <div class="opt-num">VAE</div>
+          <div class="opt-title">Validation des acquis</div>
+          <div class="opt-desc">Accompagnement à la validation des acquis de l'expérience.</div>
+        </button>
+        <button class="opt-card cat-cfa" data-cat="CFA">
+          <div class="opt-num">CFA</div>
+          <div class="opt-title">Apprentissage</div>
+          <div class="opt-desc">Centre de formation d'apprentis — indicateurs spécifiques CFA.</div>
+        </button>
+      </div>
+
+      <!-- Avertissement doublon -->
+      <div class="duplicate-warn" id="duplicateWarn">
+        <div class="duplicate-warn-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="duplicate-warn-text">
+          Vous avez déjà un dossier <b id="dupSummary">Surveillance · AF</b> ouvert. Vous pouvez tout de même en créer un second si nécessaire — par exemple pour préparer une version alternative en parallèle.
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 — DATE & CLONAGE -->
+    <div class="step-pane" data-pane="3">
+      <h3 class="step-question">Dernières précisions.</h3>
+      <p class="step-help">La date prévue de l'audit nous sert à vous alerter à l'approche de l'échéance. La reprise vous permet de gagner du temps en copiant les preuves toujours valables d'un dossier précédent.</p>
+
+      <div class="field">
+        <label class="field-label" for="auditDate">Date prévue de l'audit</label>
+        <input type="date" id="auditDate" class="field-input" />
+      </div>
+
+      <div class="toggle-clone" id="toggleClone">
+        <div class="toggle-clone-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="toggle-clone-text">
+          <div class="toggle-clone-title">Reprendre les preuves d'un dossier existant</div>
+          <div class="toggle-clone-desc">Copie automatiquement les preuves déposées dans un dossier précédent — vous gagnerez du temps sur les pièces toujours valables (programmes, fiches formateurs, conventions types…).</div>
+        </div>
+      </div>
+
+      <div class="clone-source">
+        <div class="field" style="margin-top:14px; margin-bottom:0;">
+          <label class="field-label">Dossier source</label>
+          <select class="field-select" id="cloneSource">
+            <option value="">Sélectionnez un dossier…</option>
+            <option value="d1">Initial · Actions de formation · clôturé oct. 2024</option>
+            <option value="d2">Initial · Apprentissage CFA · clôturé oct. 2024</option>
+            <option value="d3">Initial · Validation acquis VAE · clôturé oct. 2024</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-foot">
+      <button class="btn-ghost" id="modalBack" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </button>
+      <button class="btn-modal-next" id="modalNext" disabled>
+        <span id="modalNextLabel">Continuer</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'qm:theme';
+  const root = document.documentElement;
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+  }
+
+  function resolveInitialTheme() {
+    // 1) override stocké explicitement par l'utilisateur (s'il l'a déjà cliqué)
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'dark' || stored === 'light') return stored;
+    } catch(e) {}
+    // 2) sinon, suivre la préférence système
+    return mql.matches ? 'light' : 'dark';
+  }
+
+  // Application initiale
+  applyTheme(resolveInitialTheme());
+
+  // Suivi des changements système tant que l'utilisateur n'a pas overridé
+  try {
+    mql.addEventListener('change', (e) => {
+      const overridden = localStorage.getItem(STORAGE_KEY);
+      if (!overridden) applyTheme(e.matches ? 'light' : 'dark');
+    });
+  } catch(e) {}
+
+  // Bascule manuelle
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+    });
+  }
+})();
+
+/* =====================================================
+   MODALE — CRÉATION DE DOSSIER
+===================================================== */
+(function() {
+  const backdrop = document.getElementById('modalBackdrop');
+  const openBtn = document.getElementById('openModalBtn');
+  const closeBtn = document.getElementById('modalClose');
+  const backBtn = document.getElementById('modalBack');
+  const nextBtn = document.getElementById('modalNext');
+  const nextLabel = document.getElementById('modalNextLabel');
+  const stepper = document.getElementById('stepper');
+  const panes = document.querySelectorAll('.step-pane');
+  const stepItems = stepper.querySelectorAll('.step-item');
+  const dupWarn = document.getElementById('duplicateWarn');
+  const dupSummary = document.getElementById('dupSummary');
+  const toggleClone = document.getElementById('toggleClone');
+  const cloneSource = document.getElementById('cloneSource');
+  const auditDate = document.getElementById('auditDate');
+
+  // Dossiers ouverts simulés (pour la détection doublon)
+  const openDossiers = [
+    { type: 'surveillance', cat: 'AF' },
+    { type: 'surveillance', cat: 'CFA' },
+    { type: 'surveillance', cat: 'BC' },
+  ];
+
+  const labels = {
+    initial: 'Initial', surveillance: 'Surveillance', renouvellement: 'Renouvellement',
+    AF: 'Actions de formation', BC: 'Bilans de compétences',
+    VAE: 'Validation des acquis', CFA: 'Apprentissage CFA',
+    catShort: { AF: 'AF', BC: 'BC', VAE: 'VAE', CFA: 'CFA' }
+  };
+
+  let state = { step: 1, type: null, cat: null, date: '', clone: false, cloneSourceId: '' };
+
+  function open() {
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(reset, 500);
+  }
+  function reset() {
+    state = { step: 1, type: null, cat: null, date: '', clone: false, cloneSourceId: '' };
+    document.querySelectorAll('.opt-card.selected').forEach(c => c.classList.remove('selected'));
+    toggleClone.classList.remove('active');
+    cloneSource.value = '';
+    auditDate.value = '';
+    dupWarn.classList.remove('visible');
+    goToStep(1);
+  }
+
+  function goToStep(n) {
+    state.step = n;
+    panes.forEach(p => p.classList.toggle('active', parseInt(p.dataset.pane) === n));
+    stepItems.forEach(s => {
+      const num = parseInt(s.dataset.step);
+      s.classList.remove('active', 'done', 'future');
+      if (num < n) s.classList.add('done');
+      else if (num === n) s.classList.add('active');
+      else s.classList.add('future');
+    });
+    backBtn.disabled = (n === 1);
+    if (n === 3) { nextLabel.textContent = 'Créer le dossier'; }
+    else { nextLabel.textContent = 'Continuer'; }
+    refreshNextEnabled();
+  }
+
+  function refreshNextEnabled() {
+    let ok = false;
+    if (state.step === 1) ok = !!state.type;
+    if (state.step === 2) ok = !!state.cat;
+    if (state.step === 3) ok = !!state.date && (!state.clone || !!state.cloneSourceId);
+    nextBtn.disabled = !ok;
+  }
+
+  function checkDuplicate() {
+    if (!state.type || !state.cat) { dupWarn.classList.remove('visible'); return; }
+    const dup = openDossiers.find(d => d.type === state.type && d.cat === state.cat);
+    if (dup) {
+      dupSummary.textContent = `${labels[state.type]} · ${labels.catShort[state.cat]}`;
+      dupWarn.classList.add('visible');
+    } else {
+      dupWarn.classList.remove('visible');
+    }
+  }
+
+  // Sélection options Type (étape 1)
+  document.querySelectorAll('[data-pane="1"] .opt-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('[data-pane="1"] .opt-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.type = card.dataset.type;
+      refreshNextEnabled();
+    });
+  });
+  // Sélection options Catégorie (étape 2)
+  document.querySelectorAll('[data-pane="2"] .opt-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('[data-pane="2"] .opt-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.cat = card.dataset.cat;
+      checkDuplicate();
+      refreshNextEnabled();
+    });
+  });
+
+  // Toggle clonage
+  toggleClone.addEventListener('click', () => {
+    state.clone = !state.clone;
+    toggleClone.classList.toggle('active', state.clone);
+    if (!state.clone) { cloneSource.value = ''; state.cloneSourceId = ''; }
+    refreshNextEnabled();
+  });
+  cloneSource.addEventListener('change', e => { state.cloneSourceId = e.target.value; refreshNextEnabled(); });
+  auditDate.addEventListener('change', e => { state.date = e.target.value; refreshNextEnabled(); });
+
+  // Navigation
+  nextBtn.addEventListener('click', () => {
+    if (state.step < 3) goToStep(state.step + 1);
+    else {
+      // Création simulée — en vrai : appel API / persistance
+      const summary = `${labels[state.type]} · ${labels[state.cat]}${state.clone ? ' (avec reprise)' : ''} · audit prévu ${state.date}`;
+      console.log('Dossier créé :', summary);
+      close();
+    }
+  });
+  backBtn.addEventListener('click', () => {
+    if (state.step > 1) goToStep(state.step - 1);
+  });
+
+  // Ouverture / fermeture
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && backdrop.classList.contains('open')) close();
+  });
+})();
+</script>
+</body>
+</html>

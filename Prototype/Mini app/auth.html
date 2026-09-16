@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quality Manager — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #03040A;
+  --bg-elev: rgba(255,255,255,0.04);
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --text: #F5F4EE;
+  --text-soft: #C5C3BD;
+  --text-mute: #8A8A93;
+  --text-faint: #555661;
+  --amethyst: #6B4FBB;
+  --amethyst-br: #9474FF;
+  --amethyst-soft: rgba(148,116,255,0.20);
+  --amethyst-soft-2: rgba(148,116,255,0.10);
+  --danger: #EF5C5C;
+  --c2: #5DC9A5;
+}
+[data-theme="light"] {
+  --bg: #FBFAF6;
+  --bg-elev: rgba(255,255,255,0.85);
+  --surface: rgba(255,255,255,0.65);
+  --surface-2: rgba(255,255,255,0.95);
+  --border: rgba(15,42,71,0.10);
+  --border-strong: rgba(15,42,71,0.18);
+  --text: #0F2A47;
+  --text-soft: #2D4665;
+  --text-mute: #5A6D85;
+  --text-faint: #8A9AAE;
+  --amethyst-soft: rgba(107,79,187,0.16);
+  --amethyst-soft-2: rgba(107,79,187,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 300;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Fond aurore boréale */
+body::before, body::after, .aurora-1, .aurora-2 {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  pointer-events: none;
+}
+body::before {
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, rgba(107,79,187,0.22), transparent 65%);
+  top: -200px; left: -200px;
+}
+body::after {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(148,116,255,0.18), transparent 65%);
+  bottom: -150px; right: -150px;
+}
+.aurora-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(93,201,165,0.10), transparent 65%);
+  top: 30%; right: 15%;
+}
+.aurora-2 {
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, rgba(235,72,155,0.08), transparent 65%);
+  bottom: 25%; left: 20%;
+}
+[data-theme="light"] body::before { background: radial-gradient(circle, rgba(107,79,187,0.12), transparent 65%); }
+[data-theme="light"] body::after { background: radial-gradient(circle, rgba(148,116,255,0.10), transparent 65%); }
+
+/* ============ LAYOUT ============ */
+.auth-wrap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 540px;
+  min-height: 100vh;
+}
+
+/* === Branding panel === */
+.brand-panel {
+  padding: 60px 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo-mark {
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--amethyst), var(--amethyst-br));
+  display: grid; place-items: center;
+  color: white;
+  font-family: 'Raleway'; font-weight: 600; font-size: 18px;
+  box-shadow: 0 6px 18px -4px rgba(107,79,187,0.45);
+}
+.brand-logo-text {
+  display: flex; flex-direction: column;
+}
+.brand-name {
+  font-family: 'Raleway'; font-weight: 500; font-size: 17px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.brand-by {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 500;
+  margin-top: 2px;
+}
+
+.brand-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--amethyst-br); letter-spacing: 0.18em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 22px;
+}
+.brand-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--amethyst-br);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--amethyst-br);
+}
+
+.brand-title {
+  font-family: 'Raleway'; font-weight: 200;
+  font-size: 50px; line-height: 1.08;
+  color: var(--text);
+  margin-bottom: 22px;
+  max-width: 540px;
+  letter-spacing: -0.02em;
+}
+.brand-title b { font-weight: 500; color: var(--amethyst-br); }
+
+.brand-sub {
+  font-size: 16px; line-height: 1.55;
+  color: var(--text-soft);
+  max-width: 480px;
+  margin-bottom: 36px;
+}
+
+.brand-features {
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 520px;
+}
+.brand-feat {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.brand-feat-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: var(--amethyst-soft-2);
+  color: var(--amethyst-br);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.brand-feat-text {
+  font-size: 13px; color: var(--text-soft);
+  line-height: 1.4;
+}
+.brand-feat-text b { color: var(--text); font-weight: 500; }
+
+.brand-foot {
+  font-family: 'JetBrains Mono'; font-size: 11px;
+  color: var(--text-mute);
+}
+.brand-foot a {
+  color: var(--text-soft);
+  text-decoration: none;
+  margin-left: 16px;
+  transition: color .15s;
+}
+.brand-foot a:hover { color: var(--amethyst-br); }
+
+/* === Auth panel === */
+.auth-panel {
+  background: var(--bg-elev);
+  backdrop-filter: blur(40px) saturate(140%);
+  border-left: 1px solid var(--border);
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+[data-theme="light"] .auth-panel { background: rgba(255,255,255,0.75); }
+
+.auth-theme-toggle {
+  position: absolute; top: 28px; right: 28px;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all .2s;
+}
+.auth-theme-toggle:hover { background: var(--surface-2); color: var(--text); }
+
+.auth-form {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+  display: none;
+}
+.auth-form.active { display: block; }
+
+.auth-eyebrow {
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--amethyst-br); letter-spacing: 0.20em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 10px;
+}
+.auth-title {
+  font-family: 'Raleway'; font-weight: 300;
+  font-size: 32px; color: var(--text);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.auth-sub {
+  font-size: 14px; color: var(--text-mute);
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+.field {
+  margin-bottom: 18px;
+}
+.field-label {
+  display: block;
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  color: var(--text-mute); letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 7px;
+}
+.field-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: all .15s;
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--amethyst-br);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--amethyst-soft-2);
+}
+.field-input::placeholder { color: var(--text-faint); }
+
+.field-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field-help {
+  font-size: 11.5px; color: var(--text-faint);
+  margin-top: 5px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.checkbox-label {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  color: var(--text-soft);
+}
+.checkbox-label input { cursor: pointer; accent-color: var(--amethyst-br); }
+.link-btn {
+  background: none; border: none;
+  color: var(--amethyst-br);
+  font-family: inherit; font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.btn-primary {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, var(--amethyst), var(--amethyst-br));
+  border: none;
+  border-radius: 11px;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 22px -6px rgba(107,79,187,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: all .15s;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -6px rgba(107,79,187,0.65), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary svg { vertical-align: middle; margin-left: 6px; }
+
+.btn-secondary {
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  transition: all .15s;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.btn-secondary svg { width: 16px; height: 16px; }
+
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 22px 0;
+  color: var(--text-faint);
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--border);
+}
+
+.auth-foot {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-mute);
+}
+.auth-foot .link-btn { margin-left: 5px; }
+
+.success-card {
+  padding: 24px;
+  background: rgba(93,201,165,0.10);
+  border: 1px solid rgba(93,201,165,0.30);
+  border-radius: 14px;
+  text-align: center;
+  margin-bottom: 22px;
+}
+.success-card svg { color: var(--c2); margin-bottom: 12px; }
+.success-card p {
+  font-size: 14px; color: var(--text);
+  line-height: 1.5;
+}
+.success-card p b { color: var(--c2); }
+
+/* Mobile fallback */
+@media (max-width: 900px) {
+  .auth-wrap { grid-template-columns: 1fr; }
+  .brand-panel { display: none; }
+}
+
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="aurora-1"></div>
+<div class="aurora-2"></div>
+
+<div class="auth-wrap">
+
+  <!-- ============ BRANDING PANEL (gauche) ============ -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">
+        <div class="brand-logo-mark">Q</div>
+        <div class="brand-logo-text">
+          <div class="brand-name">Quality Manager</div>
+          <div class="brand-by">LS COMPÉTENCES</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="brand-tag">SaaS Qualiopi · pour OF & CFA</div>
+      <h1 class="brand-title">
+        L'audit Qualiopi <b>n'est plus un cauchemar.</b>
+      </h1>
+      <p class="brand-sub">
+        Quality Manager structure votre conformité au référentiel RNQ 2.0 : 32 indicateurs, 19 mini-apps, toutes vos preuves attachées et prêtes pour l'audit.
+      </p>
+
+      <div class="brand-features">
+        <div class="brand-feat">
+          <div class="brand-feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div class="brand-feat-text"><b>32 indicateurs couverts</b> · Toutes les preuves Qualiopi rangées, traçables, attachées</div>
+        </div>
+        <div class="brand-feat">
+          <div class="brand-feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </div>
+          <div class="brand-feat-text"><b>Vue Documents</b> · Vos preuves organisées par critère, prêtes à montrer à l'auditeur</div>
+        </div>
+        <div class="brand-feat">
+          <div class="brand-feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+          </div>
+          <div class="brand-feat-text"><b>Mini-apps métier</b> · Veille, suivi assiduité, matrice compétences, évaluation acquis... tout est là</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="brand-foot">
+      © 2026 LS Compétences
+      <a href="#">CGU</a>
+      <a href="#">Confidentialité</a>
+      <a href="#">Aide</a>
+    </div>
+  </div>
+
+  <!-- ============ AUTH PANEL (droite) ============ -->
+  <div class="auth-panel">
+
+    <button class="auth-theme-toggle" id="themeToggle" title="Changer de thème">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+
+    <!-- ===== LOGIN ===== -->
+    <form class="auth-form active" data-view="login" onsubmit="event.preventDefault(); handleLogin();">
+      <div class="auth-eyebrow">Connexion</div>
+      <h2 class="auth-title">Content de vous revoir</h2>
+      <p class="auth-sub">Connectez-vous pour accéder à vos dossiers de conformité.</p>
+
+      <div class="field">
+        <label class="field-label" for="login-email">Email professionnel</label>
+        <input type="email" id="login-email" class="field-input" placeholder="prenom.nom@votre-of.fr" required>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="login-password">Mot de passe</label>
+        <input type="password" id="login-password" class="field-input" placeholder="••••••••" required>
+      </div>
+
+      <div class="checkbox-row">
+        <label class="checkbox-label">
+          <input type="checkbox"> Se souvenir de moi
+        </label>
+        <button type="button" class="link-btn" onclick="switchView('forgot')">Mot de passe oublié ?</button>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Se connecter
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <div class="divider">ou</div>
+
+      <button type="button" class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" stroke="none"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" stroke="none"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04" stroke="none"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" stroke="none"/></svg>
+        Continuer avec Google
+      </button>
+
+      <div class="auth-foot">
+        Pas encore de compte ?
+        <button type="button" class="link-btn" onclick="switchView('signup')">Créer un compte</button>
+      </div>
+    </form>
+
+    <!-- ===== SIGNUP ===== -->
+    <form class="auth-form" data-view="signup" onsubmit="event.preventDefault(); handleSignup();">
+      <div class="auth-eyebrow">Inscription</div>
+      <h2 class="auth-title">Démarrer avec QM</h2>
+      <p class="auth-sub">Créez votre compte organisme et démarrez votre démarche Qualiopi.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="signup-firstname">Prénom</label>
+          <input type="text" id="signup-firstname" class="field-input" placeholder="Sofiane" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="signup-lastname">Nom</label>
+          <input type="text" id="signup-lastname" class="field-input" placeholder="Saidi" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-org">Nom de votre organisme</label>
+        <input type="text" id="signup-org" class="field-input" placeholder="LS Compétences" required>
+        <p class="field-help">Vous pourrez le modifier plus tard dans les paramètres.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-email">Email professionnel</label>
+        <input type="email" id="signup-email" class="field-input" placeholder="prenom.nom@votre-of.fr" required>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-password">Mot de passe</label>
+        <input type="password" id="signup-password" class="field-input" placeholder="••••••••" required>
+        <p class="field-help">Min. 8 caractères, 1 majuscule, 1 chiffre.</p>
+      </div>
+
+      <div class="checkbox-row" style="margin-bottom:20px;">
+        <label class="checkbox-label" style="font-size:12.5px; line-height:1.5;">
+          <input type="checkbox" required>
+          <span>J'accepte les <a href="#" class="link-btn" style="display:inline; padding:0;">CGU</a> et la <a href="#" class="link-btn" style="display:inline; padding:0;">politique de confidentialité</a></span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Créer mon compte
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <div class="auth-foot">
+        Vous avez déjà un compte ?
+        <button type="button" class="link-btn" onclick="switchView('login')">Se connecter</button>
+      </div>
+    </form>
+
+    <!-- ===== FORGOT PASSWORD ===== -->
+    <form class="auth-form" data-view="forgot" onsubmit="event.preventDefault(); handleForgot();">
+      <div class="auth-eyebrow">Mot de passe oublié</div>
+      <h2 class="auth-title">Réinitialiser</h2>
+      <p class="auth-sub">Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de passe.</p>
+
+      <div class="field">
+        <label class="field-label" for="forgot-email">Email professionnel</label>
+        <input type="email" id="forgot-email" class="field-input" placeholder="prenom.nom@votre-of.fr" required>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Envoyer le lien de réinitialisation
+      </button>
+
+      <div class="auth-foot">
+        <button type="button" class="link-btn" onclick="switchView('login')">← Retour à la connexion</button>
+      </div>
+    </form>
+
+    <!-- ===== SUCCESS (après envoi reset) ===== -->
+    <div class="auth-form" data-view="forgot-sent">
+      <div class="success-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="42" height="42"><polyline points="20 6 9 17 4 12"/></svg>
+        <p>Si un compte est associé à cet email,<br>vous recevrez un <b>lien de réinitialisation</b> dans quelques minutes.</p>
+      </div>
+      <button type="button" class="btn-primary" onclick="switchView('login')">Retour à la connexion</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function switchView(name) {
+  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+  const target = document.querySelector(`[data-view="${name}"]`);
+  if (target) target.classList.add('active');
+}
+
+function handleLogin() {
+  // Squelette : démo simple — en prod, appel API d'auth
+  window.location.href = 'home.html';
+}
+
+function handleSignup() {
+  // Squelette : démo simple
+  window.location.href = 'home.html';
+}
+
+function handleForgot() {
+  switchView('forgot-sent');
+}
+
+// Thème toggle
+const themeIcon = document.getElementById('themeIcon');
+const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+const sunIcon = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const body = document.body;
+  const cur = body.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  body.setAttribute('data-theme', next);
+  themeIcon.innerHTML = next === 'dark' ? sunIcon : moonIcon;
+});
+</script>
+
+</body>
+</html>
