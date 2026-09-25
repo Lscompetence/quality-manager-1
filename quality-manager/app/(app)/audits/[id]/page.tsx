@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CRITERES, getIndicatorsByCritere, type CritereNum, type Category } from "@/lib/constants/rnq";
@@ -220,25 +219,23 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
       <div className="mb-[22px] flex items-baseline justify-between">
         <h2 className="font-sans text-2xl font-light tracking-[-0.015em]">Les 7 critères du référentiel</h2>
         <span className="font-mono text-[11px] tracking-[0.1em] text-[var(--text-mute)]">
-          cliquez pour explorer un critère
+          progression du client par critère
         </span>
       </div>
 
+      {/* Lecture seule : l'admin suit la progression, sans ouvrir les critères. */}
       <div className="grid gap-px overflow-hidden rounded-[20px] bg-[var(--border-soft)] p-px sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {Object.values(CRITERES).map((critere) => {
-          const numStr = String(critere.num).padStart(2, "0");
           const p = progressByCritere[critere.num as CritereNum];
           const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : 0;
           return (
-            <Link
+            <div
               key={critere.num}
-              href={`/audits/${id}/critere/${numStr}`}
-              prefetch={true}
-              className="group relative overflow-hidden bg-[var(--bg-elev)] px-[18px] py-6 text-center backdrop-blur-2xl transition-colors hover:bg-[var(--surface-2)]"
+              className="relative overflow-hidden bg-[var(--bg-elev)] px-[18px] py-6 text-center backdrop-blur-2xl"
               style={{ ["--cf" as string]: `var(--${critere.colorVar})` }}
             >
               <span
-                className="absolute inset-x-0 bottom-0 h-[2px] transition-all group-hover:h-1"
+                className="absolute inset-x-0 bottom-0 h-[2px]"
                 style={{ background: "var(--cf)", filter: "blur(0.5px)", boxShadow: "0 0 20px var(--cf), 0 0 40px var(--cf)" }}
               />
               <div className="mb-3.5 font-mono text-[10.5px] font-medium tracking-[0.18em] text-[var(--text-mute)]">
@@ -251,10 +248,20 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
               <div className="min-h-[30px] text-[11.5px] font-medium leading-[1.3] text-[var(--text-soft)]">
                 {critere.title}
               </div>
+              <div
+                className="mx-auto mt-3 h-1.5 w-full max-w-[120px] overflow-hidden rounded-full bg-[var(--surface-2)]"
+                role="progressbar"
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Progression ${critere.title}`}
+              >
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--cf)" }} />
+              </div>
               <div className="mt-2 font-mono text-[9.5px] tracking-[0.05em] text-[var(--text-faint)]">
                 {p.done} / {p.total} indicateurs
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
