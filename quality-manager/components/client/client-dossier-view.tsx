@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
+import { useSearchParams } from "next/navigation";
 
 import * as React from "react";
 import {
@@ -72,7 +73,14 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export function ClientDossierView({ audit, indicators, attachments }: ClientDossierViewProps) {
-  const [selectedCritere, setSelectedCritere] = React.useState<number | "all">("all");
+  // Le critère choisi dans le menu arrive par l'adresse (?critere=3).
+  const critereParam = useSearchParams().get("critere");
+  const [selectedCritere, setSelectedCritere] = React.useState<number | "all">(() =>
+    critereParam ? Number(critereParam) : "all",
+  );
+  React.useEffect(() => {
+    setSelectedCritere(critereParam ? Number(critereParam) : "all");
+  }, [critereParam]);
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
 
   const categories = (audit.categories ?? []) as Category[];

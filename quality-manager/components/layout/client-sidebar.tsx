@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Route } from "next";
 import { Bell, FileText, Folder, LayoutDashboard, Settings, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { QmBrandMark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils/cn";
+import { CRITERES, type CritereNum } from "@/lib/constants/rnq";
 import { initialsOf } from "@/lib/utils/display-name";
 
 export type ClientDossier = {
@@ -52,13 +53,23 @@ export function ClientSidebar({
   clientName,
   email,
   unreadCount = 0,
+  critereScoresByAudit = {},
 }: {
   dossiers: ClientDossier[];
   clientName: string;
   email: string;
   unreadCount?: number;
+  /** Avancement (0-100) de chaque critère, par dossier confié */
+  critereScoresByAudit?: Record<string, Partial<Record<CritereNum, number>>>;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Critères du dossier ouvert dans l'URL, sinon du premier dossier confié.
+  const routeAuditId = pathname.match(/^\/client\/dossiers\/([^/]+)/)?.[1];
+  const critereAuditId = routeAuditId ?? dossiers[0]?.auditId;
+  const scores = critereAuditId ? critereScoresByAudit[critereAuditId] : undefined;
+  const activeCritere = routeAuditId && pathname === `/client/dossiers/${routeAuditId}` ? searchParams.get("critere") : null;
 
   return (
     <aside className="qm-glass sticky top-0 hidden h-screen w-[230px] shrink-0 flex-col border-y-0 border-l-0 border-r lg:flex">
@@ -115,6 +126,52 @@ export function ClientSidebar({
             );
           })}
         </nav>
+
+        {critereAuditId && (
+          <>
+            <div className="mb-2.5 shrink-0 px-3 font-mono text-[9.5px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+              Critères
+            </div>
+            <nav className="relative mb-[22px] flex shrink-0 flex-col">
+              {Object.values(CRITERES).map((critere) => {
+                const numStr = String(critere.num).padStart(2, "0");
+                const active = activeCritere === String(critere.num);
+                const score = scores?.[critere.num as CritereNum];
+                return (
+                  <Link
+                    key={critere.num}
+                    href={`/client/dossiers/${critereAuditId}?critere=${critere.num}` as Route}
+                    prefetch={true}
+                    className={cn(
+                      "relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                      active ? "text-foreground" : "text-[var(--text-soft)] hover:text-foreground",
+                    )}
+                  >
+                    {active && (
+                      <motion.div
+                        layoutId="client-sidebar-active-criteria"
+                        className="absolute inset-0 rounded-lg bg-gradient-to-b from-[var(--amethyst-soft)] to-[var(--amethyst-soft-2)] shadow-[inset_0_0_0_1px_var(--amethyst-soft)]"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex w-full items-start gap-2.5">
+                      <span className="mt-0.5 w-4 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">{numStr}</span>
+                      <span
+                        className="mt-[5px] h-2 w-2 shrink-0 rounded-full"
+                        style={{ background: `var(--${critere.colorVar})` }}
+                      />
+                      <span className="flex-1 leading-[1.25]">{critere.title}</span>
+                      {typeof score === "number" && (
+                        <span className="mt-0.5 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">{score}</span>
+                      )}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </>
+        )}
 
         <div className="mb-2.5 shrink-0 px-3 font-mono text-[9.5px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
           Mes dossiers

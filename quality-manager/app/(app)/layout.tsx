@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { NotificationListener } from "@/components/notifications/notification-listener";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
-import { getIndicatorsByCritere, type Category, type CritereNum } from "@/lib/constants/rnq";
 import { AutoBreadcrumb, type AuditRef } from "@/components/layout/auto-breadcrumb";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -61,12 +60,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/client");
   }
 
-  // Les trois requêtes suivantes sont indépendantes : elles partent ensemble
+  // Les requêtes suivantes sont indépendantes : elles partent ensemble
   // plutôt qu'à la queue leu leu, ce qui économise deux allers-retours à chaque navigation.
   const [
     { data: allAudits },
     { data: currentAudit },
-    { data: allIndicators },
     { count: unreadCount },
   ] = await Promise.all([
     // Tous les dossiers — sert au fil d'Ariane de la barre du haut
@@ -81,9 +79,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    // Scores du menu latéral : seuls les indicateurs complets comptent,
-    // le filtre est donc fait par la base plutôt qu'après coup.
-    supabase.from("audit_indicators").select("audit_id, critere_num").eq("status", "complet"),
     // Notifications non lues — seul le compteur est affiché, on ne charge pas les lignes
     supabase
       .from("notifications")
@@ -91,31 +86,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .eq("user_id", user.id)
       .is("read_at", null),
   ]);
-
-  // Couverture par critère, pour chaque dossier — affichée dans le menu latéral.
-  // Calculée pour tous les dossiers car le menu suit celui qui est ouvert dans l'URL.
-  const doneByAudit = new Map<string, Partial<Record<CritereNum, number>>>();
-  for (const ind of allIndicators ?? []) {
-    const perCritere = doneByAudit.get(ind.audit_id) ?? {};
-    const c = ind.critere_num as CritereNum;
-    perCritere[c] = (perCritere[c] ?? 0) + 1;
-    doneByAudit.set(ind.audit_id, perCritere);
-  }
-
-  const critereScoresByAudit: Record<string, Partial<Record<CritereNum, number>>> =
-    Object.fromEntries(
-      (allAudits ?? []).map((audit) => {
-        const categories = (audit.categories ?? []) as Category[];
-        const done = doneByAudit.get(audit.id) ?? {};
-        const scores = Object.fromEntries(
-          ([1, 2, 3, 4, 5, 6, 7] as CritereNum[]).map((c) => {
-            const total = getIndicatorsByCritere(c, categories).length;
-            return [c, total > 0 ? Math.round(((done[c] ?? 0) / total) * 100) : 0];
-          }),
-        );
-        return [audit.id, scores];
-      }),
-    );
 
   return (
     <div className="relative z-10 flex min-h-screen">
@@ -128,7 +98,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }}
         currentAudit={currentAudit}
         audits={(allAudits ?? []) as AuditRef[]}
-        critereScoresByAudit={critereScoresByAudit}
       />
       <div className="flex min-w-0 flex-1 flex-col px-6 pt-7">
         <Topbar
