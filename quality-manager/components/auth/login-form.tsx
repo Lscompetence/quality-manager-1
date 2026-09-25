@@ -46,7 +46,9 @@ export function LoginForm({ portal = "admin" }: { portal?: LoginPortal }) {
             autoComplete="email"
             {...register("email")}
           />
-          {errors.email && <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
@@ -64,19 +66,19 @@ export function LoginForm({ portal = "admin" }: { portal?: LoginPortal }) {
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-foreground">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-secondary-foreground">
             <Checkbox id="remember" />
             Se souvenir de moi
           </label>
           <Link
-            href="/forgot-password"
+            href={portal === "client" ? "/client/forgot-password" : "/forgot-password"}
             className="text-sm font-medium text-amethyst-bright hover:underline"
           >
             Mot de passe oublié&nbsp;?
           </Link>
         </div>
 
-        <Button type="submit" disabled={pending} className="qm-btn-3d w-full h-12 rounded-2xl">
+        <Button type="submit" disabled={pending} className="qm-btn-3d h-12 w-full rounded-2xl">
           {pending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

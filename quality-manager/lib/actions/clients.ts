@@ -1,12 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  createEmailLinkClient,
+  emailErrorMessage,
+  emailRedirectUrl,
+} from "@/lib/supabase/email-link";
 import { notifyUser } from "@/lib/notifications/notify";
 import { inviteClientSchema, type InviteClientInput } from "@/lib/schemas/clients";
-import type { Database } from "@/types/database";
 import type { ActionResult } from "./types";
 
 /**
@@ -81,7 +84,7 @@ export async function inviteClientToAudit(
   } else {
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { invited_org_id: me.organization_id },
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback?next=${encodeURIComponent("/reset-password?next=/client")}`,
+      redirectTo: emailRedirectUrl("/reset-password?next=/client"),
     });
     if (inviteError || !invited.user) {
       return { ok: false, error: inviteError?.message ?? "Échec de l'envoi de l'invitation" };
@@ -251,8 +254,7 @@ export async function resendClientAccessCredentials(
   const { data: authUser, error: authError } = await admin.auth.admin.getUserById(access.user_id);
   if (authError || !authUser.user) return { ok: false, error: "Compte client introuvable" };
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const redirectTo = `${appUrl}/callback?next=${encodeURIComponent("/reset-password?next=/client")}`;
+  const redirectTo = emailRedirectUrl("/reset-password?next=/client");
 
   if (!authUser.user.email_confirmed_at) {
     const { error } = await admin.auth.admin.inviteUserByEmail(access.invited_email, {
@@ -263,33 +265,12 @@ export async function resendClientAccessCredentials(
     return { ok: true, data: { email: access.invited_email, mode: "invitation" } };
   }
 
-  // Client anonyme sans PKCE : le lien doit s'ouvrir depuis le navigateur du
-  // client, pas seulement depuis celui de l'admin qui a déclenché l'envoi.
-  const mailer = createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        flowType: "implicit",
-      },
-    },
-  );
+  // Compte déjà actif : lien de nouveau mot de passe, ouvrable depuis le
+  // navigateur du client (pas seulement celui de l'admin).
+  const mailer = createEmailLinkClient();
   const { error } = await mailer.auth.resetPasswordForEmail(access.invited_email, { redirectTo });
   if (error) return { ok: false, error: emailErrorMessage(error.message) };
   return { ok: true, data: { email: access.invited_email, mode: "reinitialisation" } };
-}
-
-/** Traduit les refus d'envoi de Supabase Auth en message lisible. */
-function emailErrorMessage(raw: string): string {
-  const wait = raw.match(/after (d+) seconds?/i)?.[1];
-  if (wait)
-    return `Un email vient déjà d'être envoyé. Patientez ${wait} secondes avant de renvoyer les accès.`;
-  if (/rate limit/i.test(raw))
-    return "Limite d'envoi d'emails atteinte. Réessayez dans quelques minutes.";
-  return `L'email n'a pas pu être envoyé : ${raw}`;
 }
 
 /**

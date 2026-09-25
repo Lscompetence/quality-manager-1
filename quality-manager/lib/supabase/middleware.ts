@@ -37,12 +37,12 @@ export async function updateSession(request: NextRequest) {
   // une fois dans l'app) — `/callback` en est volontairement exclue : c'est
   // justement là qu'une session vient tout juste de naître (connexion,
   // réinitialisation de mot de passe, ou première invitation d'un client).
-  const isClientLogin = pathname === "/client/login";
+  const isClientAuthPage = pathname === "/client/login" || pathname === "/client/forgot-password";
   const isAuthOnly =
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password") ||
-    isClientLogin;
+    isClientAuthPage;
   // /reset-password a besoin d'une session (même temporaire, posée par un lien
   // reçu par email) mais n'a pas vocation à faire fuir un utilisateur déjà
   // connecté : ni tout à fait publique, ni "auth only".
@@ -64,7 +64,7 @@ export async function updateSession(request: NextRequest) {
   // Les layouts redirigent ensuite un compte arrivé du mauvais côté.
   if (user && isAuthOnly) {
     const url = request.nextUrl.clone();
-    url.pathname = isClientLogin ? "/client" : "/dashboard";
+    url.pathname = isClientAuthPage ? "/client" : "/dashboard";
     return NextResponse.redirect(url);
   }
 

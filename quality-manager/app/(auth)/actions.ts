@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
+  createEmailLinkClient,
+  emailErrorMessage,
+  emailRedirectUrl,
+} from "@/lib/supabase/email-link";
+import {
   loginSchema,
   signupSchema,
   forgotPasswordSchema,
@@ -18,7 +23,10 @@ import type { ActionResult } from "@/lib/actions/types";
 /** Espace depuis lequel on se connecte : chaque rôle a sa propre page. */
 export type LoginPortal = "admin" | "client";
 
-export async function login(input: LoginInput, portal: LoginPortal = "admin"): Promise<ActionResult> {
+export async function login(
+  input: LoginInput,
+  portal: LoginPortal = "admin",
+): Promise<ActionResult> {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
@@ -37,7 +45,11 @@ export async function login(input: LoginInput, portal: LoginPortal = "admin"): P
   // Chaque page de connexion n'accepte que son rôle : un client ne passe pas
   // par l'entrée admin, et inversement. En cas d'erreur de porte, on referme
   // la session tout de suite plutôt que de la laisser ouverte.
-  const { data: profile } = await supabase.from("users").select("role").eq("id", data.user.id).single();
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
   const isClient = profile?.role === "client";
 
   if (portal === "client" && !isClient) {
@@ -86,17 +98,28 @@ export async function signup(input: SignupInput): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function forgotPassword(input: ForgotPasswordInput): Promise<ActionResult> {
+/**
+ * Envoie le lien « mot de passe oublié ». Le lien ramène dans l'espace
+ * d'où la demande est partie : choix du mot de passe, puis tableau de bord
+ * admin ou espace client.
+ */
+export async function forgotPassword(
+  input: ForgotPasswordInput,
+  portal: LoginPortal = "admin",
+): Promise<ActionResult> {
   const parsed = forgotPasswordSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Email invalide" };
   }
 
-  const supabase = await createClient();
-  // Pour des raisons de sécurité on ne dit pas si l'email existe ou non
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback?next=/reset-password`,
+  const next =
+    portal === "client" ? "/reset-password?next=/client" : "/reset-password?next=/dashboard";
+  const { error } = await createEmailLinkClient().auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: emailRedirectUrl(next),
   });
+  // Supabase ne dit jamais si l'email existe : seuls les refus d'envoi
+  // (trop de demandes, SMTP en panne) remontent ici.
+  if (error) return { ok: false, error: emailErrorMessage(error.message) };
 
   return { ok: true };
 }
@@ -141,5 +164,9 @@ function mapAuthError(message: string): string {
   if (message.includes("Invalid login credentials")) return "Email ou mot de passe incorrect";
   if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email";
   if (message.includes("User already registered")) return "Un compte existe déjà avec cet email";
+  if (message.includes("session missing"))
+    return "Votre lien a expiré. Refaites une demande « Mot de passe oublié ».";
+  if (message.includes("should be different"))
+    return "Le nouveau mot de passe doit être différent de l'ancien";
   return message;
 }

@@ -4,15 +4,16 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/schemas/auth";
-import { forgotPassword } from "@/app/(auth)/actions";
+import { forgotPassword, type LoginPortal } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ portal = "admin" }: { portal?: LoginPortal }) {
   const [pending, setPending] = React.useState(false);
-  const [sent, setSent] = React.useState(false);
+  const [sent, setSent] = React.useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -23,9 +24,16 @@ export function ForgotPasswordForm() {
 
   const onSubmit = async (data: ForgotPasswordInput) => {
     setPending(true);
-    await forgotPassword(data);
+    const result = await forgotPassword(data, portal);
     setPending(false);
-    setSent(true);
+    if (!result.ok) {
+      toast.error("Le lien n'a pas pu être envoyé", { description: result.error });
+      return;
+    }
+    toast.success("Email envoyé", {
+      description: `Consultez la boîte de réception de ${data.email}.`,
+    });
+    setSent(data.email);
   };
 
   if (sent) {
@@ -33,8 +41,11 @@ export function ForgotPasswordForm() {
       <div className="rounded-2xl border border-c2/30 bg-c2/10 p-6 text-center">
         <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-c2" />
         <p className="text-sm leading-relaxed">
-          Si un compte est associé à cet email, vous recevrez un{" "}
+          Si un compte est associé à <b>{sent}</b>, vous recevrez un{" "}
           <b className="text-c2">lien de réinitialisation</b> dans quelques minutes.
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Pensez à vérifier vos courriers indésirables. Le lien est valable une heure.
         </p>
       </div>
     );
@@ -44,19 +55,25 @@ export function ForgotPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-5">
         <div>
-          <Label htmlFor="email">Email professionnel</Label>
+          <Label htmlFor="email">{portal === "client" ? "Email" : "Email professionnel"}</Label>
           <Input
             id="email"
             type="email"
-            placeholder="prenom.nom@votre-of.fr"
+            placeholder={portal === "client" ? "vous@exemple.fr" : "prenom.nom@votre-of.fr"}
             autoComplete="email"
             {...register("email")}
           />
-          {errors.email && <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>
+          )}
         </div>
 
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Envoyer le lien de réinitialisation"}
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Envoyer le lien de réinitialisation"
+          )}
         </Button>
       </div>
     </form>
