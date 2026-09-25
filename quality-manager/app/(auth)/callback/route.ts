@@ -12,7 +12,12 @@ export async function GET(request: NextRequest) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  // Liens envoyés par l'admin (invitation, renvoi des accès) : la session
+  // arrive dans le fragment `#access_token=…`, invisible côté serveur. Le
+  // navigateur conserve ce fragment à travers la redirection, et /confirm
+  // l'installe côté client.
+  return NextResponse.redirect(`${origin}/confirm?next=${encodeURIComponent(next)}`);
 }

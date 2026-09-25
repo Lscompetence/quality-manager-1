@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyUser } from "@/lib/notifications/notify";
 import { inviteClientSchema, type InviteClientInput } from "@/lib/schemas/clients";
+import type { Database } from "@/types/database";
 import type { ActionResult } from "./types";
 
 /**
@@ -58,7 +60,11 @@ export async function inviteClientToAudit(
 
   // Un compte existe-t-il déjà pour cet email (invitation précédente sur un
   // autre dossier, ou compte staff/client d'un autre organisme) ?
-  const { data: existing } = await admin.from("users").select("id, organization_id, role").eq("email", email).maybeSingle();
+  const { data: existing } = await admin
+    .from("users")
+    .select("id, organization_id, role")
+    .eq("email", email)
+    .maybeSingle();
 
   let clientUserId: string;
   let mode: "invited" | "added";
@@ -142,12 +148,19 @@ export async function revokeClientAccess(accessId: string): Promise<ActionResult
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { ok: false, error: "Non authentifié" };
 
-  const { data: me } = await supabase.from("users").select("role").eq("id", userData.user.id).single();
+  const { data: me } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
   if (!me || (me.role !== "admin" && me.role !== "editor")) {
     return { ok: false, error: "Action réservée aux administrateurs et éditeurs" };
   }
 
-  const { error } = await supabase.from("audit_access").update({ status: "revoked" }).eq("id", accessId);
+  const { error } = await supabase
+    .from("audit_access")
+    .update({ status: "revoked" })
+    .eq("id", accessId);
   if (error) return { ok: false, error: error.message };
   await notifyAccessChange(accessId, "revoked");
 
@@ -161,12 +174,19 @@ export async function reactivateClientAccess(accessId: string): Promise<ActionRe
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { ok: false, error: "Non authentifié" };
 
-  const { data: me } = await supabase.from("users").select("role").eq("id", userData.user.id).single();
+  const { data: me } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
   if (!me || (me.role !== "admin" && me.role !== "editor")) {
     return { ok: false, error: "Action réservée aux administrateurs et éditeurs" };
   }
 
-  const { error } = await supabase.from("audit_access").update({ status: "active" }).eq("id", accessId);
+  const { error } = await supabase
+    .from("audit_access")
+    .update({ status: "active" })
+    .eq("id", accessId);
   if (error) return { ok: false, error: error.message };
   await notifyAccessChange(accessId, "reactivated");
 
@@ -193,57 +213,83 @@ export type ClientSessionOverview = {
 };
 
 /**
- * Ré-envoie l'email d'invitation/connexion au client et retourne un lien d'accès direct si disponible.
+ * Envoie (ou renvoie) au client l'email qui lui ouvre son espace :
+ * - invitation jamais validée → on renvoie l'invitation ;
+ * - compte déjà actif → on lui envoie un lien pour choisir un nouveau mot de passe.
+ * Aucun lien de connexion n'est jamais remis à l'admin : il ne doit pas
+ * pouvoir entrer dans la session d'un client.
  */
 export async function resendClientAccessCredentials(
   accessId: string,
-): Promise<ActionResult<{ email: string; directLink?: string }>> {
+): Promise<ActionResult<{ email: string; mode: "invitation" | "reinitialisation" }>> {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { ok: false, error: "Non authentifié" };
 
-  const { data: me } = await supabase.from("users").select("role, organization_id").eq("id", userData.user.id).single();
+  const { data: me } = await supabase
+    .from("users")
+    .select("role, organization_id")
+    .eq("id", userData.user.id)
+    .single();
   if (!me || (me.role !== "admin" && me.role !== "editor")) {
     return { ok: false, error: "Action réservée aux administrateurs et éditeurs" };
   }
 
   const { data: access } = await supabase
     .from("audit_access")
-    .select("id, invited_email, user_id, audit_id, audit:audits(name)")
+    .select("id, invited_email, user_id, status, audit:audits(organization_id)")
     .eq("id", accessId)
     .single();
-
-  if (!access) return { ok: false, error: "Accès client introuvable" };
+  if (!access?.audit || access.audit.organization_id !== me.organization_id) {
+    return { ok: false, error: "Accès client introuvable" };
+  }
+  if (access.status !== "active") {
+    return { ok: false, error: "Cet accès est révoqué : réactivez-le avant d'envoyer les accès." };
+  }
 
   const admin = createAdminClient();
+  const { data: authUser, error: authError } = await admin.auth.admin.getUserById(access.user_id);
+  if (authError || !authUser.user) return { ok: false, error: "Compte client introuvable" };
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const redirectTo = `${appUrl}/callback?next=${encodeURIComponent("/reset-password?next=/client")}`;
 
-  // Ré-envoie l'invitation ou génère un lien magique de connexion
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(access.invited_email, {
-    data: { invited_org_id: me.organization_id },
-    redirectTo,
-  });
-
-  let directLink: string | undefined = undefined;
-
-  // Si l'utilisateur est déjà inscrit, on génère un magic link direct
-  const { data: linkData } = await admin.auth.admin.generateLink({
-    type: "magiclink",
-    email: access.invited_email,
-    options: { redirectTo },
-  });
-
-  if (linkData?.properties?.action_link) {
-    directLink = linkData.properties.action_link;
+  if (!authUser.user.email_confirmed_at) {
+    const { error } = await admin.auth.admin.inviteUserByEmail(access.invited_email, {
+      data: { invited_org_id: me.organization_id },
+      redirectTo,
+    });
+    if (error) return { ok: false, error: emailErrorMessage(error.message) };
+    return { ok: true, data: { email: access.invited_email, mode: "invitation" } };
   }
 
-  if (inviteError && !directLink) {
-    return { ok: false, error: inviteError.message };
-  }
+  // Client anonyme sans PKCE : le lien doit s'ouvrir depuis le navigateur du
+  // client, pas seulement depuis celui de l'admin qui a déclenché l'envoi.
+  const mailer = createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        flowType: "implicit",
+      },
+    },
+  );
+  const { error } = await mailer.auth.resetPasswordForEmail(access.invited_email, { redirectTo });
+  if (error) return { ok: false, error: emailErrorMessage(error.message) };
+  return { ok: true, data: { email: access.invited_email, mode: "reinitialisation" } };
+}
 
-  revalidatePath("/", "layout");
-  return { ok: true, data: { email: access.invited_email, directLink } };
+/** Traduit les refus d'envoi de Supabase Auth en message lisible. */
+function emailErrorMessage(raw: string): string {
+  const wait = raw.match(/after (d+) seconds?/i)?.[1];
+  if (wait)
+    return `Un email vient déjà d'être envoyé. Patientez ${wait} secondes avant de renvoyer les accès.`;
+  if (/rate limit/i.test(raw))
+    return "Limite d'envoi d'emails atteinte. Réessayez dans quelques minutes.";
+  return `L'email n'a pas pu être envoyé : ${raw}`;
 }
 
 /**
@@ -254,7 +300,11 @@ export async function getClientSessionsOverview(): Promise<ActionResult<ClientSe
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { ok: false, error: "Non authentifié" };
 
-  const { data: me } = await supabase.from("users").select("role, organization_id").eq("id", userData.user.id).single();
+  const { data: me } = await supabase
+    .from("users")
+    .select("role, organization_id")
+    .eq("id", userData.user.id)
+    .single();
   if (!me || (me.role !== "admin" && me.role !== "editor")) {
     return { ok: false, error: "Accès réservé aux administrateurs et éditeurs" };
   }
@@ -268,7 +318,9 @@ export async function getClientSessionsOverview(): Promise<ActionResult<ClientSe
 
   const { data: accesses } = await supabase
     .from("audit_access")
-    .select("id, user_id, invited_email, status, created_at, organization_name, audit:audits(id, name, audit_type)")
+    .select(
+      "id, user_id, invited_email, status, created_at, organization_name, audit:audits(id, name, audit_type)",
+    )
     .order("created_at", { ascending: false });
 
   const clientMap = new Map<string, ClientSessionOverview>();
@@ -336,4 +388,3 @@ export async function getClientSessionsOverview(): Promise<ActionResult<ClientSe
 
   return { ok: true, data: Array.from(clientMap.values()) };
 }
-

@@ -46,7 +46,12 @@ export async function updateSession(request: NextRequest) {
   // /reset-password a besoin d'une session (même temporaire, posée par un lien
   // reçu par email) mais n'a pas vocation à faire fuir un utilisateur déjà
   // connecté : ni tout à fait publique, ni "auth only".
-  const isPublicRoute = isAuthOnly || pathname === "/callback" || pathname === "/reset-password";
+  // /confirm reçoit les liens d'invitation : la session n'y existe pas encore.
+  const isPublicRoute =
+    isAuthOnly ||
+    pathname === "/callback" ||
+    pathname === "/confirm" ||
+    pathname === "/reset-password";
 
   // Pas connecté + route protégée → page de connexion de l'espace visé
   if (!user && !isPublicRoute) {
