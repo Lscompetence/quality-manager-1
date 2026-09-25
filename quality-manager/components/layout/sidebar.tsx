@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { FileText, Home, LayoutDashboard, Zap } from "lucide-react";
+import { Home, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { QmBrandMark } from "@/components/brand/logo";
 import type { AuditRef } from "@/components/layout/auto-breadcrumb";
@@ -80,29 +80,13 @@ export function Sidebar({
           >Vue d&apos;ensemble</NavLink>
 
           {auditId && (
-            <>
-              <NavLink
-                href={`/audits/${auditId}`}
-                icon={<LayoutDashboard className="h-4 w-4" />}
-                active={pathname === `/audits/${auditId}`}
-              >
-                Tableau de bord
-              </NavLink>
-              <NavLink
-                href={`/audits/${auditId}/documents`}
-                icon={<FileText className="h-4 w-4" />}
-                active={pathname.includes("/documents")}
-              >
-                Documents
-              </NavLink>
-              <NavLink
-                href={`/audits/${auditId}/miniapps`}
-                icon={<Zap className="h-4 w-4" />}
-                active={pathname.includes("/miniapps")}
-              >
-                Mini-apps
-              </NavLink>
-            </>
+            <NavLink
+              href={`/audits/${auditId}`}
+              icon={<LayoutDashboard className="h-4 w-4" />}
+              active={pathname === `/audits/${auditId}`}
+            >
+              Tableau de bord
+            </NavLink>
           )}
         </nav>
       </div>
