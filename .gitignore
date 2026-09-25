@@ -18,3 +18,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
+
+# Copies et archives zip de sprints, jamais versionnées
+qm-app-sprint7.1*/
+qm-app-sprint7.1*.zip
+*.zip

@@ -1,0 +1,42 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quality-manager",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "sprint7",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "npm",
+        "--prefix",
+        "C:/Users/d-nia/Projets-Ls-Compétences/LS Compétences -Apps/Quality Manager/archives/qm-app-sprint7/qm-app-sprint7/qm-app",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3001"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "prototypes",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "npx",
+        "-y",
+        "http-server",
+        "C:/Users/d-nia/Projets-Ls-Compétences/LS Compétences -Apps/Quality Manager/Prototype/Mini app",
+        "-p",
+        "5500",
+        "-c-1"
+      ],
+      "port": 5500
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Favicon Quality Manager">
+  <title>Favicon Quality Manager</title>
+  <rect width="256" height="256" rx="52" fill="#0A0D18"/>
+  <g transform="translate(18 20) scale(0.86)">
+      <defs>
+        <linearGradient id="favRingGradient" x1="56" y1="48" x2="202" y2="202" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#D8C9FF"/>
+          <stop offset="35%" stop-color="#B68BFF"/>
+          <stop offset="70%" stop-color="#8B5CF6"/>
+          <stop offset="100%" stop-color="#7C4DFF"/>
+        </linearGradient>
+        <linearGradient id="favTailGradient" x1="148" y1="148" x2="202" y2="202" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#B68BFF"/>
+          <stop offset="100%" stop-color="#7C4DFF"/>
+        </linearGradient>
+      </defs>
+      <g>
+        <path d="M180 67 A74 74 0 1 0 177 181" fill="none" stroke="url(#favRingGradient)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M152 152 L196 196" fill="none" stroke="url(#favTailGradient)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+        
+      </g>
+  </g>
+</svg>
