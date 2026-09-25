@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CRITERES, getIndicatorsByCritere, type CritereNum, type Category } from "@/lib/constants/rnq";
-import { Plus, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { CategoryTint } from "@/components/layout/category-tint";
 import { ClientAccessCard } from "@/components/audits/client-access-card";
 
@@ -188,15 +188,6 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
             <span>{documentsCount ?? 0} preuves déposées</span>
           )}
         </p>
-
-        <Link
-          href={`/audits/${audit.id}/documents`}
-          prefetch={true}
-          className="qm-btn-3d mt-6 inline-flex h-[46px] items-center gap-2 rounded-xl px-[22px] text-sm font-semibold"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Ajouter un document
-        </Link>
       </section>
 
       {/* Métriques */}
