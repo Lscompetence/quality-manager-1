@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Modèle Supabase : Authentication → Emails → Templates → « Invite user ».
+  Objet conseillé : Votre espace client Quality Manager est prêt
+  Garder {{ .ConfirmationURL }} tel quel : Supabase y met le lien.
+-->
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Votre espace client</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f2fa;font-family:Arial,Helvetica,sans-serif;color:#1d1b2e;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2fa;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e6e1f5;">
+            <tr>
+              <td style="padding:32px 32px 8px 32px;">
+                <p style="margin:0 0 4px 0;font-size:16px;font-weight:bold;color:#1d1b2e;">Quality Manager</p>
+                <p style="margin:0;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b85a8;">LS Compétences</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 8px 32px;">
+                <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:normal;color:#1d1b2e;">Votre espace client est prêt</h1>
+                <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#4a4663;">
+                  Bonjour,<br />
+                  Votre organisme de formation vous a ouvert un espace sur Quality Manager pour suivre
+                  votre dossier Qualiopi et y déposer vos documents. Pour y accéder, choisissez votre
+                  mot de passe :
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="border-radius:12px;background:#6d4fd8;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Accéder à mon espace</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0 0;font-size:13px;line-height:1.6;color:#8b85a8;">
+                  Ce lien ne fonctionne qu'une fois. S'il a expiré, demandez à votre organisme de vous
+                  renvoyer vos accès.<br />
+                  Ensuite, vous vous connecterez avec {{ .Email }} et votre mot de passe.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 32px 32px;">
+                <p style="margin:0;padding-top:16px;border-top:1px solid #eeeaf8;font-size:12px;color:#a9a4c2;">
+                  Quality Manager · LS Compétences — la conformité Qualiopi de votre organisme.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

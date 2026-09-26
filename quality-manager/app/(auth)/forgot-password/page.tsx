@@ -8,12 +8,13 @@ export const metadata = {
 export default function ForgotPasswordPage() {
   return (
     <>
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright mb-3">
-        Mot de passe oublié
+      <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
+        Connexion · Réinitialisation
       </div>
-      <h2 className="font-sans text-3xl font-light mb-3 tracking-tight">Réinitialiser</h2>
-      <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-        Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de passe.
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Mot de passe oublié ?</h2>
+      <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
+        Entrez l&apos;email de votre compte : nous vous envoyons un lien pour choisir un nouveau mot
+        de passe.
       </p>
 
       <ForgotPasswordForm />
