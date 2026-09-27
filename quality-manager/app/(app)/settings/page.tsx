@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { TeamSection, type Member } from "@/components/settings/team-section";
-import { PlanSection } from "@/components/settings/plan-section";
 
 export const metadata = { title: "Paramètres" };
 
@@ -35,13 +34,6 @@ export default async function SettingsPage() {
     .neq("role", "client")
     .order("created_at", { ascending: true });
 
-  // Audits actifs (pour quota)
-  const { count: auditsCount } = await supabase
-    .from("audits")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", profile.organization_id)
-    .eq("status", "en_cours");
-
   const isAdmin = profile.role === "admin";
 
   return (
@@ -53,7 +45,7 @@ export default async function SettingsPage() {
         </p>
         <h1 className="font-sans text-3xl font-light tracking-tight">Paramètres</h1>
         <p className="mt-2 text-muted-foreground">
-          Configuration de votre organisme dans Quality Manager : profil, équipe et abonnement.
+          Configuration de votre organisme dans Quality Manager : profil et équipe.
         </p>
       </div>
 
@@ -61,7 +53,6 @@ export default async function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profil organisme</TabsTrigger>
           <TabsTrigger value="team">Équipe</TabsTrigger>
-          <TabsTrigger value="plan">Abonnement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
@@ -72,17 +63,6 @@ export default async function SettingsPage() {
           <TeamSection
             members={(team ?? []) as Member[]}
             currentUserId={userData.user.id}
-            isAdmin={isAdmin}
-          />
-        </TabsContent>
-
-        <TabsContent value="plan" className="mt-4">
-          <PlanSection
-            plan={org?.plan ?? "essentiel"}
-            billingCycle={org?.billing_cycle ?? "annual"}
-            billingEmail={org?.billing_email ?? ""}
-            vatNumber={org?.vat_number ?? ""}
-            auditsActive={auditsCount ?? 0}
             isAdmin={isAdmin}
           />
         </TabsContent>
