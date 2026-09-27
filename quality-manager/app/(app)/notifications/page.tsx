@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NotificationsCenter } from "@/components/notifications/notifications-center";
 import { NotificationsPreferences } from "@/components/notifications/notifications-preferences";
+import { displayName } from "@/lib/utils/display-name";
 
 export const metadata = { title: "Notifications" };
 
@@ -11,13 +12,24 @@ export default async function NotificationsPage() {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) redirect("/login");
 
-  // Notifications (50 dernières)
+  // Notifications (50 dernières). `*` plutôt qu'une liste : `actor_id`
+  // n'existe qu'une fois la migration 000012 passée.
   const { data: notifications } = await supabase
     .from("notifications")
-    .select("id, category, title, source_label, source_url, read_at, created_at")
+    .select("*")
     .eq("user_id", userData.user.id)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  // Clients de l'organisme, pour le filtre « Clients »
+  const { data: clientRows } = await supabase
+    .from("users")
+    .select("id, first_name, last_name, email")
+    .eq("role", "client");
+  const clients = (clientRows ?? []).map((c) => ({
+    id: c.id,
+    name: displayName(c.first_name, c.last_name, c.email),
+  }));
 
   // Préférences
   const { data: prefsRow } = await supabase
@@ -27,8 +39,7 @@ export default async function NotificationsPage() {
     .maybeSingle();
 
   const preferences =
-    (prefsRow?.preferences as Record<string, Record<string, boolean>>) ??
-    DEFAULT_PREFERENCES;
+    (prefsRow?.preferences as Record<string, Record<string, boolean>>) ?? DEFAULT_PREFERENCES;
 
   const unreadCount = (notifications ?? []).filter((n) => !n.read_at).length;
 
@@ -71,7 +82,7 @@ export default async function NotificationsPage() {
         </TabsList>
 
         <TabsContent value="center">
-          <NotificationsCenter notifications={notifications ?? []} />
+          <NotificationsCenter notifications={notifications ?? []} clients={clients} />
         </TabsContent>
 
         <TabsContent value="preferences">

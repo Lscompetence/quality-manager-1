@@ -4,7 +4,16 @@ import * as React from "react";
 import { useTransition } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { AlertTriangle, Bell, Calendar, Check, CheckCheck, Info, Sparkles, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  Calendar,
+  Check,
+  CheckCheck,
+  Info,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/cn";
 import { markNotificationRead, markAllNotificationsRead } from "@/lib/actions/profile";
@@ -17,7 +26,10 @@ type Notification = {
   source_url: string | null;
   read_at: string | null;
   created_at: string;
+  actor_id?: string | null;
 };
+
+type ClientRef = { id: string; name: string };
 
 /** Couleurs d'icône reprises de notifications.html (.notif-icon.*) */
 const CATEGORY_META: Record<
@@ -58,23 +70,49 @@ const FILTERS = [
   { key: "echeance", label: "Échéances" },
   { key: "alerte", label: "Alertes" },
   { key: "equipe", label: "Équipe" },
+  { key: "clients", label: "Clients" },
 ] as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-export function NotificationsCenter({ notifications }: { notifications: Notification[] }) {
+export function NotificationsCenter({
+  notifications,
+  clients,
+}: {
+  notifications: Notification[];
+  /** Clients de l'organisme (espace admin) : active le filtre « Clients ». */
+  clients?: ClientRef[];
+}) {
   const [filter, setFilter] = React.useState<FilterKey>("all");
   const [pending, startTransition] = useTransition();
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
-  const filtered = notifications.filter((n) => {
-    if (filter === "all") return true;
-    if (filter === "unread") return !n.read_at;
-    return n.category === filter;
-  });
+  // Client à l'origine de chaque notification (null : action du staff ou du système)
+  const clientOf = React.useMemo(() => {
+    const list = clients ?? [];
+    const byId = new Map(list.map((c) => [c.id, c]));
+    return (n: Notification): ClientRef | null => {
+      if (n.actor_id) return byId.get(n.actor_id) ?? null;
+      // Notifications antérieures à la migration 000012 : le titre commence
+      // par le nom de l'auteur (« Prénom Nom a déposé … »).
+      const title = n.title.toLowerCase();
+      return list.find((c) => title.startsWith(`${c.name.toLowerCase()} `)) ?? null;
+    };
+  }, [clients]);
 
-  const groups = groupByDay(filtered);
+  const fromClients = notifications.filter((n) => clientOf(n));
+
+  const filtered =
+    filter === "clients"
+      ? fromClients
+      : notifications.filter((n) => {
+          if (filter === "all") return true;
+          if (filter === "unread") return !n.read_at;
+          return n.category === filter;
+        });
+
+  const groups = filter === "clients" ? groupByClient(filtered, clientOf) : groupByDay(filtered);
 
   const handleMarkRead = (id: string) => {
     startTransition(async () => {
@@ -94,14 +132,16 @@ export function NotificationsCenter({ notifications }: { notifications: Notifica
       {/* Barre d'outils */}
       <div className="mb-[18px] flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-elev)] px-[18px] py-3.5">
         <div className="flex flex-wrap gap-1.5">
-          {FILTERS.map((f) => {
+          {FILTERS.filter((f) => f.key !== "clients" || clients).map((f) => {
             const active = filter === f.key;
             const count =
               f.key === "all"
                 ? notifications.length
                 : f.key === "unread"
                   ? unreadCount
-                  : null;
+                  : f.key === "clients"
+                    ? fromClients.length
+                    : null;
             return (
               <button
                 key={f.key}
@@ -141,7 +181,9 @@ export function NotificationsCenter({ notifications }: { notifications: Notifica
           <p className="text-sm text-[var(--text-mute)]">
             {notifications.length === 0
               ? "Aucune notification pour l'instant."
-              : "Aucune notification dans cette catégorie."}
+              : filter === "clients"
+                ? "Aucune action de vos clients pour l'instant."
+                : "Aucune notification dans cette catégorie."}
           </p>
         </div>
       ) : (
@@ -214,6 +256,25 @@ export function NotificationsCenter({ notifications }: { notifications: Notifica
       )}
     </>
   );
+}
+
+/** Filtre « Clients » : un groupe par client, le plus récent en premier. */
+function groupByClient(
+  items: Notification[],
+  clientOf: (n: Notification) => ClientRef | null,
+): { title: string; items: Notification[] }[] {
+  const groups = new Map<string, Notification[]>();
+  for (const n of items) {
+    const client = clientOf(n);
+    if (!client) continue;
+    const bucket = groups.get(client.name) ?? [];
+    bucket.push(n);
+    groups.set(client.name, bucket);
+  }
+  return [...groups.entries()].map(([name, list]) => ({
+    title: `${name} · ${list.length} notification${list.length > 1 ? "s" : ""}`,
+    items: list,
+  }));
 }
 
 /** La maquette groupe les notifications par jour : Aujourd'hui, Hier, puis la date. */

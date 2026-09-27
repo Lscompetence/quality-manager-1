@@ -17,6 +17,26 @@ import type { Database } from "@/types/database";
  */
 
 type Category = Database["public"]["Tables"]["notifications"]["Row"]["category"];
+type NotificationInsert = Database["public"]["Tables"]["notifications"]["Insert"];
+
+/**
+ * Insère des notifications avec leur auteur (`actor_id`). Tant que la
+ * migration 000012 n'est pas passée, la colonne n'existe pas : on réessaie
+ * sans elle plutôt que de perdre la notification.
+ */
+async function insertNotifications(rows: NotificationInsert[], context: string) {
+  const admin = createAdminClient();
+  const { error } = await admin.from("notifications").insert(rows);
+  if (!error) return;
+  if (error.message.includes("actor_id")) {
+    const { error: retry } = await admin
+      .from("notifications")
+      .insert(rows.map(({ actor_id: _actorId, ...row }) => row));
+    if (retry) console.error(`${context}:`, retry.message);
+    return;
+  }
+  console.error(`${context}:`, error.message);
+}
 
 type NotifyPayload = {
   category: Category;
@@ -52,8 +72,12 @@ export async function getActor(userId: string): Promise<Actor | null> {
   };
 }
 
-/** Prévient le staff (admin et editor) de l'organisme, sauf l'auteur de l'action. */
-export async function notifyStaff(organizationId: string, payload: NotifyPayload, exceptUserId?: string) {
+/** Prévient le staff (admin et editor) de l'organisme, sauf l'auteur de l'action (`exceptUserId`). */
+export async function notifyStaff(
+  organizationId: string,
+  payload: NotifyPayload,
+  exceptUserId?: string,
+) {
   try {
     const admin = createAdminClient();
     const { data: staff } = await admin
@@ -71,19 +95,21 @@ export async function notifyStaff(organizationId: string, payload: NotifyPayload
         title: payload.title,
         source_label: payload.sourceLabel ?? null,
         source_url: payload.staffUrl ?? null,
+        actor_id: exceptUserId ?? null,
       }));
 
-    if (rows.length > 0) {
-      const { error } = await admin.from("notifications").insert(rows);
-      if (error) console.error("notifyStaff:", error.message);
-    }
+    if (rows.length > 0) await insertNotifications(rows, "notifyStaff");
   } catch (e) {
     console.error("notifyStaff:", e);
   }
 }
 
 /** Prévient les clients à qui ce dossier est confié, sauf l'auteur de l'action. */
-export async function notifyAuditClients(auditId: string, payload: NotifyPayload, exceptUserId?: string) {
+export async function notifyAuditClients(
+  auditId: string,
+  payload: NotifyPayload,
+  exceptUserId?: string,
+) {
   try {
     const admin = createAdminClient();
     const { data: accesses } = await admin
@@ -101,12 +127,10 @@ export async function notifyAuditClients(auditId: string, payload: NotifyPayload
         title: payload.title,
         source_label: payload.sourceLabel ?? null,
         source_url: payload.clientUrl ?? null,
+        actor_id: exceptUserId ?? null,
       }));
 
-    if (rows.length > 0) {
-      const { error } = await admin.from("notifications").insert(rows);
-      if (error) console.error("notifyAuditClients:", error.message);
-    }
+    if (rows.length > 0) await insertNotifications(rows, "notifyAuditClients");
   } catch (e) {
     console.error("notifyAuditClients:", e);
   }
@@ -118,16 +142,19 @@ export async function notifyUser(
   payload: Omit<NotifyPayload, "staffUrl" | "clientUrl"> & { url?: string },
 ) {
   try {
-    const admin = createAdminClient();
-    const { error } = await admin.from("notifications").insert({
-      organization_id: user.organizationId,
-      user_id: user.id,
-      category: payload.category,
-      title: payload.title,
-      source_label: payload.sourceLabel ?? null,
-      source_url: payload.url ?? null,
-    });
-    if (error) console.error("notifyUser:", error.message);
+    await insertNotifications(
+      [
+        {
+          organization_id: user.organizationId,
+          user_id: user.id,
+          category: payload.category,
+          title: payload.title,
+          source_label: payload.sourceLabel ?? null,
+          source_url: payload.url ?? null,
+        },
+      ],
+      "notifyUser",
+    );
   } catch (e) {
     console.error("notifyUser:", e);
   }

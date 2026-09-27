@@ -224,6 +224,8 @@ export interface Database {
           title: string;
           source_label: string | null;
           source_url: string | null;
+          /** Auteur de l'action notifiée (migration 000012) */
+          actor_id: string | null;
           read_at: string | null;
           created_at: string;
         };
