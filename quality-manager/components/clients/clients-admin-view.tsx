@@ -2,19 +2,40 @@
 
 import * as React from "react";
 import { useTransition } from "react";
-import { Clock, FolderOpen, Search, Send, UserCheck, Users } from "lucide-react";
+import { Clock, FolderOpen, FolderPlus, Search, Send, UserCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { ClientSessionOverview } from "@/lib/actions/clients";
 import { resendClientAccessCredentials } from "@/lib/actions/clients";
+import { InviteClientDialog } from "@/components/clients/invite-client-dialog";
+
+export type DossierWithoutClient = {
+  id: string;
+  name: string;
+  type: string;
+  categories: string[];
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  initial: "Audit initial",
+  surveillance: "Audit de surveillance",
+  renouvellement: "Renouvellement",
+};
 
 /**
  * Liste des clients de l'organisme : leur nom, leurs dossiers confiés, et
  * l'envoi de leurs accès par email. Volontairement sans accès à la session
- * du client : l'admin n'entre jamais dans son espace.
+ * du client : l'admin n'entre jamais dans son espace. En dessous, les
+ * dossiers qu'aucun client ne suit encore, chacun avec son invitation.
  */
-export function ClientsAdminView({ clients }: { clients: ClientSessionOverview[] }) {
+export function ClientsAdminView({
+  clients,
+  dossiersWithoutClient = [],
+}: {
+  clients: ClientSessionOverview[];
+  dossiersWithoutClient?: DossierWithoutClient[];
+}) {
   const [search, setSearch] = React.useState("");
   const [target, setTarget] = React.useState<ClientSessionOverview | null>(null);
   const [pending, startTransition] = useTransition();
@@ -30,6 +51,12 @@ export function ClientsAdminView({ clients }: { clients: ClientSessionOverview[]
         c.dossiers.some((d) => d.name.toLowerCase().includes(q)),
     );
   }, [clients, search]);
+
+  const filteredDossiers = React.useMemo(() => {
+    if (!search.trim()) return dossiersWithoutClient;
+    const q = search.toLowerCase();
+    return dossiersWithoutClient.filter((d) => d.name.toLowerCase().includes(q));
+  }, [dossiersWithoutClient, search]);
 
   const sendAccess = () => {
     const client = target;
@@ -73,6 +100,13 @@ export function ClientsAdminView({ clients }: { clients: ClientSessionOverview[]
             <strong className="text-foreground">{clients.length}</strong> client
             {clients.length > 1 ? "s" : ""} au total
           </span>
+          {dossiersWithoutClient.length > 0 && (
+            <span className="flex items-center gap-1.5">
+              <FolderPlus className="h-4 w-4 text-c3" />
+              <strong className="text-foreground">{dossiersWithoutClient.length}</strong> dossier
+              {dossiersWithoutClient.length > 1 ? "s" : ""} sans client
+            </span>
+          )}
         </div>
       </div>
 
@@ -158,6 +192,38 @@ export function ClientsAdminView({ clients }: { clients: ClientSessionOverview[]
             );
           })}
         </div>
+      )}
+
+      {filteredDossiers.length > 0 && (
+        <section>
+          <h2 className="mb-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--text-mute)]">
+            Dossiers sans client ({filteredDossiers.length})
+          </h2>
+          <p className="mb-3 text-[13px] text-muted-foreground">
+            Personne ne suit encore ces dossiers depuis l&apos;espace client. Invitez le client
+            concerné : il recevra un email pour créer son accès.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {filteredDossiers.map((d) => (
+              <div
+                key={d.id}
+                className="qm-glass flex items-center justify-between gap-3 rounded-2xl p-4"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-[14px] font-medium">
+                    <FolderOpen className="h-4 w-4 shrink-0 text-amethyst-bright" />
+                    <span className="truncate">{d.name}</span>
+                  </div>
+                  <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {TYPE_LABEL[d.type] ?? d.type}
+                    {d.categories.length > 0 ? ` · ${d.categories.join(" · ")}` : ""}
+                  </div>
+                </div>
+                <InviteClientDialog auditId={d.id} auditName={d.name} />
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       <ConfirmDialog

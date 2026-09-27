@@ -2,25 +2,15 @@
 
 import * as React from "react";
 import { useTransition } from "react";
-import { Ban, Loader2, Mail, RotateCcw, Send, UserPlus } from "lucide-react";
+import { Ban, Loader2, RotateCcw, Send, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  inviteClientToAudit,
   reactivateClientAccess,
   resendClientAccessCredentials,
   revokeClientAccess,
 } from "@/lib/actions/clients";
 import { cn } from "@/lib/utils/cn";
+import { InviteClientDialog } from "@/components/clients/invite-client-dialog";
 
 export type ClientAccessRow = {
   id: string;
@@ -40,28 +30,6 @@ export function ClientAccessCard({
   auditId: string;
   accesses: ClientAccessRow[];
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [email, setEmail] = React.useState("");
-  const [pending, startTransition] = useTransition();
-
-  const submit = () => {
-    if (!email.trim()) return;
-    startTransition(async () => {
-      const result = await inviteClientToAudit({ auditId, email: email.trim() });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      toast.success(
-        result.data.mode === "invited"
-          ? `Invitation envoyée à ${email.trim()}`
-          : `Accès ajouté pour ${email.trim()} (compte client existant)`,
-      );
-      setEmail("");
-      setOpen(false);
-    });
-  };
-
   return (
     <div className="qm-glass rounded-[18px] px-6 py-5">
       <div className="mb-4 flex items-center justify-between gap-4">
@@ -77,53 +45,7 @@ export function ClientAccessCard({
           </div>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <button
-              type="button"
-              className="qm-btn-3d inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[12.5px] font-semibold"
-            >
-              <Mail className="h-3.5 w-3.5" />
-              Inviter un client
-            </button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[420px]">
-            <DialogHeader>
-              <DialogTitle>Inviter un client sur ce dossier</DialogTitle>
-            </DialogHeader>
-            <p className="mb-1 text-[13px] text-muted-foreground">
-              Un email lui sera envoyé pour créer son accès. Il ne verra que ce dossier — statut des
-              indicateurs et documents — et pourra y déposer ses propres preuves.
-            </p>
-            <div className="space-y-1.5">
-              <Label htmlFor="client-email">Email du client</Label>
-              <Input
-                id="client-email"
-                type="email"
-                placeholder="contact@client.fr"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submit()}
-                disabled={pending}
-              />
-            </div>
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={submit}
-                disabled={pending || !email.trim()}
-                className="qm-btn-next inline-flex h-10 items-center gap-2 rounded-lg px-4 text-[13px]"
-              >
-                {pending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Mail className="h-3.5 w-3.5" />
-                )}
-                Envoyer l&apos;invitation
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <InviteClientDialog auditId={auditId} />
       </div>
 
       {accesses.length === 0 ? (

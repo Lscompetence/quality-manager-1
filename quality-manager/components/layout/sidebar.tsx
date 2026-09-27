@@ -10,12 +10,6 @@ import { QmBrandMark } from "@/components/brand/logo";
 import type { AuditRef } from "@/components/layout/auto-breadcrumb";
 import { cn } from "@/lib/utils/cn";
 
-type AuditSummary = {
-  id: string;
-  name: string;
-  status: "en_cours" | "cloture" | "archive";
-};
-
 export type OrganizationSummary = {
   name: string;
   siret: string | null;
@@ -32,22 +26,18 @@ const CATEGORY_TONE: Record<string, string> = {
 export function Sidebar({
   organizationName,
   organization,
-  currentAudit,
   audits = [],
 }: {
   organizationName: string;
   organization?: OrganizationSummary;
-  currentAudit: AuditSummary | null;
   audits?: AuditRef[];
 }) {
   const pathname = usePathname();
   const org = organization ?? { name: organizationName, siret: null };
 
-
-  // Le menu suit le dossier ouvert dans l'URL. Ailleurs, il reste sur le dossier
-  // en cours, pour garder ses critères sous la main depuis l'accueil.
-  const routeAuditId = pathname.startsWith("/audits/") ? pathname.split("/")[2] : undefined;
-  const auditId = routeAuditId ?? currentAudit?.id;
+  // Le menu ne montre un dossier que tant qu'on est dedans (URL /audits/…) :
+  // une fois sorti, plus aucun dossier affiché.
+  const auditId = pathname.startsWith("/audits/") ? pathname.split("/")[2] : undefined;
   const audit = auditId ? audits.find((a) => a.id === auditId) : undefined;
 
   return (
@@ -60,7 +50,9 @@ export function Sidebar({
       >
         <QmBrandMark size={38} priority />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-[14.5px] font-semibold tracking-tight">Quality Manager</span>
+          <span className="truncate text-[14.5px] font-semibold tracking-tight">
+            Quality Manager
+          </span>
           <span className="mt-0.5 truncate font-mono text-[9.5px] uppercase tracking-[0.16em] text-[var(--text-mute)]">
             LS Compétences
           </span>
@@ -68,8 +60,8 @@ export function Sidebar({
       </Link>
 
       <div className="qm-scroll-hidden flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] pt-[22px]">
-        {/* Contexte du dossier : ouvert dans l'URL, ou dossier en cours */}
-        {auditId && <DossierContext audit={audit} name={audit?.name ?? currentAudit?.name ?? "Dossier"} />}
+        {/* Contexte du dossier ouvert dans l'URL */}
+        {auditId && <DossierContext audit={audit} name={audit?.name ?? "Dossier"} />}
 
         {/* Navigation : les quatre entrées du menu */}
         <nav className="relative flex shrink-0 flex-col gap-px">
@@ -77,7 +69,9 @@ export function Sidebar({
             href="/dashboard"
             icon={<Home className="h-4 w-4" />}
             active={pathname === "/dashboard"}
-          >Vue d&apos;ensemble</NavLink>
+          >
+            Vue d&apos;ensemble
+          </NavLink>
 
           {auditId && (
             <NavLink

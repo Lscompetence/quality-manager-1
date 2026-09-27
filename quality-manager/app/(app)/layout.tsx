@@ -67,20 +67,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   // Les requêtes suivantes sont indépendantes : elles partent ensemble
-  // plutôt qu'à la queue leu leu, ce qui économise deux allers-retours à chaque navigation.
-  const [{ data: allAudits }, { data: currentAudit }, { count: unreadCount }] = await Promise.all([
+  // plutôt qu'à la queue leu leu, ce qui économise un aller-retour à chaque navigation.
+  const [{ data: allAudits }, { count: unreadCount }] = await Promise.all([
     // Tous les dossiers — sert au fil d'Ariane de la barre du haut
     supabase.from("audits").select("id, name, audit_type, categories").order("updated_at", {
       ascending: false,
     }),
-    // Dossier en cours (le plus récent en_cours)
-    supabase
-      .from("audits")
-      .select("id, name, status, categories")
-      .eq("status", "en_cours")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
     // Connexions clients non lues (seule notification admin) — le compteur seul
     supabase
       .from("notifications")
@@ -99,7 +91,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           name: profile.organization?.name ?? "Organisation",
           siret: profile.organization?.siret ?? null,
         }}
-        currentAudit={currentAudit}
         audits={(allAudits ?? []) as AuditRef[]}
       />
       <div className="flex min-w-0 flex-1 flex-col px-6 pt-7">
