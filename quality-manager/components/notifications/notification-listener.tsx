@@ -29,7 +29,12 @@ export function NotificationListener({ userId }: { userId: string }) {
       .channel(`notifications:${userId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
         (payload) => {
           const n = payload.new as NotificationRow;
           const options = {
@@ -40,7 +45,8 @@ export function NotificationListener({ userId }: { userId: string }) {
           };
 
           if (n.category === "success") toast.success(n.title, options);
-          else if (n.category === "alerte" || n.category === "echeance") toast.warning(n.title, options);
+          else if (n.category === "alerte" || n.category === "echeance")
+            toast.warning(n.title, options);
           else toast.info(n.title, options);
 
           // Compteurs, listes et avancements à jour sans recharger la page.

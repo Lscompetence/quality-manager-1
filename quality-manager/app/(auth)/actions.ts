@@ -19,6 +19,7 @@ import {
   type ResetPasswordInput,
 } from "@/lib/schemas/auth";
 import type { ActionResult } from "@/lib/actions/types";
+import { notifyClientSignIn } from "@/lib/notifications/notify";
 
 /** Espace depuis lequel on se connecte : chaque rôle a sa propre page. */
 export type LoginPortal = "admin" | "client";
@@ -66,6 +67,9 @@ export async function login(
       error: "Ce compte est un compte client. Connectez-vous depuis l'espace client.",
     };
   }
+
+  // Le staff est prévenu de la connexion (nom et heure seulement).
+  if (isClient) await notifyClientSignIn(data.user.id);
 
   revalidatePath("/", "layout");
   redirect(isClient ? "/client" : "/dashboard");
@@ -124,20 +128,31 @@ export async function forgotPassword(
   return { ok: true };
 }
 
-export async function resetPassword(input: ResetPasswordInput): Promise<ActionResult> {
+/**
+ * Enregistre un nouveau mot de passe. `fromEmailLink` : on arrive d'un lien
+ * reçu par email (invitation, mot de passe oublié), c'est donc une ouverture
+ * de session — le staff en est prévenu si c'est un client. Le changement de
+ * mot de passe depuis les paramètres, lui, ne notifie personne.
+ */
+export async function resetPassword(
+  input: ResetPasswordInput,
+  { fromEmailLink = false }: { fromEmailLink?: boolean } = {},
+): Promise<ActionResult> {
   const parsed = resetPasswordSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({
+  const { data, error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
 
   if (error) {
     return { ok: false, error: mapAuthError(error.message) };
   }
+
+  if (fromEmailLink) await notifyClientSignIn(data.user.id);
 
   return { ok: true };
 }

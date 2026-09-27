@@ -3,8 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAuditSchema, updateAuditSchema, type CreateAuditInput, type UpdateAuditInput } from "@/lib/schemas/audits";
-import { getActor, notifyStaff } from "@/lib/notifications/notify";
+import {
+  createAuditSchema,
+  updateAuditSchema,
+  type CreateAuditInput,
+  type UpdateAuditInput,
+} from "@/lib/schemas/audits";
 import type { ActionResult } from "./types";
 
 /** Colonnes recopiées lors de la reprise des preuves d'un dossier. */
@@ -85,20 +89,6 @@ export async function createAudit(input: CreateAuditInput): Promise<ActionResult
         };
       }
     }
-  }
-
-  const actor = await getActor(user.user.id);
-  if (actor) {
-    await notifyStaff(
-      profile.organization_id,
-      {
-        category: "equipe",
-        title: `${actor.name} a créé le dossier « ${parsed.data.name} »`,
-        sourceLabel: parsed.data.name,
-        staffUrl: `/audits/${data.id}`,
-      },
-      actor.id,
-    );
   }
 
   revalidatePath("/dashboard");

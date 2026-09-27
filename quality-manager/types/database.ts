@@ -226,6 +226,8 @@ export interface Database {
           source_url: string | null;
           /** Auteur de l'action notifiée (migration 000012) */
           actor_id: string | null;
+          /** connexion client ou activité (migration 000013) */
+          kind: "activity" | "client_login";
           read_at: string | null;
           created_at: string;
         };

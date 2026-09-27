@@ -26,10 +26,7 @@ type Notification = {
   source_url: string | null;
   read_at: string | null;
   created_at: string;
-  actor_id?: string | null;
 };
-
-type ClientRef = { id: string; name: string };
 
 /** Couleurs d'icône reprises de notifications.html (.notif-icon.*) */
 const CATEGORY_META: Record<
@@ -70,52 +67,22 @@ const FILTERS = [
   { key: "echeance", label: "Échéances" },
   { key: "alerte", label: "Alertes" },
   { key: "equipe", label: "Équipe" },
-  { key: "clients", label: "Clients" },
 ] as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-export function NotificationsCenter({
-  notifications,
-  clients,
-}: {
-  notifications: Notification[];
-  /** Clients de l'organisme (espace admin) : active le filtre « Clients ». */
-  clients?: ClientRef[];
-}) {
+/** Centre de notifications de l'espace client. */
+export function NotificationsCenter({ notifications }: { notifications: Notification[] }) {
   const [filter, setFilter] = React.useState<FilterKey>("all");
   const [pending, startTransition] = useTransition();
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
-  // Client à l'origine de chaque notification (null : action du staff ou du système)
-  const clientOf = React.useMemo(() => {
-    const list = clients ?? [];
-    const byId = new Map(list.map((c) => [c.id, c]));
-    return (n: Notification): ClientRef | null => {
-      if (n.actor_id) return byId.get(n.actor_id) ?? null;
-      // Notifications antérieures à la migration 000012 : le titre commence
-      // par le nom de l'auteur (« Prénom Nom a déposé … »).
-      const title = n.title.toLowerCase();
-      return list.find((c) => title.startsWith(`${c.name.toLowerCase()} `)) ?? null;
-    };
-  }, [clients]);
-
-  const fromClients = notifications.filter((n) => clientOf(n));
-
-  const filtered =
-    filter === "clients"
-      ? fromClients
-      : notifications.filter((n) => {
-          if (filter === "all") return true;
-          if (filter === "unread") return !n.read_at;
-          return n.category === filter;
-        });
-
-  // Liste d'un seul bloc, sans titres de période ; seul le filtre « Clients »
-  // regroupe, par client.
-  const groups =
-    filter === "clients" ? groupByClient(filtered, clientOf) : [{ title: "", items: filtered }];
+  const filtered = notifications.filter((n) => {
+    if (filter === "all") return true;
+    if (filter === "unread") return !n.read_at;
+    return n.category === filter;
+  });
 
   const handleMarkRead = (id: string) => {
     startTransition(async () => {
@@ -135,16 +102,10 @@ export function NotificationsCenter({
       {/* Barre d'outils */}
       <div className="mb-[18px] flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-elev)] px-[18px] py-3.5">
         <div className="flex flex-wrap gap-1.5">
-          {FILTERS.filter((f) => f.key !== "clients" || clients).map((f) => {
+          {FILTERS.map((f) => {
             const active = filter === f.key;
             const count =
-              f.key === "all"
-                ? notifications.length
-                : f.key === "unread"
-                  ? unreadCount
-                  : f.key === "clients"
-                    ? fromClients.length
-                    : null;
+              f.key === "all" ? notifications.length : f.key === "unread" ? unreadCount : null;
             return (
               <button
                 key={f.key}
@@ -184,100 +145,71 @@ export function NotificationsCenter({
           <p className="text-sm text-[var(--text-mute)]">
             {notifications.length === 0
               ? "Aucune notification pour l'instant."
-              : filter === "clients"
-                ? "Aucune action de vos clients pour l'instant."
-                : "Aucune notification dans cette catégorie."}
+              : "Aucune notification dans cette catégorie."}
           </p>
         </div>
       ) : (
-        groups.map((group) => (
-          <div key={group.title} className="mb-6">
-            {group.title && (
-              <div className="mb-2.5 pl-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-mute)]">
-                {group.title}
-              </div>
-            )}
+        <div className="mb-6">
+          {filtered.map((n) => {
+            const meta = CATEGORY_META[n.category];
+            const unread = !n.read_at;
 
-            {group.items.map((n) => {
-              const meta = CATEGORY_META[n.category];
-              const unread = !n.read_at;
+            return (
+              <div
+                key={n.id}
+                className={cn(
+                  "relative mb-2 flex items-start gap-3.5 rounded-xl border px-5 py-4 transition-colors",
+                  unread
+                    ? "border-[var(--amethyst-soft)] bg-[var(--amethyst-soft-2)] hover:bg-[var(--amethyst-soft)]"
+                    : "border-[var(--border-soft)] bg-[var(--bg-elev)] hover:bg-[var(--surface-2)]",
+                )}
+              >
+                {unread && (
+                  <span
+                    className="absolute -left-[3px] top-[18px] h-1.5 w-1.5 rounded-full bg-[var(--amethyst-br)]"
+                    style={{ boxShadow: "0 0 8px var(--amethyst-br)" }}
+                  />
+                )}
 
-              return (
                 <div
-                  key={n.id}
                   className={cn(
-                    "relative mb-2 flex items-start gap-3.5 rounded-xl border px-5 py-4 transition-colors",
-                    unread
-                      ? "border-[var(--amethyst-soft)] bg-[var(--amethyst-soft-2)] hover:bg-[var(--amethyst-soft)]"
-                      : "border-[var(--border-soft)] bg-[var(--bg-elev)] hover:bg-[var(--surface-2)]",
+                    "grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[10px]",
+                    meta.className,
                   )}
                 >
-                  {unread && (
-                    <span
-                      className="absolute -left-[3px] top-[18px] h-1.5 w-1.5 rounded-full bg-[var(--amethyst-br)]"
-                      style={{ boxShadow: "0 0 8px var(--amethyst-br)" }}
-                    />
-                  )}
-
-                  <div
-                    className={cn(
-                      "grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[10px]",
-                      meta.className,
-                    )}
-                  >
-                    {meta.icon}
-                  </div>
-
-                  <div className="min-w-0 flex-1 self-center text-[13.5px] leading-[1.4]">
-                    {n.title}
-                  </div>
-
-                  <div className="flex shrink-0 gap-1.5">
-                    {n.source_url && (
-                      <Link
-                        href={n.source_url as Route}
-                        className="grid h-[30px] items-center rounded-[7px] border border-transparent px-2.5 text-xs text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground"
-                      >
-                        Ouvrir
-                      </Link>
-                    )}
-                    {unread && (
-                      <button
-                        type="button"
-                        onClick={() => handleMarkRead(n.id)}
-                        disabled={pending}
-                        title="Marquer comme lu"
-                        className="grid h-[30px] w-[30px] place-items-center rounded-[7px] border border-transparent text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground disabled:opacity-50"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
+                  {meta.icon}
                 </div>
-              );
-            })}
-          </div>
-        ))
+
+                <div className="min-w-0 flex-1 self-center text-[13.5px] leading-[1.4]">
+                  {n.title}
+                </div>
+
+                <div className="flex shrink-0 gap-1.5">
+                  {n.source_url && (
+                    <Link
+                      href={n.source_url as Route}
+                      className="grid h-[30px] items-center rounded-[7px] border border-transparent px-2.5 text-xs text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground"
+                    >
+                      Ouvrir
+                    </Link>
+                  )}
+                  {unread && (
+                    <button
+                      type="button"
+                      onClick={() => handleMarkRead(n.id)}
+                      disabled={pending}
+                      title="Marquer comme lu"
+                      className="grid h-[30px] w-[30px] place-items-center rounded-[7px] border border-transparent text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground disabled:opacity-50"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </>
   );
-}
-
-/** Filtre « Clients » : un groupe par client, le plus récent en premier. */
-function groupByClient(
-  items: Notification[],
-  clientOf: (n: Notification) => ClientRef | null,
-): { title: string; items: Notification[] }[] {
-  const groups = new Map<string, Notification[]>();
-  for (const n of items) {
-    const client = clientOf(n);
-    if (!client) continue;
-    const bucket = groups.get(client.name) ?? [];
-    bucket.push(n);
-    groups.set(client.name, bucket);
-  }
-  return [...groups.entries()].map(([name, list]) => ({
-    title: `${name} · ${list.length} notification${list.length > 1 ? "s" : ""}`,
-    items: list,
-  }));
 }

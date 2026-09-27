@@ -29,23 +29,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!profile) {
     console.error("Profile not found for user:", user.id);
     return (
-      <div className="flex h-screen w-full items-center justify-center p-4 text-center bg-background">
+      <div className="flex h-screen w-full items-center justify-center bg-background p-4 text-center">
         <div className="max-w-md space-y-4 rounded-xl border border-border bg-card p-6 shadow-xl">
           <h1 className="text-xl font-bold text-destructive">Erreur d&apos;accès (RLS)</h1>
           <p className="text-sm text-muted-foreground">
-            Votre profil utilisateur n&apos;a pas pu être chargé (accès refusé par la base de données). 
-            Vérifiez que les politiques RLS ont bien été appliquées et que la fonction get_current_org_id() n&apos;est pas bloquée.
+            Votre profil utilisateur n&apos;a pas pu être chargé (accès refusé par la base de
+            données). Vérifiez que les politiques RLS ont bien été appliquées et que la fonction
+            get_current_org_id() n&apos;est pas bloquée.
           </p>
-          <div className="pt-4 text-left bg-black/10 p-2 rounded text-xs text-red-500 overflow-auto">
+          <div className="overflow-auto rounded bg-black/10 p-2 pt-4 text-left text-xs text-red-500">
             {profileError?.message || "Aucune ligne retournée (0 rows)"}
           </div>
-          <form action={async () => {
-            "use server";
-            const s = await createClient();
-            await s.auth.signOut();
-            redirect("/login");
-          }}>
-            <button type="submit" className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md w-full">
+          <form
+            action={async () => {
+              "use server";
+              const s = await createClient();
+              await s.auth.signOut();
+              redirect("/login");
+            }}
+          >
+            <button
+              type="submit"
+              className="mt-4 w-full rounded-md bg-primary px-4 py-2 text-primary-foreground"
+            >
               Se déconnecter
             </button>
           </form>
@@ -62,11 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   // Les requêtes suivantes sont indépendantes : elles partent ensemble
   // plutôt qu'à la queue leu leu, ce qui économise deux allers-retours à chaque navigation.
-  const [
-    { data: allAudits },
-    { data: currentAudit },
-    { count: unreadCount },
-  ] = await Promise.all([
+  const [{ data: allAudits }, { data: currentAudit }, { count: unreadCount }] = await Promise.all([
     // Tous les dossiers — sert au fil d'Ariane de la barre du haut
     supabase.from("audits").select("id, name, audit_type, categories").order("updated_at", {
       ascending: false,
@@ -79,11 +81,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    // Notifications non lues — seul le compteur est affiché, on ne charge pas les lignes
+    // Connexions clients non lues (seule notification admin) — le compteur seul
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
+      .eq("kind", "client_login")
       .is("read_at", null),
   ]);
 

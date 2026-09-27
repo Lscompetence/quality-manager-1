@@ -43,7 +43,7 @@ export function ResetPasswordForm({ next = "/dashboard" }: { next?: string }) {
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setPending(true);
-    const result = await resetPassword(data);
+    const result = await resetPassword(data, { fromEmailLink: true });
 
     if (!result.ok) {
       setPending(false);

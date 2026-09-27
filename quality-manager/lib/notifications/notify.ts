@@ -3,12 +3,14 @@ import { displayName } from "@/lib/utils/display-name";
 import type { Database } from "@/types/database";
 
 /**
- * Notifications croisées admin ↔ client.
+ * Notifications admin ↔ client.
  *
- * Chaque action de l'un prévient l'autre : un dépôt du client prévient le
- * staff du dossier, une mise à jour du staff prévient le ou les clients à qui
- * le dossier est confié. L'écriture passe par la clé de service : un client
- * n'a pas le droit d'écrire dans les notifications du staff, et inversement.
+ * - Le staff n'est prévenu que d'une chose : la connexion d'un client à son
+ *   espace (`kind = "client_login"`), avec son nom et l'heure, rien d'autre.
+ * - Les clients sont prévenus de ce que le staff fait sur leurs dossiers.
+ *
+ * L'écriture passe par la clé de service : un client n'a pas le droit
+ * d'écrire dans les notifications du staff, et inversement.
  * Ce module n'est appelé que depuis des actions serveur, après vérification
  * des droits de l'utilisateur.
  *
@@ -20,18 +22,19 @@ type Category = Database["public"]["Tables"]["notifications"]["Row"]["category"]
 type NotificationInsert = Database["public"]["Tables"]["notifications"]["Insert"];
 
 /**
- * Insère des notifications avec leur auteur (`actor_id`). Tant que la
- * migration 000012 n'est pas passée, la colonne n'existe pas : on réessaie
- * sans elle plutôt que de perdre la notification.
+ * Insère des notifications avec leur auteur (`actor_id`) et leur nature
+ * (`kind`). Tant que les migrations 000012 et 000013 ne sont pas passées,
+ * ces colonnes n'existent pas : on réessaie sans elles plutôt que de perdre
+ * la notification.
  */
 async function insertNotifications(rows: NotificationInsert[], context: string) {
   const admin = createAdminClient();
   const { error } = await admin.from("notifications").insert(rows);
   if (!error) return;
-  if (error.message.includes("actor_id")) {
+  if (error.message.includes("actor_id") || error.message.includes("kind")) {
     const { error: retry } = await admin
       .from("notifications")
-      .insert(rows.map(({ actor_id: _actorId, ...row }) => row));
+      .insert(rows.map(({ actor_id: _actorId, kind: _kind, ...row }) => row));
     if (retry) console.error(`${context}:`, retry.message);
     return;
   }
@@ -46,6 +49,8 @@ type NotifyPayload = {
   staffUrl?: string;
   /** Lien pour le client (espace client) */
   clientUrl?: string;
+  /** Nature : `client_login` pour une connexion client, sinon activité. */
+  kind?: "activity" | "client_login";
 };
 
 export type Actor = {
@@ -96,6 +101,7 @@ export async function notifyStaff(
         source_label: payload.sourceLabel ?? null,
         source_url: payload.staffUrl ?? null,
         actor_id: exceptUserId ?? null,
+        kind: payload.kind ?? "activity",
       }));
 
     if (rows.length > 0) await insertNotifications(rows, "notifyStaff");
@@ -161,20 +167,34 @@ export async function notifyUser(
 }
 
 /**
- * Prévient « l'autre côté » d'une action sur un dossier : le staff si c'est un
- * client qui agit, les clients du dossier si c'est le staff.
+ * Action du staff sur un dossier : les clients à qui il est confié sont
+ * prévenus. Les actions d'un client ne notifient plus le staff : celui-ci
+ * n'est averti que des connexions (voir `notifyClientSignIn`).
  */
 export async function notifyOtherSide(
   actor: Actor,
   audit: { id: string; name: string; organizationId: string },
   payload: Omit<NotifyPayload, "sourceLabel">,
 ) {
-  const withLabel = { ...payload, sourceLabel: audit.name };
-  if (actor.role === "client") {
-    await notifyStaff(audit.organizationId, withLabel, actor.id);
-  } else {
-    await notifyAuditClients(audit.id, withLabel, actor.id);
-    // Les autres membres du staff sont aussi prévenus de l'activité d'équipe.
-    await notifyStaff(audit.organizationId, { ...withLabel, category: "equipe" }, actor.id);
-  }
+  if (actor.role === "client") return;
+  await notifyAuditClients(audit.id, { ...payload, sourceLabel: audit.name }, actor.id);
+}
+
+/**
+ * Un client vient d'ouvrir une session sur son espace : le staff de son
+ * organisme est prévenu. Seuls son nom et l'heure sont transmis — rien sur
+ * ce qu'il consulte ou fait ensuite.
+ */
+export async function notifyClientSignIn(userId: string) {
+  const actor = await getActor(userId);
+  if (!actor || actor.role !== "client") return;
+  await notifyStaff(
+    actor.organizationId,
+    {
+      category: "system",
+      kind: "client_login",
+      title: `${actor.name} s'est connecté à son espace client`,
+    },
+    actor.id,
+  );
 }
