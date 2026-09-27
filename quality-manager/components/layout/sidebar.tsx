@@ -39,6 +39,9 @@ export function Sidebar({
   // une fois sorti, plus aucun dossier affiché.
   const auditId = pathname.startsWith("/audits/") ? pathname.split("/")[2] : undefined;
   const audit = auditId ? audits.find((a) => a.id === auditId) : undefined;
+  // « Tableau de bord » reste toujours dans le menu : le dossier ouvert, sinon
+  // le dernier dossier modifié (sans afficher sa carte).
+  const dashboardAuditId = auditId ?? audits[0]?.id;
 
   return (
     <aside className="qm-glass sticky top-0 hidden h-screen w-[230px] shrink-0 flex-col border-y-0 border-l-0 border-r lg:flex">
@@ -73,11 +76,11 @@ export function Sidebar({
             Vue d&apos;ensemble
           </NavLink>
 
-          {auditId && (
+          {dashboardAuditId && (
             <NavLink
-              href={`/audits/${auditId}`}
+              href={`/audits/${dashboardAuditId}`}
               icon={<LayoutDashboard className="h-4 w-4" />}
-              active={pathname === `/audits/${auditId}`}
+              active={pathname === `/audits/${dashboardAuditId}`}
             >
               Tableau de bord
             </NavLink>
