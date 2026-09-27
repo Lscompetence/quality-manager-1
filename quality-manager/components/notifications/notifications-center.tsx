@@ -181,16 +181,8 @@ export function NotificationsCenter({ notifications }: { notifications: Notifica
                     {meta.icon}
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 text-[13.5px] leading-[1.4]">{n.title}</div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2.5 font-mono text-[10.5px] text-[var(--text-mute)]">
-                      {n.source_label && (
-                        <span className="rounded border border-[var(--border-soft)] bg-[var(--surface)] px-2 py-0.5">
-                          {n.source_label}
-                        </span>
-                      )}
-                      <span className="opacity-85">{formatRelative(n.created_at)}</span>
-                    </div>
+                  <div className="min-w-0 flex-1 self-center text-[13.5px] leading-[1.4]">
+                    {n.title}
                   </div>
 
                   <div className="flex shrink-0 gap-1.5">
@@ -247,17 +239,4 @@ function dayTitle(date: Date): string {
   if (days < 1) return "Hier";
   if (days < 7) return "Cette semaine";
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-}
-
-function formatRelative(iso: string): string {
-  const date = new Date(iso);
-  const diff = Date.now() - date.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "à l'instant";
-  if (min < 60) return `Il y a ${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `Il y a ${h} h`;
-  const d = Math.floor(h / 24);
-  if (d < 7) return `Il y a ${d} j`;
-  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 }
