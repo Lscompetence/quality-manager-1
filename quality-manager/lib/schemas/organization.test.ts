@@ -38,10 +38,14 @@ describe("updatePlanSchema", () => {
   });
 
   it("rejects invalid plan", () => {
-    expect(updatePlanSchema.safeParse({ plan: "ultra", billing_cycle: "annual" }).success).toBe(false);
+    expect(updatePlanSchema.safeParse({ plan: "ultra", billing_cycle: "annual" }).success).toBe(
+      false,
+    );
   });
 
   it("rejects invalid billing cycle", () => {
-    expect(updatePlanSchema.safeParse({ plan: "pro", billing_cycle: "weekly" }).success).toBe(false);
+    expect(updatePlanSchema.safeParse({ plan: "pro", billing_cycle: "weekly" }).success).toBe(
+      false,
+    );
   });
 });

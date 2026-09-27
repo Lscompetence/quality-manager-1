@@ -19,7 +19,7 @@ import type { ActionResult } from "./types";
  * Format : <organization_id>/<audit_id>/<uuid>_<filename>
  */
 export async function generateUploadPath(opts: {
-  audit_id?: string;
+  audit_id: string;
   file_name: string;
 }): Promise<ActionResult<{ path: string; bucket: string }>> {
   const supabase = await createClient();
@@ -34,8 +34,9 @@ export async function generateUploadPath(opts: {
   if (!profile) return { ok: false, error: "Profil introuvable" };
 
   const safeName = opts.file_name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 100);
-  const auditSegment = opts.audit_id ?? "global";
-  const path = `${profile.organization_id}/${auditSegment}/${randomUUID()}_${safeName}`;
+  // Le 2ᵉ segment (audit_id) est contrôlé par les policies Storage : seul un
+  // editor de l'établissement du dossier (ou son client) peut y déposer.
+  const path = `${profile.organization_id}/${opts.audit_id}/${randomUUID()}_${safeName}`;
 
   return { ok: true, data: { path, bucket: "attachments" } };
 }
@@ -43,7 +44,9 @@ export async function generateUploadPath(opts: {
 /**
  * Enregistre une PJ après upload réussi côté client OU enregistre un lien externe.
  */
-export async function createAttachment(input: CreateAttachmentInput): Promise<ActionResult<{ id: string }>> {
+export async function createAttachment(
+  input: CreateAttachmentInput,
+): Promise<ActionResult<{ id: string }>> {
   const parsed = createAttachmentSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
@@ -62,7 +65,7 @@ export async function createAttachment(input: CreateAttachmentInput): Promise<Ac
 
   const baseRow = {
     organization_id: profile.organization_id,
-    audit_id: parsed.data.audit_id ?? null,
+    audit_id: parsed.data.audit_id,
     miniapp_key: parsed.data.miniapp_key ?? null,
     context_path: parsed.data.context_path ?? null,
     context_label: parsed.data.context_label ?? null,
@@ -86,16 +89,17 @@ export async function createAttachment(input: CreateAttachmentInput): Promise<Ac
         }
       : { ...baseRow, external_url: parsed.data.external_url };
 
-  const { data, error } = await supabase
-    .from("attachments")
-    .insert(row)
-    .select("id")
-    .single();
+  const { data, error } = await supabase.from("attachments").insert(row).select("id").single();
 
   if (error) return { ok: false, error: error.message };
 
   if (parsed.data.audit_id) {
-    await notifyAttachmentChange(userData.user.id, parsed.data.audit_id, "added", parsed.data.file_name);
+    await notifyAttachmentChange(
+      userData.user.id,
+      parsed.data.audit_id,
+      "added",
+      parsed.data.file_name,
+    );
     revalidatePath(`/audits/${parsed.data.audit_id}`);
     revalidatePath(`/client/dossiers/${parsed.data.audit_id}`);
   }
@@ -162,7 +166,8 @@ export async function deleteAttachment(input: DeleteAttachmentInput): Promise<Ac
   if (error) return { ok: false, error: error.message };
 
   if (row?.audit_id) {
-    if (userData.user) await notifyAttachmentChange(userData.user.id, row.audit_id, "removed", row.file_name);
+    if (userData.user)
+      await notifyAttachmentChange(userData.user.id, row.audit_id, "removed", row.file_name);
     revalidatePath(`/audits/${row.audit_id}`);
     revalidatePath(`/client/dossiers/${row.audit_id}`);
   }

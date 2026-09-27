@@ -50,7 +50,7 @@ export function AttachmentList({
   canDelete = true,
   canAdd = true,
 }: {
-  auditId?: string;
+  auditId: string;
   miniappKey?: string;
   contextPath: string;
   contextLabel: string;
@@ -209,7 +209,7 @@ function AddAttachmentDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  auditId?: string;
+  auditId: string;
   miniappKey?: string;
   contextPath: string;
   contextLabel: string;

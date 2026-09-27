@@ -36,7 +36,14 @@ const CATEGORIES: { value: CategoryEnum; label: string; desc: string }[] = [
   { value: "CFA", label: "CFA", desc: "Apprentissage" },
 ];
 
-export function CreateAuditDialog() {
+export function CreateAuditDialog({
+  establishments,
+  defaultEstablishmentId,
+}: {
+  /** Établissements où l'editor peut créer un dossier */
+  establishments: { id: string; name: string }[];
+  defaultEstablishmentId?: string;
+}) {
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const router = useRouter();
@@ -50,8 +57,14 @@ export function CreateAuditDialog() {
     formState: { errors },
   } = useForm<CreateAuditInput>({
     resolver: zodResolver(createAuditSchema),
-    defaultValues: { categories: [], audit_type: "initial", name: "" },
+    defaultValues: {
+      categories: [],
+      audit_type: "initial",
+      name: "",
+      establishment_id: defaultEstablishmentId ?? establishments[0]?.id ?? "",
+    },
   });
+  const establishmentId = watch("establishment_id");
 
   const selectedCategories = watch("categories") ?? [];
   const auditType = watch("audit_type");
@@ -94,6 +107,30 @@ export function CreateAuditDialog() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+          {establishments.length > 1 && (
+            <div>
+              <Label>Établissement</Label>
+              <Select
+                value={establishmentId}
+                onValueChange={(v) => setValue("establishment_id", v, { shouldValidate: true })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir l&apos;établissement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {establishments.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {e.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.establishment_id && (
+                <p className="mt-1.5 text-xs text-destructive">{errors.establishment_id.message}</p>
+              )}
+            </div>
+          )}
+
           <div>
             <Label htmlFor="name">Nom du dossier</Label>
             <Input

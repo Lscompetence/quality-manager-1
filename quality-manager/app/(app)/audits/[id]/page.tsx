@@ -1,9 +1,17 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { CRITERES, getIndicatorsByCritere, type CritereNum, type Category } from "@/lib/constants/rnq";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
+import {
+  CRITERES,
+  getIndicatorsByCritere,
+  type CritereNum,
+  type Category,
+} from "@/lib/constants/rnq";
 import { TrendingUp } from "lucide-react";
 import { CategoryTint } from "@/components/layout/category-tint";
-import { ClientAccessCard } from "@/components/audits/client-access-card";
 
 export const metadata = {
   title: "Dossier",
@@ -40,6 +48,8 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 export default async function AuditDashboardPage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
   // Les trois requêtes portent sur le même dossier et sont indépendantes : une seule attente.
@@ -49,7 +59,6 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
     { count: documentsCount },
     { count: documentsThisWeek },
     { count: completedThisMonth },
-    { data: clientAccesses },
   ] = await Promise.all([
     supabase
       .from("audits")
@@ -71,12 +80,6 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
       .eq("audit_id", id)
       .eq("status", "complet")
       .gte("updated_at", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()),
-    // Accès client déjà accordés sur ce dossier — affichés dans la carte dédiée
-    supabase
-      .from("audit_access")
-      .select("id, invited_email, status, created_at")
-      .eq("audit_id", id)
-      .order("created_at", { ascending: false }),
   ]);
 
   if (!audit) notFound();
@@ -110,18 +113,24 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
   // La maquette teinte la page par la catégorie et réserve la couleur du type à sa pastille.
   const typeTone = TYPE_TONE[audit.audit_type] ?? "var(--t-initial)";
   const category = categories[0] ?? null;
-  const catTone = category ? (CATEGORY_TONE[category] ?? "var(--amethyst-br)") : "var(--amethyst-br)";
+  const catTone = category
+    ? (CATEGORY_TONE[category] ?? "var(--amethyst-br)")
+    : "var(--amethyst-br)";
   const catLabel =
     categories.length > 0
       ? (CATEGORY_LABEL[categories[0] ?? ""] ?? categories.join(", "))
       : "Périmètre à définir";
-  const monthsToAudit = audit.audit_date ? monthsBetween(new Date(), new Date(audit.audit_date)) : null;
+  const monthsToAudit = audit.audit_date
+    ? monthsBetween(new Date(), new Date(audit.audit_date))
+    : null;
 
   const pointsThisMonth = total > 0 ? Math.round(((completedThisMonth ?? 0) / total) * 100) : 0;
 
   return (
     <div style={{ ["--cat-accent" as string]: catTone, ["--t-color" as string]: typeTone }}>
       <CategoryTint category={category} />
+
+      {readOnly && <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />}
 
       {/* Hero du dossier */}
       <section className="flex flex-col items-center gap-[18px] pb-[60px] pt-[30px] text-center">
@@ -133,7 +142,8 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
             {catLabel}
           </HeroPill>
           <HeroPill>
-            {audit.status === "en_cours" ? "Ouvert le" : "Clôturé le"} {formatDate(audit.created_at)}
+            {audit.status === "en_cours" ? "Ouvert le" : "Clôturé le"}{" "}
+            {formatDate(audit.created_at)}
           </HeroPill>
         </div>
 
@@ -217,26 +227,33 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
 
       {/* Les 7 critères */}
       <div className="mb-[22px] flex items-baseline justify-between">
-        <h2 className="font-sans text-2xl font-light tracking-[-0.015em]">Les 7 critères du référentiel</h2>
+        <h2 className="font-sans text-2xl font-light tracking-[-0.015em]">
+          Les 7 critères du référentiel
+        </h2>
         <span className="font-mono text-[11px] tracking-[0.1em] text-[var(--text-mute)]">
-          progression du client par critère
+          cliquez pour explorer un critère
         </span>
       </div>
 
-      {/* Lecture seule : l'admin suit la progression, sans ouvrir les critères. */}
       <div className="grid gap-px overflow-hidden rounded-[20px] bg-[var(--border-soft)] p-px sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {Object.values(CRITERES).map((critere) => {
           const p = progressByCritere[critere.num as CritereNum];
           const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : 0;
           return (
-            <div
+            <Link
               key={critere.num}
-              className="relative overflow-hidden bg-[var(--bg-elev)] px-[18px] py-6 text-center backdrop-blur-2xl"
+              href={`/audits/${id}/critere/${String(critere.num).padStart(2, "0")}`}
+              prefetch={true}
+              className="group relative overflow-hidden bg-[var(--bg-elev)] px-[18px] py-6 text-center backdrop-blur-2xl transition-colors hover:bg-[var(--surface-2)]"
               style={{ ["--cf" as string]: `var(--${critere.colorVar})` }}
             >
               <span
-                className="absolute inset-x-0 bottom-0 h-[2px]"
-                style={{ background: "var(--cf)", filter: "blur(0.5px)", boxShadow: "0 0 20px var(--cf), 0 0 40px var(--cf)" }}
+                className="absolute inset-x-0 bottom-0 h-[2px] transition-all group-hover:h-1"
+                style={{
+                  background: "var(--cf)",
+                  filter: "blur(0.5px)",
+                  boxShadow: "0 0 20px var(--cf), 0 0 40px var(--cf)",
+                }}
               />
               <div className="mb-3.5 font-mono text-[10.5px] font-medium tracking-[0.18em] text-[var(--text-mute)]">
                 C{critere.num}
@@ -256,18 +273,17 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
                 aria-valuemax={100}
                 aria-label={`Progression ${critere.title}`}
               >
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--cf)" }} />
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${pct}%`, background: "var(--cf)" }}
+                />
               </div>
               <div className="mt-2 font-mono text-[9.5px] tracking-[0.05em] text-[var(--text-faint)]">
                 {p.done} / {p.total} indicateurs
               </div>
-            </div>
+            </Link>
           );
         })}
-      </div>
-
-      <div className="mt-[22px]">
-        <ClientAccessCard auditId={id} accesses={clientAccesses ?? []} />
       </div>
     </div>
   );
@@ -318,7 +334,9 @@ function Metric({
       </div>
       <div className="font-sans text-[44px] font-light leading-[0.95] tracking-[-0.025em]">
         {value}
-        {unit && <small className="ml-1 text-lg font-normal text-[var(--text-faint)]">{unit}</small>}
+        {unit && (
+          <small className="ml-1 text-lg font-normal text-[var(--text-faint)]">{unit}</small>
+        )}
       </div>
       <div
         className={
@@ -339,7 +357,11 @@ function monthsBetween(from: Date, to: Date): number {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 function formatMonth(iso: string): string {

@@ -14,7 +14,9 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("first_name, last_name, email, role, last_seen_at, created_at, organization:organizations(name)")
+    .select(
+      "first_name, last_name, email, role, last_seen_at, created_at, organization:organizations(name)",
+    )
     .eq("id", userData.user.id)
     .single();
   if (!profile) redirect("/login");
@@ -23,25 +25,24 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-
       <div>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright mb-2">
+        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Compte utilisateur
         </p>
         <h1 className="font-sans text-3xl font-light tracking-tight">Mon profil</h1>
       </div>
 
       <Card>
-        <CardContent className="p-6 flex items-center gap-4">
+        <CardContent className="flex items-center gap-4 p-6">
           <Avatar className="h-14 w-14">
             <AvatarFallback className="text-lg">{initials}</AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-lg font-medium">
               {profile.first_name} {profile.last_name}
             </p>
-            <p className="font-mono text-[11px] text-muted-foreground truncate">{profile.email}</p>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <p className="truncate font-mono text-[11px] text-muted-foreground">{profile.email}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
               <Badge variant="default">{profile.role}</Badge>
               <span className="font-mono text-[10px] text-muted-foreground">
                 {profile.organization?.name}
@@ -55,14 +56,12 @@ export default async function ProfilePage() {
         <CardHeader>
           <CardTitle>Modifier mes informations</CardTitle>
           <CardDescription>
-            Ces informations apparaîtront dans l&apos;application (sidebar, signatures, traces audit).
+            Ces informations apparaîtront dans l&apos;application (sidebar, signatures, traces
+            audit).
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProfileForm
-            initialFirstName={profile.first_name}
-            initialLastName={profile.last_name}
-          />
+          <ProfileForm initialFirstName={profile.first_name} initialLastName={profile.last_name} />
         </CardContent>
       </Card>
 
@@ -70,8 +69,8 @@ export default async function ProfilePage() {
         <CardHeader>
           <CardTitle>Mot de passe</CardTitle>
           <CardDescription>
-            Pour des raisons de sécurité, la modification du mot de passe se fait via le lien
-            « Mot de passe oublié » de la page de connexion.
+            Pour des raisons de sécurité, la modification du mot de passe se fait via le lien « Mot
+            de passe oublié » de la page de connexion.
           </CardDescription>
         </CardHeader>
       </Card>

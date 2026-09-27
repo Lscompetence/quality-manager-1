@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
 import { getMiniAppSchema, listMiniAppKeys } from "@/lib/miniapps/registry";
 import { Card, CardContent } from "@/components/ui/card";
 import { MiniApp } from "@/components/miniapps/engine/miniapp";
@@ -25,6 +28,8 @@ export default async function MiniAppPage({ params }: { params: Promise<Params> 
   const schema = getMiniAppSchema(key);
   if (!schema) notFound();
 
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
   const { data: audit } = await supabase
@@ -64,9 +69,13 @@ export default async function MiniAppPage({ params }: { params: Promise<Params> 
     .eq("audit_id", id)
     .eq("miniapp_key", key);
 
-
   return (
     <div className="mx-auto max-w-7xl">
+      {readOnly && (
+        <div className="mb-6">
+          <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />
+        </div>
+      )}
 
       <MiniAppHeader
         critere={schema.critere}
@@ -78,18 +87,22 @@ export default async function MiniAppPage({ params }: { params: Promise<Params> 
 
       {/* Routing entre moteur générique et composants custom */}
       {schema.kind === "custom" ? (
-        <CustomMiniAppRouter
-          schemaKey={schema.key}
-          auditId={id}
-          initialData={initialData}
-          attachments={attachments ?? []}
-        />
+        // Consultation : toute saisie des composants sur mesure désactivée d'un coup
+        <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
+          <CustomMiniAppRouter
+            schemaKey={schema.key}
+            auditId={id}
+            initialData={initialData}
+            attachments={attachments ?? []}
+          />
+        </fieldset>
       ) : (
         <MiniApp
           schemaKey={schema.key}
           auditId={id}
           initialData={initialData}
           attachments={attachments ?? []}
+          readOnly={readOnly}
         />
       )}
     </div>
@@ -129,31 +142,17 @@ function CustomMiniAppRouter({
       );
     case "matrice-competences":
       return (
-        <MatriceCompetences
-          auditId={auditId}
-          miniappKey={schemaKey}
-          initialData={initialData}
-        />
+        <MatriceCompetences auditId={auditId} miniappKey={schemaKey} initialData={initialData} />
       );
     case "grille-evaluation":
       return (
-        <GrilleEvaluation
-          auditId={auditId}
-          miniappKey={schemaKey}
-          initialData={initialData}
-        />
+        <GrilleEvaluation auditId={auditId} miniappKey={schemaKey} initialData={initialData} />
       );
     case "suivi-assiduite":
-      return (
-        <SuiviAssiduite
-          auditId={auditId}
-          miniappKey={schemaKey}
-          initialData={initialData}
-        />
-      );
+      return <SuiviAssiduite auditId={auditId} miniappKey={schemaKey} initialData={initialData} />;
     default:
       return (
-        <p className="text-center text-muted-foreground py-8">
+        <p className="py-8 text-center text-muted-foreground">
           Composant custom non implémenté : {schemaKey}
         </p>
       );
@@ -173,7 +172,7 @@ function EssentialGate({
     <div className="mx-auto max-w-2xl py-10">
       <Link
         href={`/audits/${auditId}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Retour au dossier
@@ -181,23 +180,23 @@ function EssentialGate({
 
       <Card>
         <CardContent className="p-10 text-center">
-          <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-amethyst to-amethyst-bright text-white text-xl font-medium shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)]">
+          <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-amethyst to-amethyst-bright text-xl font-medium text-white shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)]">
             ★
           </div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright mb-3">
+          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
             Mini-app réservée au plan Pro
           </p>
-          <h2 className="font-sans text-2xl font-light tracking-tight mb-3">{miniappName}</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+          <h2 className="mb-3 font-sans text-2xl font-light tracking-tight">{miniappName}</h2>
+          <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
             Cette mini-app industrialise la saisie pour les indicateurs{" "}
             <b className="text-foreground">{indicators.join(", ")}</b>. Avec le plan Pro, vous
             accédez aux{" "}
-            <b className="text-foreground">{listMiniAppKeys().length} mini-apps métier</b>, aux calculs
-            automatisés et aux exports d&apos;audit.
+            <b className="text-foreground">{listMiniAppKeys().length} mini-apps métier</b>, aux
+            calculs automatisés et aux exports d&apos;audit.
           </p>
           <Link
             href="/settings"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-amethyst to-amethyst-bright px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)] hover:-translate-y-0.5 transition-all"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-amethyst to-amethyst-bright px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)] transition-all hover:-translate-y-0.5"
           >
             Voir le plan Pro
           </Link>

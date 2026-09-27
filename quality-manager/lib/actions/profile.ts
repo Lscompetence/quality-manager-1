@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { updateProfileSchema, updateNotifPrefsSchema, type UpdateProfileInput, type UpdateNotifPrefsInput } from "@/lib/schemas/profile";
+import {
+  updateProfileSchema,
+  updateNotifPrefsSchema,
+  type UpdateProfileInput,
+  type UpdateNotifPrefsInput,
+} from "@/lib/schemas/profile";
 import type { ActionResult } from "./types";
 
 export async function updateProfile(input: UpdateProfileInput): Promise<ActionResult> {

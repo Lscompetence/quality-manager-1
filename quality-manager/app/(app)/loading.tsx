@@ -13,7 +13,7 @@ export default function AppLoading() {
         className="flex flex-col items-center gap-4"
       >
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">Chargement en cours...</p>
+        <p className="animate-pulse text-sm text-muted-foreground">Chargement en cours...</p>
       </motion.div>
     </div>
   );

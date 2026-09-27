@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
   const isClientAuthPage = pathname === "/client/login" || pathname === "/client/forgot-password";
   const isAuthOnly =
     pathname.startsWith("/login") ||
-    pathname.startsWith("/signup") ||
+    pathname.startsWith("/demande-acces") ||
     pathname.startsWith("/forgot-password") ||
     isClientAuthPage;
   // /reset-password a besoin d'une session (même temporaire, posée par un lien

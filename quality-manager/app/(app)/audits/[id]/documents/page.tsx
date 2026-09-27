@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
 import { getIndicator, MINIAPPS, type CritereNum } from "@/lib/constants/rnq";
 import { DocumentsView } from "@/components/documents/documents-view";
 import { indicatorCodeOf } from "@/lib/utils/context-path";
@@ -10,13 +13,11 @@ export const metadata = { title: "Documents" };
 
 export default async function DocumentsPage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
-  const { data: audit } = await supabase
-    .from("audits")
-    .select("id, name")
-    .eq("id", id)
-    .single();
+  const { data: audit } = await supabase.from("audits").select("id, name").eq("id", id).single();
 
   if (!audit) notFound();
 
@@ -65,9 +66,14 @@ export default async function DocumentsPage({ params }: { params: Promise<Params
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
+      {readOnly && (
+        <div className="mb-6">
+          <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />
+        </div>
+      )}
 
       <div>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright mb-2">
+        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Vue Documents · {enriched.length} preuves
         </p>
         <h1 className="font-sans text-3xl font-light tracking-tight">Documents du dossier</h1>

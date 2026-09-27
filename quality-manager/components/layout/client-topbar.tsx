@@ -22,9 +22,7 @@ export function ClientTopbar({ name }: { name: string }) {
         <Avatar className="h-7 w-7">
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
-        <span className="hidden text-[12px] font-medium md:block">
-          {name}
-        </span>
+        <span className="hidden text-[12px] font-medium md:block">{name}</span>
         <form action={logoutClient}>
           <button
             type="submit"

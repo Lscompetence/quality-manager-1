@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, AlertTriangle, FileText, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
 import {
   CRITERES,
   getIndicator,
@@ -29,6 +32,8 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
   const critere = CRITERES[critereNum];
   if (!critere) notFound();
 
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
   // Requêtes indépendantes lancées ensemble : une seule attente au lieu de trois.
@@ -69,6 +74,7 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
 
   return (
     <div className="space-y-8" style={{ ["--crit" as string]: accent }}>
+      {readOnly && <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />}
 
       {/* En-tête de l'indicateur */}
       <div className="flex flex-wrap items-start justify-between gap-6 border-b border-[var(--border-soft)] pb-7">
@@ -101,13 +107,15 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
 
         <div className="flex items-center gap-3.5">
           <StatusPill status={status} />
-          <Link
-            href={`/audits/${id}/documents`}
-            prefetch={true}
-            className="qm-btn-3d inline-flex h-[42px] items-center gap-2 rounded-xl px-[18px] text-[13.5px] font-semibold"
-          >
-            Ajouter un document
-          </Link>
+          {!readOnly && (
+            <Link
+              href={`/audits/${id}/documents`}
+              prefetch={true}
+              className="qm-btn-3d inline-flex h-[42px] items-center gap-2 rounded-xl px-[18px] text-[13.5px] font-semibold"
+            >
+              Ajouter un document
+            </Link>
+          )}
         </div>
       </div>
 
@@ -122,6 +130,7 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
             indicatorCode={code}
             initialStatus={indicatorRow?.status ?? "a_traiter"}
             initialNotes={indicatorRow?.notes ?? ""}
+            readOnly={readOnly}
           />
         </CardContent>
       </Card>
@@ -142,14 +151,14 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
                   <Link
                     key={mini.key}
                     href={`/audits/${id}/miniapps/${mini.key}`}
-                    className="group flex items-center gap-3 p-3.5 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/60 hover:border-amethyst-bright/40 transition-colors"
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-secondary/30 p-3.5 transition-colors hover:border-amethyst-bright/40 hover:bg-secondary/60"
                   >
-                    <div className="grid h-9 w-9 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright shrink-0">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright">
                       <Sparkles className="h-4 w-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{mini.shortName}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground truncate">
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{mini.shortName}</div>
+                      <div className="truncate font-mono text-[10px] text-muted-foreground">
                         {mini.description}
                       </div>
                     </div>
@@ -160,7 +169,7 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
             ) : (
               // Teaser pour plan Essentiel
               <div className="rounded-xl border border-amethyst-bright/30 bg-gradient-to-br from-amethyst-bright/[0.05] to-c2/[0.05] p-5">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-amethyst-bright mb-2">
+                <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-amethyst-bright">
                   Avec le plan Pro
                 </p>
                 <p className="text-sm leading-relaxed">
@@ -199,6 +208,8 @@ export default async function IndicatorPage({ params }: { params: Promise<Params
             contextPath={indicatorContextPath(code)}
             contextLabel={`Indicateur ${code}`}
             attachments={attachments ?? []}
+            canAdd={!readOnly}
+            canDelete={!readOnly}
           />
         </CardContent>
       </Card>

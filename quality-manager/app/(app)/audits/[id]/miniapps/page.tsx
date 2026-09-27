@@ -2,7 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { CRITERES, type CritereNum, type Category, getApplicableIndicators } from "@/lib/constants/rnq";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
+import {
+  CRITERES,
+  type CritereNum,
+  type Category,
+  getApplicableIndicators,
+} from "@/lib/constants/rnq";
 import { listMiniAppSchemas } from "@/lib/miniapps/registry";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +21,8 @@ export const metadata = { title: "Mini-apps" };
 
 export default async function MiniAppsListPage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
   const { data: audit } = await supabase
@@ -41,7 +51,13 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
 
   // Grouper par critère
   const byCritere: Record<CritereNum, typeof applicableMiniapps> = {
-    1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [],
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: [],
+    6: [],
+    7: [],
   };
   for (const m of applicableMiniapps) {
     byCritere[m.critere as CritereNum].push(m);
@@ -49,26 +65,31 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {readOnly && (
+        <div className="mb-6">
+          <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />
+        </div>
+      )}
 
       <div>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright mb-2">
+        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Mini-apps métier · {applicableMiniapps.length} disponibles
         </p>
         <h1 className="font-sans text-3xl font-light tracking-tight">Mini-apps du dossier</h1>
         <p className="mt-2 text-muted-foreground">
-          Mini-apps adaptées aux catégories de votre dossier ({categories.join(" · ")}). Industrialisent
-          la saisie pour les indicateurs RNQ V9.
+          Mini-apps adaptées aux catégories de votre dossier ({categories.join(" · ")}).
+          Industrialisent la saisie pour les indicateurs RNQ V9.
         </p>
       </div>
 
       {plan === "essentiel" && (
         <Card className="border-amethyst-bright/30">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright shrink-0">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright">
               <Sparkles className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-amethyst-bright mb-1">
+              <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-amethyst-bright">
                 Plan Essentiel
               </p>
               <p className="text-sm">
@@ -87,7 +108,7 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
         const critere = CRITERES[Number(num) as CritereNum];
         return (
           <div key={num}>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="mb-3 flex items-center gap-3">
               <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 C{num} · {critere?.title}
               </div>
@@ -95,16 +116,16 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {miniapps.map((m) => (
                 <Link key={m.key} href={`/audits/${id}/miniapps/${m.key}`} className="group">
-                  <Card className="hover:border-amethyst-bright/40 hover:-translate-y-0.5 transition-all h-full">
+                  <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-amethyst-bright/40">
                     <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright shrink-0">
+                      <div className="mb-3 flex items-start justify-between gap-2">
+                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright">
                           <Sparkles className="h-4 w-4" />
                         </div>
                         <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amethyst-bright" />
                       </div>
-                      <h3 className="text-sm font-medium leading-tight mb-1.5">{m.shortName}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                      <h3 className="mb-1.5 text-sm font-medium leading-tight">{m.shortName}</h3>
+                      <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
                         {m.description}
                       </p>
                       <div className="flex flex-wrap gap-1">

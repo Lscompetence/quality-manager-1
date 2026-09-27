@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { Home, LayoutDashboard } from "lucide-react";
+import { Building2, FileText, Home, LayoutDashboard, LifeBuoy, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { QmBrandMark } from "@/components/brand/logo";
 import type { AuditRef } from "@/components/layout/auto-breadcrumb";
 import { cn } from "@/lib/utils/cn";
+import type { MemberRole } from "@/lib/auth/permissions";
 
 export type OrganizationSummary = {
   name: string;
@@ -26,10 +27,12 @@ const CATEGORY_TONE: Record<string, string> = {
 export function Sidebar({
   organizationName,
   organization,
+  role,
   audits = [],
 }: {
   organizationName: string;
   organization?: OrganizationSummary;
+  role: MemberRole;
   audits?: AuditRef[];
 }) {
   const pathname = usePathname();
@@ -66,7 +69,7 @@ export function Sidebar({
         {/* Contexte du dossier ouvert dans l'URL */}
         {auditId && <DossierContext audit={audit} name={audit?.name ?? "Dossier"} />}
 
-        {/* Navigation : les quatre entrées du menu */}
+        {/* Navigation — sprint 8 : établissements (admin), contact LS, puis le dossier */}
         <nav className="relative flex shrink-0 flex-col gap-px">
           <NavLink
             href="/dashboard"
@@ -74,6 +77,24 @@ export function Sidebar({
             active={pathname === "/dashboard"}
           >
             Vue d&apos;ensemble
+          </NavLink>
+
+          {role === "admin" && (
+            <NavLink
+              href="/etablissements"
+              icon={<Building2 className="h-4 w-4" />}
+              active={pathname.startsWith("/etablissements")}
+            >
+              Établissements
+            </NavLink>
+          )}
+
+          <NavLink
+            href="/demandes"
+            icon={<LifeBuoy className="h-4 w-4" />}
+            active={pathname.startsWith("/demandes")}
+          >
+            Contacter LS
           </NavLink>
 
           {dashboardAuditId && (
@@ -84,6 +105,26 @@ export function Sidebar({
             >
               Tableau de bord
             </NavLink>
+          )}
+
+          {/* Pièces et mini-apps du dossier ouvert (en consultation pour l'admin) */}
+          {auditId && (
+            <>
+              <NavLink
+                href={`/audits/${auditId}/documents`}
+                icon={<FileText className="h-4 w-4" />}
+                active={pathname.startsWith(`/audits/${auditId}/documents`)}
+              >
+                Documents
+              </NavLink>
+              <NavLink
+                href={`/audits/${auditId}/miniapps`}
+                icon={<Zap className="h-4 w-4" />}
+                active={pathname.startsWith(`/audits/${auditId}/miniapps`)}
+              >
+                Mini-apps
+              </NavLink>
+            </>
           )}
         </nav>
       </div>

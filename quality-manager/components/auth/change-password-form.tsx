@@ -40,17 +40,31 @@ export function ChangePasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <div>
         <Label htmlFor="new-password">Nouveau mot de passe</Label>
-        <Input id="new-password" type="password" autoComplete="new-password" {...register("password")} />
-        {errors.password && <p className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>}
+        <Input
+          id="new-password"
+          type="password"
+          autoComplete="new-password"
+          {...register("password")}
+        />
+        {errors.password && (
+          <p className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>
+        )}
       </div>
       <div>
         <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
-        <Input id="confirm-password" type="password" autoComplete="new-password" {...register("confirmPassword")} />
+        <Input
+          id="confirm-password"
+          type="password"
+          autoComplete="new-password"
+          {...register("confirmPassword")}
+        />
         {errors.confirmPassword && (
           <p className="mt-1.5 text-xs text-destructive">{errors.confirmPassword.message}</p>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">8 caractères minimum, dont 1 majuscule et 1 chiffre.</p>
+      <p className="text-xs text-muted-foreground">
+        8 caractères minimum, dont 1 majuscule et 1 chiffre.
+      </p>
       <div className="flex justify-end">
         <Button type="submit" disabled={pending}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Changer le mot de passe"}

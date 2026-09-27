@@ -1,107 +1,50 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireMember } from "@/lib/auth/session";
 import { NotificationListener } from "@/components/notifications/notification-listener";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { AutoBreadcrumb, type AuditRef } from "@/components/layout/auto-breadcrumb";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Client → /client ; sans rattachement → /acces/en-attente ; compte gelé → /acces/suspendu
+  const session = await requireMember();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Profil + org
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("first_name, last_name, role, organization:organizations(id, name, siret)")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError) {
-    console.error("Profile fetch error:", profileError);
-  }
-
-  if (!profile) {
-    console.error("Profile not found for user:", user.id);
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background p-4 text-center">
-        <div className="max-w-md space-y-4 rounded-xl border border-border bg-card p-6 shadow-xl">
-          <h1 className="text-xl font-bold text-destructive">Erreur d&apos;accès (RLS)</h1>
-          <p className="text-sm text-muted-foreground">
-            Votre profil utilisateur n&apos;a pas pu être chargé (accès refusé par la base de
-            données). Vérifiez que les politiques RLS ont bien été appliquées et que la fonction
-            get_current_org_id() n&apos;est pas bloquée.
-          </p>
-          <div className="overflow-auto rounded bg-black/10 p-2 pt-4 text-left text-xs text-red-500">
-            {profileError?.message || "Aucune ligne retournée (0 rows)"}
-          </div>
-          <form
-            action={async () => {
-              "use server";
-              const s = await createClient();
-              await s.auth.signOut();
-              redirect("/login");
-            }}
-          >
-            <button
-              type="submit"
-              className="mt-4 w-full rounded-md bg-primary px-4 py-2 text-primary-foreground"
-            >
-              Se déconnecter
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // Un compte client n'a rien à faire dans l'espace staff : son propre espace
-  // ne montre que les dossiers qui lui ont été confiés (voir (client)/layout.tsx).
-  if (profile.role === "client") {
-    redirect("/client");
-  }
-
-  // Les requêtes suivantes sont indépendantes : elles partent ensemble
-  // plutôt qu'à la queue leu leu, ce qui économise un aller-retour à chaque navigation.
+  // Requêtes indépendantes, lancées ensemble
   const [{ data: allAudits }, { count: unreadCount }] = await Promise.all([
-    // Tous les dossiers — sert au fil d'Ariane de la barre du haut
+    // Dossiers visibles (la RLS filtre par établissement) — fil d'Ariane et menu
     supabase.from("audits").select("id, name, audit_type, categories").order("updated_at", {
       ascending: false,
     }),
-    // Connexions clients non lues (seule notification admin) — le compteur seul
+    // Notifications non lues — seul le compteur est affiché
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("kind", "client_login")
+      .eq("user_id", session.userId)
       .is("read_at", null),
   ]);
 
+  const audits = (allAudits ?? []) as AuditRef[];
+
   return (
     <div className="relative z-10 flex min-h-screen">
-      <NotificationListener userId={user.id} />
+      <NotificationListener userId={session.userId} />
       <Sidebar
-        organizationName={profile.organization?.name ?? "Organisation"}
-        organization={{
-          name: profile.organization?.name ?? "Organisation",
-          siret: profile.organization?.siret ?? null,
-        }}
-        audits={(allAudits ?? []) as AuditRef[]}
+        organizationName={session.organization.name}
+        organization={{ name: session.organization.name, siret: session.organization.siret }}
+        role={session.profile.role}
+        audits={audits}
       />
       <div className="flex min-w-0 flex-1 flex-col px-6 pt-7">
         <Topbar
           user={{
-            firstName: profile.first_name,
-            lastName: profile.last_name,
-            organizationName: profile.organization?.name ?? "",
+            firstName: session.profile.firstName,
+            lastName: session.profile.lastName,
+            organizationName: session.organization.name,
+            role: session.profile.role,
           }}
           unreadCount={unreadCount ?? 0}
-          breadcrumb={<AutoBreadcrumb audits={(allAudits ?? []) as AuditRef[]} />}
+          breadcrumb={<AutoBreadcrumb audits={audits} establishments={session.establishments} />}
         />
         <main className="flex flex-1 flex-col pb-20">{children}</main>
       </div>

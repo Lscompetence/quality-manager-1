@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { updateOrgSchema, updatePlanSchema, type UpdateOrgInput, type UpdatePlanInput } from "@/lib/schemas/organization";
+import {
+  updateOrgSchema,
+  updatePlanSchema,
+  type UpdateOrgInput,
+  type UpdatePlanInput,
+} from "@/lib/schemas/organization";
 import type { ActionResult } from "./types";
 import type { Database } from "@/types/database";
 
@@ -58,14 +63,22 @@ export async function updatePlan(input: UpdatePlanInput): Promise<ActionResult> 
   const auth = await getOrgIdForCurrentAdmin();
   if ("error" in auth) return { ok: false, error: auth.error };
 
+  // Sprint 8 : l'abonnement est piloté par LS Compétences (la base refuse
+  // qu'un client modifie son plan). L'admin en demande le changement.
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("organizations")
-    .update({ plan: parsed.data.plan, billing_cycle: parsed.data.billing_cycle })
-    .eq("id", auth.orgId);
+  const { data: userData } = await supabase.auth.getUser();
+  const labels = { essentiel: "Essentiel", pro: "Pro", reseau: "Réseau" } as const;
+  const cycle = parsed.data.billing_cycle === "annual" ? "annuel" : "mensuel";
+  const { error } = await supabase.from("client_requests").insert({
+    organization_id: auth.orgId,
+    kind: "support",
+    subject: `Changement d’abonnement : ${labels[parsed.data.plan]} (${cycle})`,
+    message: `L’admin demande le passage au plan ${labels[parsed.data.plan]}, facturation ${cycle}.`,
+    contact_email: userData.user?.email ?? null,
+    created_by: userData.user?.id ?? null,
+  });
 
   if (error) return { ok: false, error: error.message };
-  revalidatePath("/settings");
-  revalidatePath("/", "layout"); // pour rafraichir partout (sidebar, etc.)
+  revalidatePath("/demandes");
   return { ok: true };
 }

@@ -69,7 +69,10 @@ export function ClientSidebar({
   const routeAuditId = pathname.match(/^\/client\/dossiers\/([^/]+)/)?.[1];
   const critereAuditId = routeAuditId ?? dossiers[0]?.auditId;
   const scores = critereAuditId ? critereScoresByAudit[critereAuditId] : undefined;
-  const activeCritere = routeAuditId && pathname === `/client/dossiers/${routeAuditId}` ? searchParams.get("critere") : null;
+  const activeCritere =
+    routeAuditId && pathname === `/client/dossiers/${routeAuditId}`
+      ? searchParams.get("critere")
+      : null;
 
   return (
     <aside className="qm-glass sticky top-0 hidden h-screen w-[230px] shrink-0 flex-col border-y-0 border-l-0 border-r lg:flex">
@@ -80,7 +83,9 @@ export function ClientSidebar({
       >
         <QmBrandMark size={38} priority />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-[14.5px] font-semibold tracking-tight">Quality Manager</span>
+          <span className="truncate text-[14.5px] font-semibold tracking-tight">
+            Quality Manager
+          </span>
           <span className="mt-0.5 truncate font-mono text-[9.5px] uppercase tracking-[0.16em] text-[var(--text-mute)]">
             Espace client
           </span>
@@ -156,14 +161,18 @@ export function ClientSidebar({
                       />
                     )}
                     <span className="relative z-10 flex w-full items-start gap-2.5">
-                      <span className="mt-0.5 w-4 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">{numStr}</span>
+                      <span className="mt-0.5 w-4 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">
+                        {numStr}
+                      </span>
                       <span
                         className="mt-[5px] h-2 w-2 shrink-0 rounded-full"
                         style={{ background: `var(--${critere.colorVar})` }}
                       />
                       <span className="flex-1 leading-[1.25]">{critere.title}</span>
                       {typeof score === "number" && (
-                        <span className="mt-0.5 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">{score}</span>
+                        <span className="mt-0.5 shrink-0 font-mono text-[10px] text-[var(--text-faint)]">
+                          {score}
+                        </span>
                       )}
                     </span>
                   </Link>
@@ -186,7 +195,9 @@ export function ClientSidebar({
             dossiers.map((d) => {
               const href = `/client/dossiers/${d.auditId}`;
               const active = pathname === href;
-              const tone = d.category ? (CATEGORY_TONE[d.category] ?? "var(--amethyst-br)") : "var(--amethyst-br)";
+              const tone = d.category
+                ? (CATEGORY_TONE[d.category] ?? "var(--amethyst-br)")
+                : "var(--amethyst-br)";
               return (
                 <Link
                   key={d.accessId}
@@ -207,7 +218,10 @@ export function ClientSidebar({
                   )}
                   <span
                     className="relative z-10 mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md"
-                    style={{ background: `color-mix(in srgb, ${tone} 16%, transparent)`, color: tone }}
+                    style={{
+                      background: `color-mix(in srgb, ${tone} 16%, transparent)`,
+                      color: tone,
+                    }}
                   >
                     <Folder className="h-3.5 w-3.5" />
                   </span>
@@ -233,7 +247,9 @@ export function ClientSidebar({
           <span className="flex min-w-0 flex-col">
             <span className="truncate text-[13px] font-medium">{clientName}</span>
             {clientName !== email && (
-              <span className="truncate font-mono text-[9.5px] text-[var(--text-faint)]">{email}</span>
+              <span className="truncate font-mono text-[9.5px] text-[var(--text-faint)]">
+                {email}
+              </span>
             )}
           </span>
         </div>
@@ -241,4 +257,3 @@ export function ClientSidebar({
     </aside>
   );
 }
-

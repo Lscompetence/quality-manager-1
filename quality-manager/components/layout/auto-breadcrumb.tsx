@@ -29,14 +29,24 @@ const CATEGORY_LABEL: Record<string, string> = {
  * « accueil / surveillance · actions de formation / critère 03 · mise en œuvre ».
  * Il est déduit de l'URL, les pages n'ont donc rien à déclarer.
  */
-export function AutoBreadcrumb({ audits }: { audits: AuditRef[] }) {
+export function AutoBreadcrumb({
+  audits,
+  establishments = [],
+}: {
+  audits: AuditRef[];
+  establishments?: { id: string; name: string }[];
+}) {
   const pathname = usePathname();
-  const items = buildCrumbs(pathname, audits);
+  const items = buildCrumbs(pathname, audits, establishments);
   if (items.length === 0) return null;
   return <Breadcrumb items={items} />;
 }
 
-function buildCrumbs(pathname: string, audits: AuditRef[]): Crumb[] {
+function buildCrumbs(
+  pathname: string,
+  audits: AuditRef[],
+  establishments: { id: string; name: string }[],
+): Crumb[] {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return [];
 
@@ -49,6 +59,17 @@ function buildCrumbs(pathname: string, audits: AuditRef[]): Crumb[] {
   if (segments[0] === "notifications") return [...crumbs, { label: "notifications" }];
   if (segments[0] === "settings") return [...crumbs, { label: "paramètres organisme" }];
   if (segments[0] === "profile") return [...crumbs, { label: "mon profil" }];
+  if (segments[0] === "demandes") return [...crumbs, { label: "contacter ls compétences" }];
+
+  if (segments[0] === "etablissements") {
+    if (!segments[1]) return [...crumbs, { label: "établissements" }];
+    const est = establishments.find((e) => e.id === segments[1]);
+    return [
+      ...crumbs,
+      { label: "établissements", href: "/etablissements" },
+      { label: est?.name ?? "établissement" },
+    ];
+  }
 
   if (segments[0] !== "audits" || !segments[1]) return [...crumbs, { label: segments[0] ?? "" }];
 

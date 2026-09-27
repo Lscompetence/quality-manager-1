@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loginSchema, signupSchema, forgotPasswordSchema } from "./auth";
+import { loginSchema, resetPasswordSchema, forgotPasswordSchema } from "./auth";
 
 describe("loginSchema", () => {
   it("rejects invalid email", () => {
@@ -13,34 +13,29 @@ describe("loginSchema", () => {
   });
 });
 
-describe("signupSchema", () => {
-  const base = {
-    firstName: "Sofiane",
-    lastName: "Saidi",
-    organizationName: "LS Compétences",
-    email: "sofiane@ls.fr",
-    password: "Abcdef12",
-    acceptTerms: true as const,
-  };
+describe("resetPasswordSchema (activation d'un compte invité, mot de passe oublié)", () => {
+  const ok = { password: "Abcdef12", confirmPassword: "Abcdef12" };
 
   it("rejects short password", () => {
-    const result = signupSchema.safeParse({ ...base, password: "Abc1" });
-    expect(result.success).toBe(false);
+    expect(
+      resetPasswordSchema.safeParse({ password: "Abc1", confirmPassword: "Abc1" }).success,
+    ).toBe(false);
   });
 
   it("rejects password without uppercase", () => {
-    const result = signupSchema.safeParse({ ...base, password: "abcdef12" });
-    expect(result.success).toBe(false);
+    expect(
+      resetPasswordSchema.safeParse({ password: "abcdef12", confirmPassword: "abcdef12" }).success,
+    ).toBe(false);
   });
 
-  it("rejects unaccepted terms", () => {
-    const result = signupSchema.safeParse({ ...base, acceptTerms: false as unknown as true });
-    expect(result.success).toBe(false);
+  it("rejects mismatched confirmation", () => {
+    expect(resetPasswordSchema.safeParse({ ...ok, confirmPassword: "Abcdef13" }).success).toBe(
+      false,
+    );
   });
 
   it("accepts valid input", () => {
-    const result = signupSchema.safeParse(base);
-    expect(result.success).toBe(true);
+    expect(resetPasswordSchema.safeParse(ok).success).toBe(true);
   });
 });
 

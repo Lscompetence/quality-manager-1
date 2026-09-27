@@ -46,6 +46,7 @@ export async function createAudit(input: CreateAuditInput): Promise<ActionResult
     .from("audits")
     .insert({
       organization_id: profile.organization_id,
+      establishment_id: parsed.data.establishment_id,
       name: parsed.data.name,
       audit_type: parsed.data.audit_type,
       categories: parsed.data.categories,

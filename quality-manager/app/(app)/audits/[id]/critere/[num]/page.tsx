@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowRight, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireMember } from "@/lib/auth/session";
+import { isDossierReadOnly, readOnlyReason } from "@/lib/auth/permissions";
+import { ReadOnlyBanner } from "@/components/miniapps/read-only";
 import { indicatorCodeOf } from "@/lib/utils/context-path";
 import {
   CRITERES,
@@ -23,6 +26,8 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
   const critere = CRITERES[critereNum];
   if (!critere) notFound();
 
+  const session = await requireMember();
+  const readOnly = isDossierReadOnly(session.profile.role);
   const supabase = await createClient();
 
   // Requêtes indépendantes lancées ensemble : une seule attente au lieu de trois.
@@ -58,14 +63,18 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
     const status = stateByCode.get(ind.code)?.status ?? "a_traiter";
     if (status in counts) counts[status as keyof typeof counts]++;
   }
-  const pct =
-    indicators.length > 0 ? Math.round((counts.complet / indicators.length) * 100) : 0;
+  const pct = indicators.length > 0 ? Math.round((counts.complet / indicators.length) * 100) : 0;
 
   const accent = `var(--${critere.colorVar})`;
   const numStr = String(critereNum).padStart(2, "0");
 
   return (
     <div style={{ ["--crit" as string]: accent }}>
+      {readOnly && (
+        <div className="mb-6">
+          <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />
+        </div>
+      )}
 
       {/* En-tête du critère */}
       <div className="mb-3.5 flex flex-wrap items-end justify-between gap-8 border-b border-[var(--border-soft)] pb-[26px]">
@@ -95,8 +104,8 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
           </div>
 
           <p className="mt-3 max-w-[620px] text-[14.5px] leading-[1.55] text-[var(--text-mute)]">
-            {critere.subtitle} Vous déclarez le statut de chaque indicateur — c&apos;est vous qui jugez si
-            vos preuves sont suffisantes pour l&apos;audit.
+            {critere.subtitle} Vous déclarez le statut de chaque indicateur — c&apos;est vous qui
+            jugez si vos preuves sont suffisantes pour l&apos;audit.
           </p>
         </div>
 
@@ -112,14 +121,16 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
               <b className="font-semibold text-foreground">{counts.a_traiter}</b> à traiter
             </div>
           </div>
-          <Link
-            href={`/audits/${id}/documents`}
-            prefetch={true}
-            className="qm-btn-3d inline-flex h-[42px] items-center gap-2 rounded-xl px-[18px] text-[13.5px] font-semibold"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Ajouter un document
-          </Link>
+          {!readOnly && (
+            <Link
+              href={`/audits/${id}/documents`}
+              prefetch={true}
+              className="qm-btn-3d inline-flex h-[42px] items-center gap-2 rounded-xl px-[18px] text-[13.5px] font-semibold"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Ajouter un document
+            </Link>
+          )}
         </div>
       </div>
 
@@ -161,7 +172,9 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
                 <StatusPill status={status} />
               </div>
 
-              <h3 className="mb-3.5 font-sans text-[17px] font-medium leading-[1.2]">{ind.title}</h3>
+              <h3 className="mb-3.5 font-sans text-[17px] font-medium leading-[1.2]">
+                {ind.title}
+              </h3>
 
               <div className="mb-3.5 flex flex-wrap gap-2">
                 {ind.v9Update && (
@@ -186,7 +199,8 @@ export default async function CriterePage({ params }: { params: Promise<Params> 
 
               <div className="flex items-center justify-between gap-3 border-t border-[var(--border-soft)] pt-3.5 font-mono text-[10.5px] text-[var(--text-mute)]">
                 <span>
-                  <b className="font-semibold text-foreground">{docs}</b> document{docs > 1 ? "s" : ""}
+                  <b className="font-semibold text-foreground">{docs}</b> document
+                  {docs > 1 ? "s" : ""}
                 </span>
                 <span className="text-[var(--text-faint)]">
                   {state?.updatedAt ? `mis à jour ${timeAgo(state.updatedAt)}` : "jamais modifié"}

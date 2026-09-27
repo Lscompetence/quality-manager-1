@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Bell, LogOut, Settings, User, Users } from "lucide-react";
+import { Search, Bell, LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,14 +15,24 @@ import { ThemeToggle } from "./theme-toggle";
 import { logout } from "@/app/(auth)/actions";
 import Link from "next/link";
 import { CommandMenu } from "./command-menu";
+import { ROLE_LABEL, type MemberRole } from "@/lib/auth/permissions";
 
 type UserInfo = {
   firstName: string;
   lastName: string;
   organizationName: string;
+  role: MemberRole;
 };
 
-export function Topbar({ user, breadcrumb, unreadCount = 0 }: { user: UserInfo; breadcrumb?: React.ReactNode; unreadCount?: number }) {
+export function Topbar({
+  user,
+  breadcrumb,
+  unreadCount = 0,
+}: {
+  user: UserInfo;
+  breadcrumb?: React.ReactNode;
+  unreadCount?: number;
+}) {
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
   const [openCommand, setOpenCommand] = React.useState(false);
 
@@ -38,7 +48,7 @@ export function Topbar({ user, breadcrumb, unreadCount = 0 }: { user: UserInfo; 
       >
         <Search className="h-4 w-4" />
       </button>
-      
+
       <CommandMenu open={openCommand} setOpen={setOpenCommand} />
 
       <ThemeToggle />
@@ -49,12 +59,15 @@ export function Topbar({ user, breadcrumb, unreadCount = 0 }: { user: UserInfo; 
             <Avatar className="h-7 w-7">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-            <span className="hidden md:block text-[12px] font-medium">{user.organizationName}</span>
+            <span className="hidden text-[12px] font-medium md:block">{user.organizationName}</span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             {user.firstName} {user.lastName}
+            <span className="mt-0.5 block font-mono text-[10px] font-normal text-[var(--text-mute)]">
+              {ROLE_LABEL[user.role]}
+            </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
@@ -72,18 +85,14 @@ export function Topbar({ user, breadcrumb, unreadCount = 0 }: { user: UserInfo; 
               )}
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/clients" className="cursor-pointer">
-              <Users className="mr-2 h-4 w-4" />
-              <span>Clients</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/settings" className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Paramètres organisme</span>
-            </Link>
-          </DropdownMenuItem>
+          {user.role === "admin" && (
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres organisme</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <form action={logout} className="w-full cursor-pointer">

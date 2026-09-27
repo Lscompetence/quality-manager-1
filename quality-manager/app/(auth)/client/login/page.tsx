@@ -12,11 +12,11 @@ export const metadata = {
 export default function ClientLoginPage() {
   return (
     <>
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright mb-3">
+      <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
         Espace client
       </div>
-      <h2 className="font-sans text-3xl font-light mb-3 tracking-tight">Bienvenue</h2>
-      <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Bienvenue</h2>
+      <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
         Connectez-vous pour suivre votre dossier Qualiopi et déposer vos documents.
       </p>
 

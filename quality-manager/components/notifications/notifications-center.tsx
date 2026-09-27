@@ -4,17 +4,11 @@ import * as React from "react";
 import { useTransition } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import {
-  AlertTriangle,
-  Bell,
-  Calendar,
-  Check,
-  CheckCheck,
-  Info,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Bell, Check, AlertTriangle, Users, Sparkles, Info } from "lucide-react";
 import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
 import { markNotificationRead, markAllNotificationsRead } from "@/lib/actions/profile";
 
@@ -28,61 +22,36 @@ type Notification = {
   created_at: string;
 };
 
-/** Couleurs d'icône reprises de notifications.html (.notif-icon.*) */
 const CATEGORY_META: Record<
   Notification["category"],
-  { icon: React.ReactNode; className: string; label: string }
+  { icon: React.ReactNode; color: string; label: string }
 > = {
-  echeance: {
-    icon: <Calendar className="h-[15px] w-[15px]" />,
-    className: "bg-[rgba(239,158,40,0.15)] text-c3",
-    label: "Échéances",
-  },
+  echeance: { icon: <Bell className="h-4 w-4" />, color: "bg-c4/15 text-c4", label: "Échéance" },
   alerte: {
-    icon: <AlertTriangle className="h-[15px] w-[15px]" />,
-    className: "bg-[rgba(239,92,92,0.10)] text-destructive",
-    label: "Alertes",
+    icon: <AlertTriangle className="h-4 w-4" />,
+    color: "bg-c3/15 text-c3",
+    label: "Alerte",
   },
   equipe: {
-    icon: <Users className="h-[15px] w-[15px]" />,
-    className: "bg-[rgba(107,137,208,0.15)] text-c4",
+    icon: <Users className="h-4 w-4" />,
+    color: "bg-amethyst-bright/15 text-amethyst-bright",
     label: "Équipe",
   },
+  success: { icon: <Sparkles className="h-4 w-4" />, color: "bg-c2/15 text-c2", label: "Succès" },
   system: {
-    icon: <Info className="h-[15px] w-[15px]" />,
-    className: "bg-[var(--amethyst-soft-2)] text-[var(--amethyst-br)]",
+    icon: <Info className="h-4 w-4" />,
+    color: "bg-secondary text-muted-foreground",
     label: "Système",
-  },
-  success: {
-    icon: <Sparkles className="h-[15px] w-[15px]" />,
-    className: "bg-[rgba(93,201,165,0.15)] text-c2",
-    label: "Succès",
   },
 };
 
-/** Filtres de la maquette : toutes, non lues, puis trois catégories */
-const FILTERS = [
-  { key: "all", label: "Toutes" },
-  { key: "unread", label: "Non lues" },
-  { key: "echeance", label: "Échéances" },
-  { key: "alerte", label: "Alertes" },
-  { key: "equipe", label: "Équipe" },
-] as const;
-
-type FilterKey = (typeof FILTERS)[number]["key"];
-
-/** Centre de notifications de l'espace client. */
 export function NotificationsCenter({ notifications }: { notifications: Notification[] }) {
-  const [filter, setFilter] = React.useState<FilterKey>("all");
+  const [filter, setFilter] = React.useState<"all" | Notification["category"]>("all");
   const [pending, startTransition] = useTransition();
 
+  const filtered =
+    filter === "all" ? notifications : notifications.filter((n) => n.category === filter);
   const unreadCount = notifications.filter((n) => !n.read_at).length;
-
-  const filtered = notifications.filter((n) => {
-    if (filter === "all") return true;
-    if (filter === "unread") return !n.read_at;
-    return n.category === filter;
-  });
 
   const handleMarkRead = (id: string) => {
     startTransition(async () => {
@@ -99,117 +68,132 @@ export function NotificationsCenter({ notifications }: { notifications: Notifica
 
   return (
     <>
-      {/* Barre d'outils */}
-      <div className="mb-[18px] flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-elev)] px-[18px] py-3.5">
-        <div className="flex flex-wrap gap-1.5">
-          {FILTERS.map((f) => {
-            const active = filter === f.key;
-            const count =
-              f.key === "all" ? notifications.length : f.key === "unread" ? unreadCount : null;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                className={cn(
-                  "rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
-                  active
-                    ? "border-[var(--amethyst-soft)] bg-[var(--amethyst-soft-2)] text-[var(--amethyst-br)]"
-                    : "border-[var(--border-soft)] text-[var(--text-mute)] hover:bg-[var(--surface)] hover:text-foreground",
-                )}
-              >
-                {f.label}
-                {count !== null && <span className="opacity-60"> · {count}</span>}
-              </button>
-            );
-          })}
-        </div>
+      {/* Filtres */}
+      <Card className="mb-4">
+        <CardContent className="flex flex-wrap items-center gap-2 p-4">
+          {(["all", "echeance", "alerte", "equipe", "success", "system"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                filter === f
+                  ? "bg-foreground text-background"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/80",
+              )}
+            >
+              {f === "all" ? "Toutes" : CATEGORY_META[f as Notification["category"]].label}
+            </button>
+          ))}
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAll}
+              disabled={pending}
+              className="ml-auto"
+            >
+              <Check className="h-3.5 w-3.5" />
+              Tout marquer comme lu ({unreadCount})
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={handleMarkAll}
-            disabled={pending}
-            className="inline-flex items-center gap-1.5 text-xs text-[var(--text-mute)] transition-colors hover:text-[var(--amethyst-br)] disabled:opacity-50"
-          >
-            <CheckCheck className="h-3.5 w-3.5" />
-            Tout marquer comme lu
-          </button>
-        )}
-      </div>
-
-      {/* Liste groupée par jour */}
+      {/* Liste */}
       {filtered.length === 0 ? (
-        <div className="qm-glass rounded-[18px] px-[30px] py-[60px] text-center">
-          <Bell className="mx-auto mb-3 h-10 w-10 text-[var(--text-faint)]" />
-          <p className="text-sm text-[var(--text-mute)]">
-            {notifications.length === 0
-              ? "Aucune notification pour l'instant."
-              : "Aucune notification dans cette catégorie."}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
+              {notifications.length === 0
+                ? "Aucune notification pour l'instant."
+                : "Aucune notification dans cette catégorie."}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="mb-6">
+        <div className="space-y-2">
           {filtered.map((n) => {
             const meta = CATEGORY_META[n.category];
             const unread = !n.read_at;
-
             return (
-              <div
+              <Card
                 key={n.id}
                 className={cn(
-                  "relative mb-2 flex items-start gap-3.5 rounded-xl border px-5 py-4 transition-colors",
-                  unread
-                    ? "border-[var(--amethyst-soft)] bg-[var(--amethyst-soft-2)] hover:bg-[var(--amethyst-soft)]"
-                    : "border-[var(--border-soft)] bg-[var(--bg-elev)] hover:bg-[var(--surface-2)]",
+                  "transition-colors",
+                  unread ? "border-amethyst-bright/30 bg-amethyst-bright/[0.03]" : "",
                 )}
               >
-                {unread && (
-                  <span
-                    className="absolute -left-[3px] top-[18px] h-1.5 w-1.5 rounded-full bg-[var(--amethyst-br)]"
-                    style={{ boxShadow: "0 0 8px var(--amethyst-br)" }}
-                  />
-                )}
-
-                <div
-                  className={cn(
-                    "grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[10px]",
-                    meta.className,
-                  )}
-                >
-                  {meta.icon}
-                </div>
-
-                <div className="min-w-0 flex-1 self-center text-[13.5px] leading-[1.4]">
-                  {n.title}
-                </div>
-
-                <div className="flex shrink-0 gap-1.5">
-                  {n.source_url && (
-                    <Link
-                      href={n.source_url as Route}
-                      className="grid h-[30px] items-center rounded-[7px] border border-transparent px-2.5 text-xs text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground"
-                    >
-                      Ouvrir
-                    </Link>
-                  )}
-                  {unread && (
-                    <button
-                      type="button"
-                      onClick={() => handleMarkRead(n.id)}
-                      disabled={pending}
-                      title="Marquer comme lu"
-                      className="grid h-[30px] w-[30px] place-items-center rounded-[7px] border border-transparent text-[var(--text-mute)] transition-colors hover:border-[var(--border-soft)] hover:bg-[var(--surface)] hover:text-foreground disabled:opacity-50"
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
+                <CardContent className="flex items-start gap-3 p-3">
+                  <div
+                    className={cn(
+                      "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
+                      meta.color,
+                    )}
+                  >
+                    {meta.icon}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-start gap-2">
+                      <p className="text-sm font-medium">
+                        {n.title}
+                        {unread && (
+                          <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-amethyst-bright" />
+                        )}
+                      </p>
+                      <Badge variant="outline" className="shrink-0">
+                        {meta.label}
+                      </Badge>
+                    </div>
+                    <div className="mt-0.5 flex flex-wrap gap-x-3">
+                      {n.source_label && (
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {n.source_label}
+                        </span>
+                      )}
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {formatRelative(n.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {n.source_url && (
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={n.source_url as Route}>Ouvrir</Link>
+                      </Button>
+                    )}
+                    {unread && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMarkRead(n.id)}
+                        disabled={pending}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
       )}
     </>
   );
+}
+
+function formatRelative(iso: string): string {
+  const date = new Date(iso);
+  const diff = Date.now() - date.getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `il y a ${d} j`;
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 }

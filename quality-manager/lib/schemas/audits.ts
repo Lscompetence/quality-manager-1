@@ -7,6 +7,7 @@ export const auditTypeSchema = z.enum(["initial", "surveillance", "renouvellemen
 export const auditStatusSchema = z.enum(["en_cours", "cloture", "archive"]);
 
 export const createAuditSchema = z.object({
+  establishment_id: z.string().uuid("Établissement requis"),
   name: z.string().min(2, "Nom requis (2 caractères min)").max(120),
   audit_type: auditTypeSchema,
   categories: z.array(categorySchema).min(1, "Au moins une catégorie"),
@@ -23,10 +24,10 @@ export const createAuditSchema = z.object({
 export type CreateAuditInput = z.infer<typeof createAuditSchema>;
 
 // `clone_from` ne sert qu'à la création (reprise des preuves d'un dossier
-// existant) : ce n'est pas une colonne de `audits`, elle n'a rien à faire
-// dans une mise à jour.
+// existant) : ce n'est pas une colonne de `audits`. L'établissement d'un
+// dossier ne change pas après sa création.
 export const updateAuditSchema = createAuditSchema
-  .omit({ clone_from: true })
+  .omit({ clone_from: true, establishment_id: true })
   .partial()
   .extend({
     id: z.string().uuid(),

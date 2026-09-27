@@ -27,11 +27,14 @@ export function IndicatorStatusForm({
   indicatorCode,
   initialStatus,
   initialNotes,
+  readOnly = false,
 }: {
   auditId: string;
   indicatorCode: string;
   initialStatus: string;
   initialNotes: string;
+  /** Admin et lecteur : statut et notes affichés, non modifiables (sprint 8) */
+  readOnly?: boolean;
 }) {
   const [status, setStatus] = React.useState<IndicatorStatusEnum>(
     (initialStatus as IndicatorStatusEnum) ?? "a_traiter",
@@ -62,10 +65,14 @@ export function IndicatorStatusForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
+        <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           Statut
         </label>
-        <Select value={status} onValueChange={(v) => setStatus(v as IndicatorStatusEnum)}>
+        <Select
+          value={status}
+          onValueChange={(v) => setStatus(v as IndicatorStatusEnum)}
+          disabled={readOnly}
+        >
           <SelectTrigger className="max-w-xs">
             <SelectValue />
           </SelectTrigger>
@@ -80,22 +87,27 @@ export function IndicatorStatusForm({
       </div>
 
       <div>
-        <label className="block font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
+        <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           Notes internes
         </label>
         <Textarea
           rows={4}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notes, contexte, points d'attention pour l'audit…"
+          placeholder={
+            readOnly ? "Aucune note." : "Notes, contexte, points d'attention pour l'audit…"
+          }
+          readOnly={readOnly}
         />
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={!dirty || pending}>
-          {pending ? "Enregistrement…" : "Enregistrer"}
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={!dirty || pending}>
+            {pending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

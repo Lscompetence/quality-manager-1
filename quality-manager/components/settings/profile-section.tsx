@@ -10,7 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateOrganization } from "@/lib/actions/organization";
 import { updateOrgSchema, type UpdateOrgInput } from "@/lib/schemas/organization";
 
@@ -82,7 +88,9 @@ export function ProfileSection({
             <div className="md:col-span-2">
               <Label htmlFor="name">Raison sociale</Label>
               <Input id="name" {...register("name")} />
-              {errors.name && <p className="mt-1.5 text-xs text-destructive">{errors.name.message}</p>}
+              {errors.name && (
+                <p className="mt-1.5 text-xs text-destructive">{errors.name.message}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="legal_form">Forme juridique</Label>
@@ -95,7 +103,9 @@ export function ProfileSection({
                 </SelectTrigger>
                 <SelectContent>
                   {LEGAL_FORMS.map((f) => (
-                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                    <SelectItem key={f} value={f}>
+                      {f}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -106,7 +116,11 @@ export function ProfileSection({
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="declaration_nb">N° de déclaration d&apos;activité</Label>
-              <Input id="declaration_nb" placeholder="00 00 00000 00" {...register("declaration_nb")} />
+              <Input
+                id="declaration_nb"
+                placeholder="00 00 00000 00"
+                {...register("declaration_nb")}
+              />
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="address">Adresse postale</Label>
@@ -119,7 +133,9 @@ export function ProfileSection({
             <div>
               <Label htmlFor="email">Email général</Label>
               <Input id="email" type="email" {...register("email")} />
-              {errors.email && <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>
+              )}
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="website">Site web</Label>
@@ -128,8 +144,13 @@ export function ProfileSection({
           </fieldset>
 
           {canEdit ? (
-            <div className="flex justify-end gap-2 pt-3 border-t border-border">
-              <Button type="button" variant="secondary" onClick={() => reset()} disabled={!isDirty || pending}>
+            <div className="flex justify-end gap-2 border-t border-border pt-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => reset()}
+                disabled={!isDirty || pending}
+              >
                 Annuler
               </Button>
               <Button type="submit" disabled={!isDirty || pending}>

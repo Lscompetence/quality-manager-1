@@ -61,7 +61,12 @@ export function ProfileForm({
         </div>
       </div>
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="secondary" onClick={() => reset()} disabled={!isDirty || pending}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => reset()}
+          disabled={!isDirty || pending}
+        >
           Annuler
         </Button>
         <Button type="submit" disabled={!isDirty || pending}>

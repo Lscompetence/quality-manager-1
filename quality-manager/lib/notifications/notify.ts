@@ -5,9 +5,8 @@ import type { Database } from "@/types/database";
 /**
  * Notifications admin ↔ client.
  *
- * - Le staff n'est prévenu que d'une chose : la connexion d'un client à son
- *   espace (`kind = "client_login"`), avec son nom et l'heure, rien d'autre.
- * - Les clients sont prévenus de ce que le staff fait sur leurs dossiers.
+ * Les clients (rôle `client`) sont prévenus de ce que le staff fait sur
+ * leurs dossiers.
  *
  * L'écriture passe par la clé de service : un client n'a pas le droit
  * d'écrire dans les notifications du staff, et inversement.
@@ -49,8 +48,6 @@ type NotifyPayload = {
   staffUrl?: string;
   /** Lien pour le client (espace client) */
   clientUrl?: string;
-  /** Nature : `client_login` pour une connexion client, sinon activité. */
-  kind?: "activity" | "client_login";
 };
 
 export type Actor = {
@@ -101,7 +98,6 @@ export async function notifyStaff(
         source_label: payload.sourceLabel ?? null,
         source_url: payload.staffUrl ?? null,
         actor_id: exceptUserId ?? null,
-        kind: payload.kind ?? "activity",
       }));
 
     if (rows.length > 0) await insertNotifications(rows, "notifyStaff");
@@ -168,8 +164,7 @@ export async function notifyUser(
 
 /**
  * Action du staff sur un dossier : les clients à qui il est confié sont
- * prévenus. Les actions d'un client ne notifient plus le staff : celui-ci
- * n'est averti que des connexions (voir `notifyClientSignIn`).
+ * prévenus. Les actions d'un client ne notifient pas le staff.
  */
 export async function notifyOtherSide(
   actor: Actor,
@@ -178,23 +173,4 @@ export async function notifyOtherSide(
 ) {
   if (actor.role === "client") return;
   await notifyAuditClients(audit.id, { ...payload, sourceLabel: audit.name }, actor.id);
-}
-
-/**
- * Un client vient d'ouvrir une session sur son espace : le staff de son
- * organisme est prévenu. Seuls son nom et l'heure sont transmis — rien sur
- * ce qu'il consulte ou fait ensuite.
- */
-export async function notifyClientSignIn(userId: string) {
-  const actor = await getActor(userId);
-  if (!actor || actor.role !== "client") return;
-  await notifyStaff(
-    actor.organizationId,
-    {
-      category: "system",
-      kind: "client_login",
-      title: `${actor.name} s'est connecté à son espace client`,
-    },
-    actor.id,
-  );
 }

@@ -28,7 +28,8 @@ const STYLES: Record<string, PillStyle> = {
   },
   non_applicable: {
     label: "Non applicable",
-    className: "border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text-faint)] opacity-70",
+    className:
+      "border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text-faint)] opacity-70",
     dot: "var(--text-faint)",
   },
 };

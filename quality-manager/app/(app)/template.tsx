@@ -16,7 +16,7 @@ export default function AppTemplate({ children }: { children: React.ReactNode })
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16, ease: "easeOut" }}
-        className="flex-1 flex flex-col min-h-full"
+        className="flex min-h-full flex-1 flex-col"
       >
         {children}
       </motion.div>

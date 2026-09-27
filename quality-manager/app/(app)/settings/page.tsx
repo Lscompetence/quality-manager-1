@@ -1,58 +1,67 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgAdmin } from "@/lib/auth/session";
+import type { MemberRole } from "@/lib/auth/permissions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProfileSection } from "@/components/settings/profile-section";
-import { TeamSection, type Member } from "@/components/settings/team-section";
+import { TeamSection } from "@/components/settings/team-section";
+import { PlanSection } from "@/components/settings/plan-section";
 
 export const metadata = { title: "Paramètres" };
 
 export default async function SettingsPage() {
+  // Paramètres : réservés à l'admin du client
+  const session = await requireOrgAdmin();
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) redirect("/login");
+  const orgId = session.organization.id;
 
-  // Profil + org
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id, organization_id, role")
-    .eq("id", userData.user.id)
-    .single();
-  if (!profile) redirect("/login");
+  const { data: org } = await supabase.from("organizations").select("*").eq("id", orgId).single();
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("id", profile.organization_id)
-    .single();
+  const [{ data: team }, { data: memberships }, { count: auditsCount }] = await Promise.all([
+    supabase
+      .from("users")
+      .select("id, first_name, last_name, email, role, created_at")
+      .eq("organization_id", orgId)
+      // Les comptes client (accès à un dossier précis) ne sont pas des membres
+      .neq("role", "client")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("establishment_members")
+      .select("user_id, establishment:establishments(id, name)"),
+    supabase
+      .from("audits")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId)
+      .eq("status", "en_cours"),
+  ]);
 
-  // Membres de l'équipe — les comptes client n'en font pas partie : ce sont
-  // des accès externes à un dossier précis, pas des membres de l'organisme.
-  const { data: team } = await supabase
-    .from("users")
-    .select("id, first_name, last_name, email, role, last_seen_at, created_at")
-    .eq("organization_id", profile.organization_id)
-    .neq("role", "client")
-    .order("created_at", { ascending: true });
+  const members = (team ?? []).map((m) => ({
+    ...m,
+    // Les comptes client sont exclus par la requête ci-dessus
+    role: m.role as MemberRole,
+    establishments: (memberships ?? [])
+      .filter((ms) => ms.user_id === m.id && ms.establishment)
+      .map((ms) => ms.establishment!),
+  }));
 
-  const isAdmin = profile.role === "admin";
+  const isAdmin = true;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-
       <div>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright mb-2">
+        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Configuration · Organisme
         </p>
         <h1 className="font-sans text-3xl font-light tracking-tight">Paramètres</h1>
         <p className="mt-2 text-muted-foreground">
-          Configuration de votre organisme dans Quality Manager : profil et équipe.
+          Configuration de votre organisme dans Quality Manager : profil, équipe et abonnement.
         </p>
       </div>
 
       <Tabs defaultValue="profile">
         <TabsList>
           <TabsTrigger value="profile">Profil organisme</TabsTrigger>
-          <TabsTrigger value="team">Équipe</TabsTrigger>
+          <TabsTrigger value="team">Personnes</TabsTrigger>
+          <TabsTrigger value="plan">Abonnement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
@@ -60,9 +69,16 @@ export default async function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="team" className="mt-4">
-          <TeamSection
-            members={(team ?? []) as Member[]}
-            currentUserId={userData.user.id}
+          <TeamSection members={members} currentUserId={session.userId} />
+        </TabsContent>
+
+        <TabsContent value="plan" className="mt-4">
+          <PlanSection
+            plan={org?.plan ?? "essentiel"}
+            billingCycle={org?.billing_cycle ?? "annual"}
+            billingEmail={org?.billing_email ?? ""}
+            vatNumber={org?.vat_number ?? ""}
+            auditsActive={auditsCount ?? 0}
             isAdmin={isAdmin}
           />
         </TabsContent>
