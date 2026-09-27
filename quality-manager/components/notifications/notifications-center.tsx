@@ -112,7 +112,10 @@ export function NotificationsCenter({
           return n.category === filter;
         });
 
-  const groups = filter === "clients" ? groupByClient(filtered, clientOf) : groupByDay(filtered);
+  // Liste d'un seul bloc, sans titres de période ; seul le filtre « Clients »
+  // regroupe, par client.
+  const groups =
+    filter === "clients" ? groupByClient(filtered, clientOf) : [{ title: "", items: filtered }];
 
   const handleMarkRead = (id: string) => {
     startTransition(async () => {
@@ -189,9 +192,11 @@ export function NotificationsCenter({
       ) : (
         groups.map((group) => (
           <div key={group.title} className="mb-6">
-            <div className="mb-2.5 pl-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-mute)]">
-              {group.title}
-            </div>
+            {group.title && (
+              <div className="mb-2.5 pl-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-mute)]">
+                {group.title}
+              </div>
+            )}
 
             {group.items.map((n) => {
               const meta = CATEGORY_META[n.category];
@@ -275,29 +280,4 @@ function groupByClient(
     title: `${name} · ${list.length} notification${list.length > 1 ? "s" : ""}`,
     items: list,
   }));
-}
-
-/** La maquette groupe les notifications par jour : Aujourd'hui, Hier, puis la date. */
-function groupByDay(items: Notification[]): { title: string; items: Notification[] }[] {
-  const groups = new Map<string, Notification[]>();
-
-  for (const n of items) {
-    const title = dayTitle(new Date(n.created_at));
-    const bucket = groups.get(title) ?? [];
-    bucket.push(n);
-    groups.set(title, bucket);
-  }
-
-  return [...groups.entries()].map(([title, list]) => ({ title, items: list }));
-}
-
-function dayTitle(date: Date): string {
-  const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const days = Math.floor((startOfToday.getTime() - date.getTime()) / 86_400_000);
-
-  if (days < 0 || date >= startOfToday) return "Aujourd'hui";
-  if (days < 1) return "Hier";
-  if (days < 7) return "Cette semaine";
-  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 }
