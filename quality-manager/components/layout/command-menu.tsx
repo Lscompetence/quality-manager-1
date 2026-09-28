@@ -3,14 +3,17 @@
 import * as React from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
-import { Search, Home, User, Settings, Bell } from "lucide-react";
+import { Search, Home, User, Settings, Bell, Building2, LifeBuoy } from "lucide-react";
+import type { MemberRole } from "@/lib/auth/permissions";
 
 export function CommandMenu({
   open,
   setOpen,
+  role,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
+  role: MemberRole;
 }) {
   const router = useRouter();
 
@@ -78,12 +81,32 @@ export function CommandMenu({
                 <span>Mon Profil</span>
               </Command.Item>
 
+              {/* Pilotage de l'organisation : réservé à l'admin */}
+              {role === "admin" && (
+                <>
+                  <Command.Item
+                    onSelect={() => runCommand(() => router.push("/etablissements"))}
+                    className="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-3 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50"
+                  >
+                    <Building2 className="mr-3 h-4 w-4" />
+                    <span>Établissements</span>
+                  </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => router.push("/settings"))}
+                    className="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-3 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50"
+                  >
+                    <Settings className="mr-3 h-4 w-4" />
+                    <span>Paramètres de l&apos;organisme</span>
+                  </Command.Item>
+                </>
+              )}
+
               <Command.Item
-                onSelect={() => runCommand(() => router.push("/settings"))}
+                onSelect={() => runCommand(() => router.push("/demandes"))}
                 className="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-3 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50"
               >
-                <Settings className="mr-3 h-4 w-4" />
-                <span>Paramètres de l&apos;organisme</span>
+                <LifeBuoy className="mr-3 h-4 w-4" />
+                <span>Contacter LS Compétences</span>
               </Command.Item>
 
               <Command.Item

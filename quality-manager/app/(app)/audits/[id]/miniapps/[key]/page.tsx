@@ -42,7 +42,14 @@ export default async function MiniAppPage({ params }: { params: Promise<Params> 
   // Gate plan Essentiel
   const plan = audit.organization?.plan ?? "essentiel";
   if (plan === "essentiel") {
-    return <EssentialGate auditId={id} miniappName={schema.name} indicators={schema.indicators} />;
+    return (
+      <EssentialGate
+        auditId={id}
+        miniappName={schema.name}
+        indicators={schema.indicators}
+        isAdmin={session.profile.role === "admin"}
+      />
+    );
   }
 
   // Charger les données existantes
@@ -163,10 +170,13 @@ function EssentialGate({
   auditId,
   miniappName,
   indicators,
+  isAdmin,
 }: {
   auditId: string;
   miniappName: string;
   indicators: string[];
+  /** Seul l'admin gère l'abonnement : les autres le lui demandent. */
+  isAdmin: boolean;
 }) {
   return (
     <div className="mx-auto max-w-2xl py-10">
@@ -194,12 +204,19 @@ function EssentialGate({
             <b className="text-foreground">{listMiniAppKeys().length} mini-apps métier</b>, aux
             calculs automatisés et aux exports d&apos;audit.
           </p>
-          <Link
-            href="/settings"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-amethyst to-amethyst-bright px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)] transition-all hover:-translate-y-0.5"
-          >
-            Voir le plan Pro
-          </Link>
+          {isAdmin ? (
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-amethyst to-amethyst-bright px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_22px_-6px_rgba(107,79,187,0.55)] transition-all hover:-translate-y-0.5"
+            >
+              Demander le plan Pro
+            </Link>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              L&apos;abonnement est géré par l&apos;admin de votre organisme : demandez-lui le
+              passage au plan Pro.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

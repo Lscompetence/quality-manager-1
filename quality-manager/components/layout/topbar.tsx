@@ -49,7 +49,7 @@ export function Topbar({
         <Search className="h-4 w-4" />
       </button>
 
-      <CommandMenu open={openCommand} setOpen={setOpenCommand} />
+      <CommandMenu open={openCommand} setOpen={setOpenCommand} role={user.role} />
 
       <ThemeToggle />
 

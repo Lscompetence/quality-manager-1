@@ -10,7 +10,7 @@ import {
   type CritereNum,
   type Category,
 } from "@/lib/constants/rnq";
-import { TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingUp } from "lucide-react";
 import { CategoryTint } from "@/components/layout/category-tint";
 
 export const metadata = {
@@ -50,6 +50,8 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
   const { id } = await params;
   const session = await requireMember();
   const readOnly = isDossierReadOnly(session.profile.role);
+  // L'admin suit le dossier depuis ses établissements : vue de suivi, pas de travail
+  const isAdmin = session.profile.role === "admin";
   const supabase = await createClient();
 
   // Les trois requêtes portent sur le même dossier et sont indépendantes : une seule attente.
@@ -62,7 +64,9 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
   ] = await Promise.all([
     supabase
       .from("audits")
-      .select("id, name, audit_type, categories, status, audit_date, certificateur, created_at")
+      .select(
+        "id, name, audit_type, categories, status, audit_date, certificateur, created_at, establishment:establishments(id, name)",
+      )
       .eq("id", id)
       .single(),
     supabase.from("audit_indicators").select("critere_num, status").eq("audit_id", id),
@@ -130,6 +134,16 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
     <div style={{ ["--cat-accent" as string]: catTone, ["--t-color" as string]: typeTone }}>
       <CategoryTint category={category} />
 
+      {isAdmin && audit.establishment && (
+        <Link
+          href={`/etablissements/${audit.establishment.id}`}
+          className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-[var(--text-mute)] transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {audit.establishment.name}
+        </Link>
+      )}
+
       {readOnly && <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />}
 
       {/* Hero du dossier */}
@@ -147,13 +161,24 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
           </HeroPill>
         </div>
 
-        <p className="qm-eyebrow">Aujourd&apos;hui · {audit.name}</p>
+        <p className="qm-eyebrow">
+          {isAdmin && audit.establishment ? `Suivi · ${audit.establishment.name}` : "Aujourd'hui"} ·{" "}
+          {audit.name}
+        </p>
 
-        <h1 className="qm-hero max-w-3xl font-sans text-4xl md:text-5xl lg:text-[60px]">
-          Votre conformité
-          <br />
-          respire <b className="qm-hero-accent">en lumière.</b>
-        </h1>
+        {isAdmin ? (
+          <h1 className="qm-hero max-w-3xl font-sans text-4xl md:text-5xl lg:text-[60px]">
+            Où en est
+            <br />
+            <b className="qm-hero-accent">ce dossier ?</b>
+          </h1>
+        ) : (
+          <h1 className="qm-hero max-w-3xl font-sans text-4xl md:text-5xl lg:text-[60px]">
+            Votre conformité
+            <br />
+            respire <b className="qm-hero-accent">en lumière.</b>
+          </h1>
+        )}
 
         {/* Pourcentage géant */}
         <div
@@ -205,7 +230,7 @@ export default async function AuditDashboardPage({ params }: { params: Promise<P
           label="Indicateurs"
           value={String(totalDone)}
           unit={`/ ${total} applicables`}
-          foot="filtrés selon votre dossier"
+          foot={isAdmin ? "filtrés selon le périmètre du dossier" : "filtrés selon votre dossier"}
         />
         <Metric
           label="Documents"

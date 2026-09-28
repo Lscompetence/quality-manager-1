@@ -42,9 +42,11 @@ export function Sidebar({
   // une fois sorti, plus aucun dossier affiché.
   const auditId = pathname.startsWith("/audits/") ? pathname.split("/")[2] : undefined;
   const audit = auditId ? audits.find((a) => a.id === auditId) : undefined;
-  // « Tableau de bord » reste toujours dans le menu : le dossier ouvert, sinon
-  // le dernier dossier modifié (sans afficher sa carte).
-  const dashboardAuditId = auditId ?? audits[0]?.id;
+  // L'admin pilote et consulte : il atteint un dossier par ses établissements.
+  // Le tableau de bord, les documents et les mini-apps sont l'espace de travail
+  // de l'editor et du reader (le dossier ouvert, sinon le dernier modifié).
+  const isAdmin = role === "admin";
+  const dashboardAuditId = isAdmin ? undefined : (auditId ?? audits[0]?.id);
 
   return (
     <aside className="qm-glass sticky top-0 hidden h-screen w-[230px] shrink-0 flex-col border-y-0 border-l-0 border-r lg:flex">
@@ -107,8 +109,8 @@ export function Sidebar({
             </NavLink>
           )}
 
-          {/* Pièces et mini-apps du dossier ouvert (en consultation pour l'admin) */}
-          {auditId && (
+          {/* Pièces et mini-apps du dossier ouvert */}
+          {auditId && !isAdmin && (
             <>
               <NavLink
                 href={`/audits/${auditId}/documents`}
@@ -129,25 +131,39 @@ export function Sidebar({
         </nav>
       </div>
 
-      {/* Carte organisme */}
+      {/* Carte organisme — mène aux paramètres, réservés à l'admin */}
       <div className="p-[18px] pt-0">
-        <Link
-          href="/settings"
-          prefetch={true}
-          className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-3.5 py-3 transition-colors hover:border-[var(--border-strong)]"
-        >
-          <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[9px] bg-gradient-to-br from-[#2C5A9E] to-amethyst text-[11px] font-bold text-white">
-            {initials(org.name)}
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[13px] font-semibold">{org.name}</span>
-            <span className="mt-0.5 block truncate font-mono text-[9.5px] text-[var(--text-faint)]">
-              {org.siret ? `SIRET ${formatSiret(org.siret)}` : "SIRET non renseigné"}
-            </span>
-          </span>
-        </Link>
+        {isAdmin ? (
+          <Link
+            href="/settings"
+            prefetch={true}
+            className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-3.5 py-3 transition-colors hover:border-[var(--border-strong)]"
+          >
+            <OrganizationCard org={org} />
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-3.5 py-3">
+            <OrganizationCard org={org} />
+          </div>
+        )}
       </div>
     </aside>
+  );
+}
+
+function OrganizationCard({ org }: { org: OrganizationSummary }) {
+  return (
+    <>
+      <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[9px] bg-gradient-to-br from-[#2C5A9E] to-amethyst text-[11px] font-bold text-white">
+        {initials(org.name)}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[13px] font-semibold">{org.name}</span>
+        <span className="mt-0.5 block truncate font-mono text-[9.5px] text-[var(--text-faint)]">
+          {org.siret ? `SIRET ${formatSiret(org.siret)}` : "SIRET non renseigné"}
+        </span>
+      </span>
+    </>
   );
 }
 
