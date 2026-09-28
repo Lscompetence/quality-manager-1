@@ -9,6 +9,7 @@ import {
   emailRedirectUrl,
 } from "@/lib/supabase/email-link";
 import { getSession } from "@/lib/auth/session";
+import { passwordPagePath } from "@/lib/auth/portals";
 import {
   clientPlanSchema,
   createClientAccountSchema,
@@ -52,7 +53,7 @@ const DEFAULT_NOTIFICATION_PREFS = {
 };
 
 /** Le lien de l'email mène au choix du mot de passe, puis à l'espace admin. */
-const ADMIN_WELCOME = "/reset-password?next=/dashboard";
+const ADMIN_WELCOME = passwordPagePath("admin");
 
 function revalidatePlatform(orgId?: string) {
   revalidatePath("/platform");

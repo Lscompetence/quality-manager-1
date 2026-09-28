@@ -8,6 +8,8 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { login, type LoginPortal } from "@/app/(auth)/actions";
+import { PORTALS } from "@/lib/auth/portals";
+import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,7 +73,7 @@ export function LoginForm({ portal = "admin" }: { portal?: LoginPortal }) {
             Se souvenir de moi
           </label>
           <Link
-            href={portal === "client" ? "/client/forgot-password" : "/forgot-password"}
+            href={PORTALS[portal].forgot as Route}
             className="text-sm font-medium text-amethyst-bright hover:underline"
           >
             Mot de passe oublié&nbsp;?

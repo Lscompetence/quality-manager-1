@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
+import { PORTALS, type Portal } from "@/lib/auth/portals";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -37,12 +38,12 @@ export async function updateSession(request: NextRequest) {
   // une fois dans l'app) — `/callback` en est volontairement exclue : c'est
   // justement là qu'une session vient tout juste de naître (connexion,
   // réinitialisation de mot de passe, ou première invitation d'un client).
-  const isClientAuthPage = pathname === "/client/login" || pathname === "/client/forgot-password";
-  const isAuthOnly =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/demande-acces") ||
-    pathname.startsWith("/forgot-password") ||
-    isClientAuthPage;
+  // Pages de connexion et de mot de passe oublié : une paire par espace
+  // (super admin, admin, établissement, client) — voir lib/auth/portals.ts.
+  const authPortal = (Object.keys(PORTALS) as Portal[]).find(
+    (p) => pathname === PORTALS[p].login || pathname === PORTALS[p].forgot,
+  );
+  const isAuthOnly = Boolean(authPortal) || pathname.startsWith("/demande-acces");
   // /reset-password a besoin d'une session (même temporaire, posée par un lien
   // reçu par email) mais n'a pas vocation à faire fuir un utilisateur déjà
   // connecté : ni tout à fait publique, ni "auth only".
@@ -56,7 +57,11 @@ export async function updateSession(request: NextRequest) {
   // Pas connecté + route protégée → page de connexion de l'espace visé
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = pathname.startsWith("/client") ? "/client/login" : "/login";
+    url.pathname = pathname.startsWith("/client")
+      ? PORTALS.client.login
+      : pathname === "/platform" || pathname.startsWith("/platform/")
+        ? PORTALS.platform.login
+        : PORTALS.admin.login;
     return NextResponse.redirect(url);
   }
 
@@ -64,7 +69,7 @@ export async function updateSession(request: NextRequest) {
   // Les layouts redirigent ensuite un compte arrivé du mauvais côté.
   if (user && isAuthOnly) {
     const url = request.nextUrl.clone();
-    url.pathname = isClientAuthPage ? "/client" : "/dashboard";
+    url.pathname = PORTALS[authPortal ?? "admin"].home;
     return NextResponse.redirect(url);
   }
 

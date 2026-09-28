@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailErrorMessage, emailRedirectUrl } from "@/lib/supabase/email-link";
+import { passwordPagePath } from "@/lib/auth/portals";
 import { getSession, type MemberSession } from "@/lib/auth/session";
 import { isAccessBlocked } from "@/lib/auth/permissions";
 import {
@@ -164,7 +165,7 @@ export async function inviteMember(
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     parsed.data.email,
     {
-      redirectTo: emailRedirectUrl("/reset-password?next=/dashboard"),
+      redirectTo: emailRedirectUrl(passwordPagePath("member")),
       data: { first_name: parsed.data.first_name, last_name: parsed.data.last_name },
     },
   );

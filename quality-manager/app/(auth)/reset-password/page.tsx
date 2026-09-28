@@ -3,6 +3,14 @@ import type { Route } from "next";
 import { AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { PORTALS, isPortal, type Portal } from "@/lib/auth/portals";
+
+const PORTAL_LABEL: Record<Portal, string> = {
+  platform: "Espace LS Compétences",
+  admin: "Espace admin",
+  member: "Espace établissement",
+  client: "Espace client",
+};
 
 export const metadata = {
   title: "Nouveau mot de passe",
@@ -11,12 +19,17 @@ export const metadata = {
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ portal?: string; next?: string }>;
 }) {
-  const { next } = await searchParams;
-  // Seuls des chemins internes : jamais de redirection hors de l'app.
-  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-  const isClient = target.startsWith("/client");
+  const { portal: rawPortal, next } = await searchParams;
+  // L'espace vient du lien de l'email ; les anciens liens portent encore `next`.
+  const portal: Portal = isPortal(rawPortal)
+    ? rawPortal
+    : next?.startsWith("/client")
+      ? "client"
+      : "admin";
+  const target = PORTALS[portal].home;
+  const eyebrow = PORTAL_LABEL[portal];
 
   // La page n'a de sens qu'avec la session posée par le lien reçu par email.
   const supabase = await createClient();
@@ -36,14 +49,14 @@ export default async function ResetPasswordPage({
           en quelques secondes.
         </p>
         <Link
-          href={(isClient ? "/client/forgot-password" : "/forgot-password") as Route}
+          href={PORTALS[portal].forgot as Route}
           className="qm-btn-3d inline-flex h-12 w-full items-center justify-center rounded-2xl text-sm font-semibold"
         >
           Recevoir un nouveau lien
         </Link>
         <div className="mt-7 text-center text-sm text-muted-foreground">
           <Link
-            href={(isClient ? "/client/login" : "/login") as Route}
+            href={PORTALS[portal].login as Route}
             className="font-medium text-amethyst-bright hover:underline"
           >
             ← Retour à la connexion
@@ -56,7 +69,7 @@ export default async function ResetPasswordPage({
   return (
     <>
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
-        {isClient ? "Espace client · Nouveau mot de passe" : "Nouveau mot de passe"}
+        {eyebrow} · Nouveau mot de passe
       </div>
       <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">
         Choisissez votre mot de passe

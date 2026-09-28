@@ -118,7 +118,7 @@ export async function requirePlatformAdmin(): Promise<
   Extract<SessionContext, { kind: "platform" }>
 > {
   const session = await getSession();
-  if (session.kind === "anonymous") redirect("/login");
+  if (session.kind === "anonymous") redirect("/platform/login");
   if (session.kind !== "platform") redirect("/dashboard");
   return session;
 }
