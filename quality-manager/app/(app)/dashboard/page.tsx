@@ -97,7 +97,8 @@ function AdminOverview({
             pédagogiques remplissent les dossiers ; vous les consultez.
           </p>
         </div>
-        <CreateEstablishmentDialog />
+        {/* Sans établissement, le bouton est dans l'encart central : un seul à la fois */}
+        {session.establishments.length > 0 && <CreateEstablishmentDialog />}
       </div>
 
       {session.establishments.length === 0 ? (
