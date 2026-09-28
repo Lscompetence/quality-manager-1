@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,24 +59,28 @@ export async function createEstablishment(
   const session = await requireAdminAction();
   if ("error" in session) return { ok: false, error: session.error };
 
+  // L'identifiant est créé ici plutôt que relu après l'insertion : la policy
+  // de lecture d'un établissement le cherche dans la table, où la ligne n'est
+  // pas encore visible pendant l'insertion (« new row violates row-level
+  // security policy »). Sans relecture, seule la policy d'insertion s'applique.
+  const id = randomUUID();
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("establishments")
     .insert({
+      id,
       organization_id: session.organization.id,
       name: parsed.data.name,
       city: emptyToNull(parsed.data.city),
       siret: emptyToNull(parsed.data.siret),
       declaration_nb: emptyToNull(parsed.data.declaration_nb),
       address: emptyToNull(parsed.data.address),
-    })
-    .select("id")
-    .single();
+    });
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/etablissements");
   revalidatePath("/dashboard");
-  return { ok: true, data: { id: data.id } };
+  return { ok: true, data: { id } };
 }
 
 export async function updateEstablishment(input: UpdateEstablishmentInput): Promise<ActionResult> {
