@@ -21,3 +21,11 @@ export const updatePlanSchema = z.object({
 });
 
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
+
+/** Coordonnées de facturation, modifiables par l'admin (le plan, lui, est piloté par LS). */
+export const updateBillingSchema = z.object({
+  billing_email: z.string().trim().email("Email invalide").optional().or(z.literal("")),
+  vat_number: z.string().trim().max(30, "30 caractères maximum").optional().or(z.literal("")),
+});
+
+export type UpdateBillingInput = z.infer<typeof updateBillingSchema>;

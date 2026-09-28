@@ -16,23 +16,36 @@ export default async function SettingsPage() {
 
   const { data: org } = await supabase.from("organizations").select("*").eq("id", orgId).single();
 
-  const [{ data: team }, { data: memberships }, { count: auditsCount }] = await Promise.all([
-    supabase
-      .from("users")
-      .select("id, first_name, last_name, email, role, created_at")
-      .eq("organization_id", orgId)
-      // Les comptes client (accès à un dossier précis) ne sont pas des membres
-      .neq("role", "client")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("establishment_members")
-      .select("user_id, establishment:establishments(id, name)"),
-    supabase
-      .from("audits")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", orgId)
-      .eq("status", "en_cours"),
-  ]);
+  const [{ data: team }, { data: memberships }, { count: auditsCount }, { data: planRequests }] =
+    await Promise.all([
+      supabase
+        .from("users")
+        .select("id, first_name, last_name, email, role, created_at")
+        .eq("organization_id", orgId)
+        // Les comptes client (accès à un dossier précis) ne sont pas des membres
+        .neq("role", "client")
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("establishment_members")
+        .select("user_id, establishment:establishments(id, name)"),
+      supabase
+        .from("audits")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgId)
+        .eq("status", "en_cours"),
+      // Demande de changement de plan encore en attente chez LS Compétences
+      supabase
+        .from("client_requests")
+        .select("subject, created_at")
+        .eq("organization_id", orgId)
+        .eq("status", "a_traiter")
+        .like("subject", "Changement d’abonnement%")
+        .order("created_at", { ascending: false })
+        .limit(1),
+    ]);
+  const pendingPlanRequest = planRequests?.[0]
+    ? { subject: planRequests[0].subject, createdAt: planRequests[0].created_at }
+    : null;
 
   const members = (team ?? []).map((m) => ({
     ...m,
@@ -76,10 +89,15 @@ export default async function SettingsPage() {
           <PlanSection
             plan={org?.plan ?? "essentiel"}
             billingCycle={org?.billing_cycle ?? "annual"}
+            subscriptionStatus={org?.subscription_status ?? "active"}
+            nextBillingAt={org?.next_billing_at ?? null}
+            lastPaymentAt={org?.last_payment_at ?? null}
             billingEmail={org?.billing_email ?? ""}
             vatNumber={org?.vat_number ?? ""}
             auditsActive={auditsCount ?? 0}
-            isAdmin={isAdmin}
+            establishmentsCount={session.establishments.length}
+            membersCount={members.length}
+            pendingRequest={pendingPlanRequest}
           />
         </TabsContent>
       </Tabs>

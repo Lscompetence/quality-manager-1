@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   updateOrgSchema,
   updatePlanSchema,
+  updateBillingSchema,
   type UpdateOrgInput,
   type UpdatePlanInput,
+  type UpdateBillingInput,
 } from "@/lib/schemas/organization";
 import type { ActionResult } from "./types";
 import type { Database } from "@/types/database";
@@ -80,5 +82,29 @@ export async function updatePlan(input: UpdatePlanInput): Promise<ActionResult> 
 
   if (error) return { ok: false, error: error.message };
   revalidatePath("/demandes");
+  return { ok: true };
+}
+
+/** Email de facturation et n° de TVA : les seuls champs d'abonnement que l'admin modifie. */
+export async function updateBilling(input: UpdateBillingInput): Promise<ActionResult> {
+  const parsed = updateBillingSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+  }
+
+  const auth = await getOrgIdForCurrentAdmin();
+  if ("error" in auth) return { ok: false, error: auth.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      billing_email: parsed.data.billing_email || null,
+      vat_number: parsed.data.vat_number || null,
+    })
+    .eq("id", auth.orgId);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/settings");
   return { ok: true };
 }
