@@ -65,8 +65,11 @@ export async function login(
     };
   }
 
+  // Le super admin (LS Compétences) n'a pas de profil client : son espace est /platform
+  const { data: isPlatform } = await supabase.rpc("is_platform_admin");
+
   revalidatePath("/", "layout");
-  redirect(isClient ? "/client" : "/dashboard");
+  redirect(isClient ? "/client" : isPlatform === true ? "/platform" : "/dashboard");
 }
 
 export async function forgotPassword(
