@@ -27,6 +27,13 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils/cn";
 import { updateBilling, updatePlan } from "@/lib/actions/organization";
 import { listMiniAppKeys } from "@/lib/miniapps/registry";
+import {
+  FREE_MONTHS_ANNUAL,
+  MONTHLY_PRICE_HT,
+  annualMonthlyEquivalent,
+  annualTotal,
+  formatEuros,
+} from "@/lib/pricing";
 import { SUBSCRIPTION_LABEL, type SubscriptionStatus } from "@/lib/auth/permissions";
 
 type Plan = "essentiel" | "pro" | "reseau";
@@ -35,12 +42,15 @@ type BillingCycle = "monthly" | "annual";
 const PLAN_LABEL: Record<Plan, string> = { essentiel: "Essentiel", pro: "Pro", reseau: "Réseau" };
 const CYCLE_LABEL: Record<BillingCycle, string> = { annual: "annuelle", monthly: "mensuelle" };
 
-/** Tarifs du cadrage (§ 4.3) : équivalent mensuel HT, et total annuel. */
-const PRICING: Record<Plan, { monthly: number; annual: number; annualTotal: number } | null> = {
-  essentiel: { monthly: 35, annual: 29, annualTotal: 350 },
-  pro: { monthly: 75, annual: 62, annualTotal: 750 },
-  reseau: null,
-};
+/** Tarifs du cadrage (§ 4.3), tous dérivés du prix mensuel (voir lib/pricing.ts). */
+function pricing(plan: Plan): { monthly: string; annual: string; annualTotal: string } | null {
+  if (plan === "reseau") return null;
+  return {
+    monthly: formatEuros(MONTHLY_PRICE_HT[plan]),
+    annual: formatEuros(annualMonthlyEquivalent(plan)),
+    annualTotal: formatEuros(annualTotal(plan)),
+  };
+}
 
 /** Limites indicatives : affichées, pas encore appliquées (SPRINT8.md § 8). */
 const LIMITS: Record<Plan, { audits: number | null; storage: string }> = {
@@ -113,7 +123,7 @@ export function PlanSection({
   /** Demande de changement de plan pas encore traitée par LS Compétences */
   pendingRequest: PendingPlanRequest;
 }) {
-  const price = PRICING[plan];
+  const price = pricing(plan);
   const limit = LIMITS[plan];
   const overAuditLimit = limit.audits !== null && auditsActive > limit.audits;
 
@@ -336,7 +346,7 @@ function PlanCard({
   onSelect: () => void;
 }) {
   const features = FEATURES[plan];
-  const price = PRICING[plan];
+  const price = pricing(plan);
 
   return (
     <div
@@ -376,7 +386,7 @@ function PlanCard({
             </p>
             <p className="mt-1 font-mono text-[10px] text-[var(--text-mute)]">
               {cycle === "annual"
-                ? `soit ${price.annualTotal} € HT facturés par an`
+                ? `soit ${price.annualTotal} € HT par an, ${FREE_MONTHS_ANNUAL} mois offerts`
                 : "sans engagement annuel"}
             </p>
           </>
@@ -455,7 +465,7 @@ function BillingToggle({
         <>
           Annuel
           <span className="rounded-full bg-c2/25 px-1.5 py-px font-mono text-[9px] text-c2">
-            −2 mois
+            −{FREE_MONTHS_ANNUAL} mois
           </span>
         </>,
       )}
