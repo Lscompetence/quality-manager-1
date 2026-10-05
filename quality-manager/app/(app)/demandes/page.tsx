@@ -1,8 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth/session";
-import { REQUEST_KIND_LABEL } from "@/lib/auth/permissions";
+import { requestCategory } from "@/lib/requests/categories";
+import {
+  REQUEST_CATEGORY_STYLE,
+  RequestCategoryBadge,
+  RequestStatusBadge,
+} from "@/components/requests/request-category-badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { NewRequestForm } from "@/components/requests/new-request-form";
 
 export const metadata = { title: "Contacter LS Compétences" };
@@ -50,12 +54,14 @@ export default async function RequestsPage() {
             <p className="py-4 text-center text-sm text-muted-foreground">Aucun message.</p>
           )}
           {(requests ?? []).map((r) => (
-            <div key={r.id} className="space-y-2 rounded-lg border border-border p-4">
+            <div
+              key={r.id}
+              className="space-y-2 rounded-lg border border-l-4 border-border p-4"
+              style={{ borderLeftColor: REQUEST_CATEGORY_STYLE[requestCategory(r)].accent }}
+            >
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={r.status === "traite" ? "success" : "warning"}>
-                  {r.status === "traite" ? "Traité" : "À traiter"}
-                </Badge>
-                <Badge variant="outline">{REQUEST_KIND_LABEL[r.kind]}</Badge>
+                <RequestStatusBadge status={r.status} />
+                <RequestCategoryBadge category={requestCategory(r)} />
                 <span className="text-sm font-medium">{r.subject}</span>
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                   {new Date(r.created_at).toLocaleDateString("fr-FR")}

@@ -10,6 +10,8 @@ import {
 } from "@/lib/supabase/email-link";
 import { getSession } from "@/lib/auth/session";
 import { passwordPagePath } from "@/lib/auth/portals";
+import { parsePlanRequest } from "@/lib/requests/categories";
+import { notifyUser } from "@/lib/notifications/notify";
 import {
   clientPlanSchema,
   createClientAccountSchema,
@@ -312,6 +314,73 @@ export async function handleClientRequest(input: HandleRequestInput): Promise<Ac
   if (error) return { ok: false, error: error.message };
 
   revalidatePlatform();
+  revalidatePath("/demandes");
+  return { ok: true };
+}
+
+// ---- Application d'une demande de changement de plan -------------------------
+
+const PLAN_NAME = { essentiel: "Essentiel", pro: "Pro", reseau: "Réseau" } as const;
+const CYCLE_NAME = { annual: "annuelle", monthly: "mensuelle" } as const;
+
+/**
+ * Applique en un geste la demande de changement de plan d'un admin : le plan
+ * et la facturation du client changent, la demande passe en « traité » avec une
+ * réponse visible par le client, et son admin est prévenu.
+ */
+export async function applyPlanRequest(requestId: string): Promise<ActionResult> {
+  const auth = await requirePlatformAction();
+  if ("error" in auth) return { ok: false, error: auth.error };
+
+  const supabase = await createClient();
+  const { data: request } = await supabase
+    .from("client_requests")
+    .select("id, organization_id, subject, status")
+    .eq("id", requestId)
+    .maybeSingle();
+  if (!request || !request.organization_id) return { ok: false, error: "Demande introuvable" };
+  if (request.status === "traite") return { ok: false, error: "Cette demande est déjà traitée." };
+
+  const requested = parsePlanRequest(request.subject);
+  if (!requested) return { ok: false, error: "Cette demande ne précise pas de plan à appliquer." };
+
+  const { error: planError } = await supabase
+    .from("organizations")
+    .update({ plan: requested.plan, billing_cycle: requested.cycle })
+    .eq("id", request.organization_id);
+  if (planError) return { ok: false, error: planError.message };
+
+  const label = `${PLAN_NAME[requested.plan]} (facturation ${CYCLE_NAME[requested.cycle]})`;
+  const { error: requestError } = await supabase
+    .from("client_requests")
+    .update({
+      status: "traite",
+      response: `Plan ${label} appliqué le ${new Date().toLocaleDateString("fr-FR")}.`,
+      handled_at: new Date().toISOString(),
+      handled_by: auth.userId,
+    })
+    .eq("id", request.id);
+  if (requestError) return { ok: false, error: requestError.message };
+
+  // L'admin du client est prévenu dans son espace
+  const { data: admins } = await createAdminClient()
+    .from("users")
+    .select("id")
+    .eq("organization_id", request.organization_id)
+    .eq("role", "admin");
+  for (const a of admins ?? []) {
+    await notifyUser(
+      { id: a.id, organizationId: request.organization_id },
+      {
+        category: "success",
+        title: `Votre abonnement est passé au plan ${label}`,
+        url: "/settings",
+      },
+    );
+  }
+
+  revalidatePlatform(request.organization_id);
+  revalidatePath("/settings");
   revalidatePath("/demandes");
   return { ok: true };
 }

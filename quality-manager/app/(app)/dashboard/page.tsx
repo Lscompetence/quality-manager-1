@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, Building2, FolderOpen, MapPin } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Building2,
+  Eye,
+  FolderOpen,
+  GraduationCap,
+  MapPin,
+  TrendingUp,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember, type MemberSession } from "@/lib/auth/session";
 import { canCreateAudit } from "@/lib/auth/permissions";
@@ -15,6 +24,10 @@ import { Badge } from "@/components/ui/badge";
 import { CreateAuditDialog } from "@/components/audits/create-audit-dialog";
 import { CreateEstablishmentDialog } from "@/components/establishments/create-establishment-dialog";
 import { CritereBars, ProgressBar } from "@/components/progress/progress-views";
+import { BarList, StatTile } from "@/components/stats/stat-views";
+
+/** Rattachements editor / reader, pour les statistiques de l'admin. */
+type Membership = { establishment_id: string; user_id: string; role: string };
 
 export const metadata = {
   title: "Vue d'ensemble",
@@ -65,11 +78,26 @@ export default async function DashboardPage() {
     ]),
   );
 
-  return session.profile.role === "admin" ? (
-    <AdminOverview session={session} audits={audits} progressByAudit={progressByAudit} />
-  ) : (
-    <DossierOverview session={session} audits={audits} progressByAudit={progressByAudit} />
-  );
+  if (session.profile.role === "admin") {
+    const { data: memberRows } = await supabase
+      .from("establishment_members")
+      .select("establishment_id, user_id, user:users(role)");
+    const memberships: Membership[] = (memberRows ?? []).map((m) => ({
+      establishment_id: m.establishment_id,
+      user_id: m.user_id,
+      role: m.user?.role ?? "",
+    }));
+    return (
+      <AdminOverview
+        session={session}
+        audits={audits}
+        progressByAudit={progressByAudit}
+        memberships={memberships}
+      />
+    );
+  }
+
+  return <DossierOverview session={session} audits={audits} progressByAudit={progressByAudit} />;
 }
 
 // -----------------------------------------------------------------------------
@@ -79,11 +107,37 @@ function AdminOverview({
   session,
   audits,
   progressByAudit,
+  memberships,
 }: {
   session: MemberSession;
   audits: AuditRow[];
   progressByAudit: Map<string, AuditProgress>;
+  memberships: Membership[];
 }) {
+  // Statistiques de l'organisme
+  const distinct = (role: string) =>
+    new Set(memberships.filter((m) => m.role === role).map((m) => m.user_id)).size;
+  const editorsCount = distinct("editor");
+  const readersCount = distinct("reader");
+  const openAudits = audits.filter((a) => a.status === "en_cours");
+  const currentByEst = new Map(
+    session.establishments.map((est) => {
+      const estAudits = audits.filter((a) => a.establishment_id === est.id);
+      return [est.id, estAudits.find((a) => a.status === "en_cours") ?? estAudits[0]];
+    }),
+  );
+  const progressOf = (estId: string) => {
+    const current = currentByEst.get(estId);
+    return current ? (progressByAudit.get(current.id)?.percent ?? 0) : 0;
+  };
+  const withDossier = session.establishments.filter((e) => currentByEst.get(e.id));
+  const averageProgress = withDossier.length
+    ? Math.round(withDossier.reduce((s, e) => s + progressOf(e.id), 0) / withDossier.length)
+    : 0;
+  const withoutEditor = session.establishments.filter(
+    (e) => !memberships.some((m) => m.establishment_id === e.id && m.role === "editor"),
+  ).length;
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-10 flex items-end justify-between gap-4">
@@ -114,62 +168,128 @@ function AdminOverview({
           <CreateEstablishmentDialog />
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {session.establishments.map((est) => {
-            const estAudits = audits.filter((a) => a.establishment_id === est.id);
-            const current = estAudits.find((a) => a.status === "en_cours") ?? estAudits[0];
-            const progress = current ? progressByAudit.get(current.id) : undefined;
-            return (
-              <Link key={est.id} href={`/etablissements/${est.id}`} className="group">
-                <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-amethyst-bright/40">
-                  <CardContent className="space-y-4 p-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="truncate font-sans text-lg font-medium tracking-tight">
-                          {est.name}
-                        </h3>
-                        {est.city && (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            {est.city}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="outline">
-                        {estAudits.length} dossier{estAudits.length > 1 ? "s" : ""}
-                      </Badge>
-                    </div>
+        <>
+          {/* Statistiques de l'organisme */}
+          <section className="mb-10 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <StatTile
+                icon={Building2}
+                label="Établissements"
+                value={session.establishments.length}
+                hint={
+                  withoutEditor > 0
+                    ? `${withoutEditor} sans responsable pédagogique`
+                    : "tous ont un responsable"
+                }
+                tone={withoutEditor > 0 ? "warn" : "default"}
+              />
+              <StatTile
+                icon={GraduationCap}
+                label="Responsables"
+                value={editorsCount}
+                hint="pédagogiques, qui remplissent"
+              />
+              <StatTile icon={Eye} label="Lecteurs" value={readersCount} hint="en consultation" />
+              <StatTile
+                icon={FolderOpen}
+                label="Dossiers en cours"
+                value={openAudits.length}
+                hint={`${audits.length - openAudits.length} clôturé${audits.length - openAudits.length > 1 ? "s" : ""}`}
+              />
+              <StatTile
+                icon={TrendingUp}
+                label="Avancement moyen"
+                value={`${averageProgress} %`}
+                hint="indicateurs complets, dossiers en cours"
+                tone="good"
+              />
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <BarList
+                title="Avancement par établissement"
+                max={100}
+                rows={session.establishments.map((e) => ({
+                  label: e.name,
+                  value: progressOf(e.id),
+                  display: currentByEst.get(e.id) ? `${progressOf(e.id)} %` : "aucun dossier",
+                }))}
+              />
+              <BarList
+                title="Responsables pédagogiques par établissement"
+                rows={session.establishments.map((e) => {
+                  const n = memberships.filter(
+                    (m) => m.establishment_id === e.id && m.role === "editor",
+                  ).length;
+                  return {
+                    label: e.name,
+                    value: n,
+                    display: n === 0 ? "aucun" : String(n),
+                    icon: n === 0 ? AlertTriangle : GraduationCap,
+                    color: n === 0 ? "var(--c3)" : undefined,
+                  };
+                })}
+                empty="Aucun responsable pédagogique : ouvrez un accès depuis Établissements."
+              />
+            </div>
+          </section>
 
-                    {current && progress ? (
-                      <>
-                        <div>
-                          <div className="mb-1.5 flex items-center justify-between text-xs">
-                            <span className="truncate text-muted-foreground">
-                              {current.name} · {AUDIT_TYPE_LABEL[current.audit_type]}
-                            </span>
-                            <span className="font-mono">
-                              <b>{progress.done}</b>/{progress.total} · {progress.percent} %
-                            </span>
-                          </div>
-                          <ProgressBar percent={progress.percent} />
+          <div className="grid gap-4 md:grid-cols-2">
+            {session.establishments.map((est) => {
+              const estAudits = audits.filter((a) => a.establishment_id === est.id);
+              const current = estAudits.find((a) => a.status === "en_cours") ?? estAudits[0];
+              const progress = current ? progressByAudit.get(current.id) : undefined;
+              return (
+                <Link key={est.id} href={`/etablissements/${est.id}`} className="group">
+                  <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-amethyst-bright/40">
+                    <CardContent className="space-y-4 p-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="truncate font-sans text-lg font-medium tracking-tight">
+                            {est.name}
+                          </h3>
+                          {est.city && (
+                            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="h-3 w-3" />
+                              {est.city}
+                            </p>
+                          )}
                         </div>
-                        <CritereBars progress={progress} />
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Aucun dossier ouvert pour l’instant.
-                      </p>
-                    )}
+                        <Badge variant="outline">
+                          {estAudits.length} dossier{estAudits.length > 1 ? "s" : ""}
+                        </Badge>
+                      </div>
 
-                    <div className="flex justify-end">
-                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-amethyst-bright" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+                      {current && progress ? (
+                        <>
+                          <div>
+                            <div className="mb-1.5 flex items-center justify-between text-xs">
+                              <span className="truncate text-muted-foreground">
+                                {current.name} · {AUDIT_TYPE_LABEL[current.audit_type]}
+                              </span>
+                              <span className="font-mono">
+                                <b>{progress.done}</b>/{progress.total} · {progress.percent} %
+                              </span>
+                            </div>
+                            <ProgressBar percent={progress.percent} />
+                          </div>
+                          <CritereBars progress={progress} />
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Aucun dossier ouvert pour l’instant.
+                        </p>
+                      )}
+
+                      <div className="flex justify-end">
+                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-amethyst-bright" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import type { RequestKind, RequestStatus, SubscriptionStatus } from "@/lib/auth/permissions";
+import { MONTHLY_PRICE_HT, annualTotal } from "@/lib/pricing";
 
 // =============================================================================
 // Indicateurs de l'espace super admin — calculs purs, testés.
@@ -66,4 +67,23 @@ export function isPaymentOverdue(
 ): boolean {
   if (client.subscription_status !== "active" || !client.next_billing_at) return false;
   return new Date(client.next_billing_at).getTime() < now.getTime();
+}
+
+/**
+ * Revenu mensuel récurrent estimé (HT) : abonnements actifs Essentiel et Pro,
+ * un annuel compté pour son douzième. Le plan Réseau, sur devis, est exclu.
+ */
+export function estimateMonthlyRevenue(
+  clients: {
+    subscription_status: SubscriptionStatus;
+    plan: "essentiel" | "pro" | "reseau";
+    billing_cycle: "monthly" | "annual";
+  }[],
+): number {
+  let total = 0;
+  for (const c of clients) {
+    if (c.subscription_status !== "active" || c.plan === "reseau") continue;
+    total += c.billing_cycle === "annual" ? annualTotal(c.plan) / 12 : MONTHLY_PRICE_HT[c.plan];
+  }
+  return Math.round(total * 100) / 100;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeQualityStats, isPaymentOverdue } from "./stats";
+import { computeQualityStats, estimateMonthlyRevenue, isPaymentOverdue } from "./stats";
 
 describe("computeQualityStats", () => {
   it("aucune demande : tout à zéro, délai inconnu", () => {
@@ -72,5 +72,18 @@ describe("isPaymentOverdue", () => {
         now,
       ),
     ).toBe(false);
+  });
+});
+
+describe("revenu mensuel estimé", () => {
+  it("compte les abonnements actifs, l'annuel pour son douzième, hors Réseau", () => {
+    expect(
+      estimateMonthlyRevenue([
+        { subscription_status: "active", plan: "pro", billing_cycle: "monthly" }, // 75
+        { subscription_status: "active", plan: "essentiel", billing_cycle: "annual" }, // 350 / 12
+        { subscription_status: "suspended", plan: "pro", billing_cycle: "monthly" }, // exclu
+        { subscription_status: "active", plan: "reseau", billing_cycle: "annual" }, // sur devis
+      ]),
+    ).toBe(104.17);
   });
 });

@@ -3,7 +3,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
-import { REQUEST_KIND_LABEL, SUBSCRIPTION_LABEL } from "@/lib/auth/permissions";
+import { SUBSCRIPTION_LABEL } from "@/lib/auth/permissions";
+import { requestCategory } from "@/lib/requests/categories";
+import { MONTHLY_PRICE_HT, annualTotal, formatEuros } from "@/lib/pricing";
+import {
+  RequestCategoryBadge,
+  RequestStatusBadge,
+} from "@/components/requests/request-category-badge";
 import { isPaymentOverdue } from "@/lib/platform/stats";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +33,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, email, phone, siret, plan, billing_cycle, subscription_status, status_changed_at, next_billing_at, last_payment_at, created_at",
+      "id, name, email, phone, siret, plan, billing_cycle, billing_email, vat_number, address, subscription_status, status_changed_at, next_billing_at, last_payment_at, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -48,6 +54,13 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       .limit(10),
   ]);
   const s = (stats ?? []).find((x) => x.organization_id === id);
+  // Montant d'une échéance, d'après les tarifs du cadrage (lib/pricing.ts)
+  const amountDue =
+    org.plan === "reseau"
+      ? "Sur devis"
+      : org.billing_cycle === "annual"
+        ? `${formatEuros(annualTotal(org.plan))} € HT par an`
+        : `${formatEuros(MONTHLY_PRICE_HT[org.plan])} € HT par mois`;
   const overdue = isPaymentOverdue(org);
 
   return (
@@ -124,6 +137,37 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
 
       <Card>
         <CardHeader>
+          <CardTitle>Facturation</CardTitle>
+          <CardDescription>
+            Coordonnées saisies par l’admin du client (Paramètres → Abonnement), pour établir ses
+            factures.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
+            <BillingField label="Montant d’une échéance" value={amountDue} strong />
+            <BillingField
+              label="Email de facturation"
+              value={org.billing_email ?? org.email ?? null}
+              hint={org.billing_email ? undefined : "non renseigné : email de l’organisme"}
+            />
+            <BillingField label="N° de TVA intracommunautaire" value={org.vat_number} />
+            <BillingField label="SIRET" value={org.siret} />
+            <BillingField label="Adresse" value={org.address} />
+            <BillingField
+              label="Dernier paiement · prochaine échéance"
+              value={`${fmt(org.last_payment_at)} · ${fmt(org.next_billing_at)}`}
+            />
+          </dl>
+          <p className="mt-4 rounded-lg bg-secondary/50 p-3 text-xs text-muted-foreground">
+            Les factures sont établies hors de l’application, puis le paiement est enregistré
+            ci-dessus. La facturation automatique (Stripe) est prévue en V2.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Demandes du client</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -131,11 +175,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             <p className="text-sm text-muted-foreground">Aucune demande.</p>
           )}
           {(requests ?? []).map((r) => (
-            <div key={r.id} className="flex items-center gap-2 text-sm">
-              <Badge variant={r.status === "traite" ? "success" : "warning"}>
-                {r.status === "traite" ? "Traité" : "À traiter"}
-              </Badge>
-              <Badge variant="outline">{REQUEST_KIND_LABEL[r.kind]}</Badge>
+            <div key={r.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <RequestStatusBadge status={r.status} />
+              <RequestCategoryBadge category={requestCategory(r)} />
               <span className="truncate">{r.subject}</span>
               <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                 {fmt(r.created_at)}
@@ -156,6 +198,30 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <DeleteClientDialog organizationId={org.id} name={org.name} />
         </CardHeader>
       </Card>
+    </div>
+  );
+}
+
+function BillingField({
+  label,
+  value,
+  hint,
+  strong = false,
+}: {
+  label: string;
+  value: string | null;
+  hint?: string;
+  strong?: boolean;
+}) {
+  return (
+    <div>
+      <dt className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </dt>
+      <dd className={strong ? "text-base font-medium" : undefined}>
+        {value || <span className="text-muted-foreground">Non renseigné</span>}
+        {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+      </dd>
     </div>
   );
 }
