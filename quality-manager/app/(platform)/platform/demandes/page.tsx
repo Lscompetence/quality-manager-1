@@ -40,6 +40,8 @@ export default async function RequestsPage({
     .select(
       "id, kind, status, subject, message, response, contact_name, contact_email, organization_name, organization_id, created_at, handled_at, organization:organizations(name, plan, billing_cycle)",
     )
+    // Seulement ce qui est adressé à LS : les messages internes des équipes restent chez l'admin
+    .eq("addressed_to", "platform")
     .eq("status", status)
     .order("created_at", { ascending: status === "a_traiter" });
 

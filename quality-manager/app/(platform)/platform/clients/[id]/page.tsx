@@ -50,6 +50,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       .from("client_requests")
       .select("id, kind, status, subject, created_at")
       .eq("organization_id", id)
+      .eq("addressed_to", "platform")
       .order("created_at", { ascending: false })
       .limit(10),
   ]);

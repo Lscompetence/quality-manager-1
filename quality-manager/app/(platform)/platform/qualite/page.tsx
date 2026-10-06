@@ -20,6 +20,7 @@ export default async function QualityPage() {
     .select(
       "id, kind, status, subject, message, created_at, handled_at, organization:organizations(name)",
     )
+    .eq("addressed_to", "platform")
     .gte("created_at", since)
     .order("created_at", { ascending: false });
 

@@ -59,7 +59,7 @@ function buildCrumbs(
   if (segments[0] === "notifications") return [...crumbs, { label: "notifications" }];
   if (segments[0] === "settings") return [...crumbs, { label: "paramètres organisme" }];
   if (segments[0] === "profile") return [...crumbs, { label: "mon profil" }];
-  if (segments[0] === "demandes") return [...crumbs, { label: "contacter ls compétences" }];
+  if (segments[0] === "demandes") return [...crumbs, { label: "messages" }];
 
   if (segments[0] === "etablissements") {
     if (!segments[1]) return [...crumbs, { label: "établissements" }];

@@ -3,7 +3,13 @@ import { buildMemberSearch, buildPlatformSearch } from "./items";
 
 const establishments = [{ id: "e1", name: "Site de Rabat", city: "Rabat" }];
 const audits = [
-  { id: "a1", name: "Audit 2026", audit_type: "initial", categories: ["AF"], establishment_id: "e1" },
+  {
+    id: "a1",
+    name: "Audit 2026",
+    audit_type: "initial",
+    categories: ["AF"],
+    establishment_id: "e1",
+  },
 ];
 const hrefs = (groups: ReturnType<typeof buildMemberSearch>) =>
   groups.flatMap((g) => g.items.map((i) => i.href));
@@ -22,6 +28,14 @@ describe("recherche — espace membre", () => {
       expect(h).not.toContain("/settings");
       expect(h.some((x) => x.startsWith("/etablissements"))).toBe(false);
       expect(h).toContain("/audits/a1");
+    }
+  });
+
+  it("l'editor et le reader écrivent à leur admin, pas à LS Compétences", () => {
+    for (const role of ["editor", "reader"] as const) {
+      const pages = buildMemberSearch({ role, establishments, audits })[0]!.items;
+      const contact = pages.find((i) => i.href === "/demandes");
+      expect(contact?.label).toBe("Contacter mon admin");
     }
   });
 

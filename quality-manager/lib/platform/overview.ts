@@ -31,7 +31,8 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
       admin.from("organizations").select("plan, billing_cycle, subscription_status"),
       admin.from("users").select("role"),
       admin.from("establishments").select("id", { count: "exact", head: true }),
-      admin.from("client_requests").select("kind, subject, status"),
+      // Seulement les demandes adressées à LS (pas les messages internes des équipes)
+      admin.from("client_requests").select("kind, subject, status").eq("addressed_to", "platform"),
     ]);
 
   const clients = orgs ?? [];

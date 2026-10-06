@@ -96,7 +96,7 @@ export function Sidebar({
             icon={<LifeBuoy className="h-4 w-4" />}
             active={pathname.startsWith("/demandes")}
           >
-            Contacter LS
+            {role === "admin" ? "Messages" : "Contacter mon admin"}
           </NavLink>
 
           {dashboardAuditId && (

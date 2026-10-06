@@ -321,6 +321,8 @@ export interface Database {
           organization_id: string | null;
           kind: "ouverture_compte" | "reclamation" | "suggestion" | "support" | "autre";
           status: "a_traiter" | "traite";
+          /** platform = LS Compétences (admin, visiteur) ; admin = l'admin de l'organisme (editor, reader) */
+          addressed_to: "platform" | "admin";
           subject: string;
           message: string | null;
           contact_name: string | null;

@@ -19,11 +19,13 @@ export default async function PlatformLayout({ children }: { children: React.Rea
     supabase
       .from("client_requests")
       .select("id", { count: "exact", head: true })
+      .eq("addressed_to", "platform")
       .eq("status", "a_traiter"),
     supabase.from("organizations").select("id, name, plan, subscription_status").order("name"),
     supabase
       .from("client_requests")
       .select("id, subject, contact_name, organization_name")
+      .eq("addressed_to", "platform")
       .eq("status", "a_traiter")
       .order("created_at", { ascending: false })
       .limit(20),

@@ -23,7 +23,8 @@ import { REQUEST_KIND_LABEL } from "@/lib/auth/permissions";
 
 const KINDS: ClientRequestInput["kind"][] = ["support", "reclamation", "suggestion", "autre"];
 
-export function NewRequestForm() {
+/** `recipient` : à qui part le message — LS Compétences (admin) ou l'admin (editor, reader). */
+export function NewRequestForm({ recipient }: { recipient: string }) {
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const {
@@ -44,7 +45,7 @@ export function NewRequestForm() {
     const r = await createClientRequest(data);
     setPending(false);
     if (!r.ok) return void toast.error(r.error);
-    toast.success("Message envoyé à LS Compétences");
+    toast.success(`Message envoyé à ${recipient}`);
     reset({ kind: "support", subject: "", message: "" });
     router.refresh();
   };

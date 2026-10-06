@@ -95,10 +95,11 @@ export function buildMemberSearch({
       : []),
     {
       id: "p-support",
-      label: "Contacter LS Compétences",
+      // L'editor et le reader écrivent à leur admin ; l'admin, à LS Compétences
+      label: isAdmin ? "Messages (équipe et LS Compétences)" : "Contacter mon admin",
       href: "/demandes",
       icon: "support",
-      keywords: ["réclamation", "suggestion", "aide", "message"],
+      keywords: ["réclamation", "suggestion", "aide", "message", "question"],
     },
     { id: "p-notif", label: "Notifications", href: "/notifications", icon: "bell" },
     {

@@ -41,6 +41,7 @@ export default async function PlatformHome() {
       .select(
         "id, kind, subject, organization_name, contact_name, created_at, organization:organizations(name)",
       )
+      .eq("addressed_to", "platform")
       .eq("status", "a_traiter")
       .order("created_at", { ascending: true })
       .limit(6),
