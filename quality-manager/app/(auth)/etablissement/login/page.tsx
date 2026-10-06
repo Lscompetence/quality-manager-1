@@ -14,7 +14,9 @@ export default function EstablishmentLoginPage() {
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
         Espace établissement
       </div>
-      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Bienvenue</h2>
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">
+        Bienvenue dans l’espace établissement
+      </h2>
       <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
         Responsables pédagogiques et lecteurs : accédez aux dossiers Qualiopi de votre
         établissement.

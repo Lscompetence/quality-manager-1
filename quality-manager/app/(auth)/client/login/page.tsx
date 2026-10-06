@@ -15,7 +15,9 @@ export default function ClientLoginPage() {
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
         Espace client
       </div>
-      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Bienvenue</h2>
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">
+        Bienvenue dans l’espace client
+      </h2>
       <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
         Connectez-vous pour suivre votre dossier Qualiopi et déposer vos documents.
       </p>

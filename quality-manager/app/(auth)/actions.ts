@@ -80,7 +80,7 @@ export async function login(
   }
 
   revalidatePath("/", "layout");
-  redirect(PORTALS[portal].home as Route);
+  redirect(`${PORTALS[portal].home}?bienvenue=1` as Route);
 }
 
 export async function forgotPassword(

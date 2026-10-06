@@ -13,7 +13,9 @@ export default function PlatformLoginPage() {
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
         Espace LS Compétences
       </div>
-      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Accès plateforme</h2>
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">
+        Bienvenue sur la plateforme
+      </h2>
       <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
         Réservé à l&apos;équipe LS Compétences : comptes clients, abonnements et demandes.
       </p>

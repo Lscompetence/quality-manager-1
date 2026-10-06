@@ -57,6 +57,24 @@ const DEFAULT_NOTIFICATION_PREFS = {
 /** Le lien de l'email mène au choix du mot de passe, puis à l'espace admin. */
 const ADMIN_WELCOME = passwordPagePath("admin");
 
+const PLAN_NAME = { essentiel: "Essentiel", pro: "Pro", reseau: "Réseau" } as const;
+const CYCLE_NAME = { annual: "annuelle", monthly: "mensuelle" } as const;
+
+/** Prévient l'admin (ou les admins) d'un client d'une action de LS Compétences. */
+async function notifyOrgAdmins(
+  organizationId: string,
+  payload: { category: "success" | "system" | "alerte"; title: string; url?: string },
+) {
+  const { data: admins } = await createAdminClient()
+    .from("users")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("role", "admin");
+  for (const a of admins ?? []) {
+    await notifyUser({ id: a.id, organizationId }, { ...payload, sourceLabel: "LS Compétences" });
+  }
+}
+
 function revalidatePlatform(orgId?: string) {
   revalidatePath("/platform");
   revalidatePath("/platform/clients");
@@ -193,6 +211,14 @@ export async function setSubscriptionStatus(input: SubscriptionStatusInput): Pro
     .eq("id", parsed.data.organization_id);
   if (error) return { ok: false, error: error.message };
 
+  if (parsed.data.status === "active") {
+    await notifyOrgAdmins(parsed.data.organization_id, {
+      category: "success",
+      title: "Votre accès à Quality Manager est rétabli",
+      url: "/dashboard",
+    });
+  }
+
   revalidatePlatform(parsed.data.organization_id);
   return { ok: true };
 }
@@ -215,6 +241,16 @@ export async function recordPayment(input: RecordPaymentInput): Promise<ActionRe
     .eq("id", parsed.data.organization_id);
   if (error) return { ok: false, error: error.message };
 
+  await notifyOrgAdmins(parsed.data.organization_id, {
+    category: "success",
+    title: `Paiement reçu le ${new Date(`${parsed.data.paid_at}T12:00:00Z`).toLocaleDateString("fr-FR")}${
+      parsed.data.next_billing_at
+        ? ` · prochaine échéance le ${new Date(`${parsed.data.next_billing_at}T12:00:00Z`).toLocaleDateString("fr-FR")}`
+        : ""
+    }`,
+    url: "/settings",
+  });
+
   revalidatePlatform(parsed.data.organization_id);
   return { ok: true };
 }
@@ -231,6 +267,12 @@ export async function setClientPlan(input: ClientPlanInput): Promise<ActionResul
     .update({ plan: parsed.data.plan, billing_cycle: parsed.data.billing_cycle })
     .eq("id", parsed.data.organization_id);
   if (error) return { ok: false, error: error.message };
+
+  await notifyOrgAdmins(parsed.data.organization_id, {
+    category: "success",
+    title: `Votre abonnement est passé au plan ${PLAN_NAME[parsed.data.plan]} (facturation ${CYCLE_NAME[parsed.data.billing_cycle]})`,
+    url: "/settings",
+  });
 
   revalidatePlatform(parsed.data.organization_id);
   return { ok: true };
@@ -302,6 +344,11 @@ export async function handleClientRequest(input: HandleRequestInput): Promise<Ac
 
   const supabase = await createClient();
   const done = parsed.data.status === "traite";
+  const { data: request } = await supabase
+    .from("client_requests")
+    .select("subject, organization_id, created_by, status")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
   const { error } = await supabase
     .from("client_requests")
     .update({
@@ -313,15 +360,27 @@ export async function handleClientRequest(input: HandleRequestInput): Promise<Ac
     .eq("id", parsed.data.id);
   if (error) return { ok: false, error: error.message };
 
+  // L'auteur de la demande (membre d'un client) est prévenu de la réponse
+  if (done && request?.status !== "traite" && request?.created_by && request.organization_id) {
+    await notifyUser(
+      { id: request.created_by, organizationId: request.organization_id },
+      {
+        category: "success",
+        title: parsed.data.response
+          ? `LS Compétences a répondu à « ${request.subject} »`
+          : `Votre demande « ${request.subject} » est traitée`,
+        sourceLabel: "LS Compétences",
+        url: "/demandes",
+      },
+    );
+  }
+
   revalidatePlatform();
   revalidatePath("/demandes");
   return { ok: true };
 }
 
 // ---- Application d'une demande de changement de plan -------------------------
-
-const PLAN_NAME = { essentiel: "Essentiel", pro: "Pro", reseau: "Réseau" } as const;
-const CYCLE_NAME = { annual: "annuelle", monthly: "mensuelle" } as const;
 
 /**
  * Applique en un geste la demande de changement de plan d'un admin : le plan
@@ -363,21 +422,11 @@ export async function applyPlanRequest(requestId: string): Promise<ActionResult>
   if (requestError) return { ok: false, error: requestError.message };
 
   // L'admin du client est prévenu dans son espace
-  const { data: admins } = await createAdminClient()
-    .from("users")
-    .select("id")
-    .eq("organization_id", request.organization_id)
-    .eq("role", "admin");
-  for (const a of admins ?? []) {
-    await notifyUser(
-      { id: a.id, organizationId: request.organization_id },
-      {
-        category: "success",
-        title: `Votre abonnement est passé au plan ${label}`,
-        url: "/settings",
-      },
-    );
-  }
+  await notifyOrgAdmins(request.organization_id, {
+    category: "success",
+    title: `Votre abonnement est passé au plan ${label}`,
+    url: "/settings",
+  });
 
   revalidatePlatform(request.organization_id);
   revalidatePath("/settings");

@@ -11,7 +11,9 @@ export default function LoginPage() {
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.20em] text-amethyst-bright">
         Espace admin
       </div>
-      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">Content de vous revoir</h2>
+      <h2 className="mb-3 font-sans text-3xl font-light tracking-tight">
+        Bienvenue dans l’espace admin
+      </h2>
       <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
         Pilotez votre organisme : établissements, accès de vos équipes et abonnement.
       </p>

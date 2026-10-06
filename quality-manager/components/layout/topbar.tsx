@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -14,7 +14,8 @@ import {
 import { ThemeToggle } from "./theme-toggle";
 import { logout } from "@/app/(auth)/actions";
 import Link from "next/link";
-import { CommandMenu } from "./command-menu";
+import { SearchButton } from "./command-menu";
+import type { SearchGroup } from "@/lib/search/items";
 import { ROLE_LABEL, type MemberRole } from "@/lib/auth/permissions";
 
 type UserInfo = {
@@ -28,28 +29,21 @@ export function Topbar({
   user,
   breadcrumb,
   unreadCount = 0,
+  searchGroups = [],
 }: {
   user: UserInfo;
   breadcrumb?: React.ReactNode;
   unreadCount?: number;
+  /** Contenu de la recherche, construit côté serveur selon le rôle */
+  searchGroups?: SearchGroup[];
 }) {
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
-  const [openCommand, setOpenCommand] = React.useState(false);
 
   return (
     <header className="relative z-30 mb-7 flex h-[38px] items-center gap-2.5">
       <div className="min-w-0 flex-1">{breadcrumb}</div>
 
-      <button
-        type="button"
-        aria-label="Recherche"
-        onClick={() => setOpenCommand(true)}
-        className="grid h-[38px] w-[38px] place-items-center rounded-[11px] border border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text-soft)] backdrop-blur-xl transition-colors hover:bg-[var(--surface-2)] hover:text-foreground"
-      >
-        <Search className="h-4 w-4" />
-      </button>
-
-      <CommandMenu open={openCommand} setOpen={setOpenCommand} role={user.role} />
+      <SearchButton groups={searchGroups} />
 
       <ThemeToggle />
 

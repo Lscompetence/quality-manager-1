@@ -10,6 +10,7 @@ import {
   type AccountRequestInput,
   type ClientRequestInput,
 } from "@/lib/schemas/access";
+import { notifyUser } from "@/lib/notifications/notify";
 import type { ActionResult } from "./types";
 
 // =============================================================================
@@ -37,6 +38,27 @@ export async function createClientRequest(input: ClientRequestInput): Promise<Ac
     created_by: session.userId,
   });
   if (error) return { ok: false, error: error.message };
+
+  // Le super admin la voit arriver en direct (temps réel sur client_requests).
+  // Si l'auteur n'est pas l'admin, l'admin de l'organisme est prévenu aussi.
+  if (session.profile.role !== "admin") {
+    const { data: admins } = await createAdminClient()
+      .from("users")
+      .select("id")
+      .eq("organization_id", session.organization.id)
+      .eq("role", "admin");
+    const author = `${session.profile.firstName} ${session.profile.lastName}`.trim();
+    for (const a of admins ?? []) {
+      await notifyUser(
+        { id: a.id, organizationId: session.organization.id },
+        {
+          category: parsed.data.kind === "reclamation" ? "alerte" : "system",
+          title: `${author} a contacté LS Compétences : « ${parsed.data.subject} »`,
+          url: "/demandes",
+        },
+      );
+    }
+  }
 
   revalidatePath("/demandes");
   return { ok: true };
