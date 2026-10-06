@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { Column, ComputedResult, Row, Tone } from "@/lib/miniapps/schema-types";
+import { AlertTriangle, Check, Minus, X } from "lucide-react";
+import type { Column, ComputedResult, Row, SelectOption, Tone } from "@/lib/miniapps/schema-types";
 import { AttachmentList } from "@/components/attachments/attachment-list";
 import { cn } from "@/lib/utils/cn";
 
@@ -79,6 +80,17 @@ export function MiniAppCell({
     );
   }
 
+  if (column.type === "select" && column.display === "checklist") {
+    return (
+      <ChecklistStatus
+        options={column.options}
+        value={(value as string) ?? ""}
+        readOnly={readOnly}
+        onChange={(v) => onChange(column.id, v)}
+      />
+    );
+  }
+
   if (column.type === "select") {
     return (
       <select
@@ -137,7 +149,7 @@ export function MiniAppCell({
     const contextPath = `miniapp:${miniappKey}:${tableId}:${rowIndex}:${column.id}`;
     const attachments = attachmentsByPath.get(contextPath) ?? [];
     return (
-      <div className="flex items-center gap-1 justify-center">
+      <div className="flex items-center justify-center gap-1">
         <PjButton
           auditId={auditId}
           miniappKey={miniappKey}
@@ -160,6 +172,83 @@ export function MiniAppCell({
       onChange={(e) => onChange(column.id, e.target.value)}
       placeholder={column.placeholder}
     />
+  );
+}
+
+/** Icône et couleurs d'un bouton de statut, selon sa tonalité. */
+const STATUS_STYLE: Record<Tone, { Icon: typeof Check; on: string; off: string }> = {
+  ok: {
+    Icon: Check,
+    on: "border-transparent bg-c2 text-white shadow-[0_4px_12px_-4px_var(--c2)]",
+    off: "hover:border-c2/60 hover:bg-c2/10 hover:text-c2",
+  },
+  warn: {
+    Icon: AlertTriangle,
+    on: "border-transparent bg-c3 text-white shadow-[0_4px_12px_-4px_var(--c3)]",
+    off: "hover:border-c3/60 hover:bg-c3/10 hover:text-c3",
+  },
+  danger: {
+    Icon: X,
+    on: "border-transparent bg-destructive text-white shadow-[0_4px_12px_-4px_hsl(var(--destructive))]",
+    off: "hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive",
+  },
+  neutral: {
+    Icon: Minus,
+    on: "border-transparent bg-[var(--text-mute)] text-white",
+    off: "hover:border-[var(--border-strong)] hover:bg-secondary hover:text-foreground",
+  },
+};
+
+/**
+ * Statut d'un point de check-list : un bouton rond par choix, on clique
+ * pour cocher (re-cliquer le choix actif le décoche). Le libellé du choix
+ * actif s'affiche à côté ; chaque bouton a son libellé en infobulle.
+ */
+function ChecklistStatus({
+  options,
+  value,
+  readOnly,
+  onChange,
+}: {
+  options: SelectOption[];
+  value: string;
+  readOnly: boolean;
+  onChange: (value: string) => void;
+}) {
+  const active = options.find((o) => o.value === value);
+  return (
+    <div className="flex items-center gap-1.5 px-1 py-1" role="radiogroup" aria-label="Statut">
+      {options.map((opt) => {
+        const style = STATUS_STYLE[opt.tone ?? "neutral"];
+        const on = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            aria-label={opt.label}
+            title={opt.label}
+            disabled={readOnly}
+            onClick={() => onChange(on ? "" : opt.value)}
+            className={cn(
+              "grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[var(--text-faint)] transition-all duration-200 disabled:cursor-default",
+              on
+                ? cn(style.on, "scale-110")
+                : cn("border-border bg-transparent", !readOnly && style.off),
+              !readOnly && "active:scale-90",
+            )}
+          >
+            <style.Icon className="h-3.5 w-3.5" strokeWidth={2.75} />
+          </button>
+        );
+      })}
+      {active && (
+        <span className="ml-1 truncate text-[11px] font-medium text-muted-foreground">
+          {active.label.replace(/^[^\p{L}\p{N}]+/u, "")}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -229,8 +318,15 @@ function PjButton({
         onClick={() => setOpen(true)}
         title={`${attachments.length} pièce(s) jointe(s)`}
       >
-        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        <svg
+          className="h-3 w-3"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
         </svg>
         {attachments.length > 0 && <span>{attachments.length}</span>}
       </button>
@@ -243,7 +339,9 @@ function PjButton({
           <div className="qm-dialog-solid w-full max-w-lg rounded-2xl border p-6">
             <div className="mb-4">
               <h3 className="text-lg font-medium">{contextLabel}</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">Preuves attachées à cette ligne</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Preuves attachées à cette ligne
+              </p>
             </div>
             <AttachmentList
               auditId={auditId}

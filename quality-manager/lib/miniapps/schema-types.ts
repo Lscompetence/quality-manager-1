@@ -22,6 +22,8 @@ export type Row = Record<string, unknown>;
 export type SelectOption = {
   value: string;
   label: string;
+  /** Couleur du bouton en affichage « checklist » (vert, orange, rouge, gris) */
+  tone?: Tone;
 };
 
 // -----------------------------------------------------------------------------
@@ -68,20 +70,20 @@ export type ControlAlert = {
 // -----------------------------------------------------------------------------
 
 export type ColumnType =
-  | "text"          // input texte
-  | "textarea"      // textarea auto-resize
-  | "date"          // input date
-  | "select"        // liste déroulante
-  | "number"        // input number
-  | "computed"      // cellule calculée (lecture seule)
-  | "attachments";  // composant PJ (générique)
+  | "text" // input texte
+  | "textarea" // textarea auto-resize
+  | "date" // input date
+  | "select" // liste déroulante
+  | "number" // input number
+  | "computed" // cellule calculée (lecture seule)
+  | "attachments"; // composant PJ (générique)
 
 export type Column =
   | {
       id: string;
       type: "text" | "textarea" | "date" | "number";
       label: string;
-      width?: string;        // ex: "180px"
+      width?: string; // ex: "180px"
       placeholder?: string;
     }
   | {
@@ -90,6 +92,11 @@ export type Column =
       label: string;
       options: SelectOption[];
       width?: string;
+      /**
+       * « checklist » : une rangée de boutons ronds cliquables (✓ ⚠ ✗ —)
+       * au lieu d'une liste déroulante — pour les statuts des check-lists.
+       */
+      display?: "dropdown" | "checklist";
     }
   | {
       id: string;
@@ -116,9 +123,9 @@ export type Column =
 // -----------------------------------------------------------------------------
 
 export type TableSchema = {
-  id: string;                   // ex: "registre", "annuaire", "planning"
-  label: string;                // libellé humain ex: "Registre des CR"
-  toastLabel?: string;          // ex: "CR ajouté"
+  id: string; // ex: "registre", "annuaire", "planning"
+  label: string; // libellé humain ex: "Registre des CR"
+  toastLabel?: string; // ex: "CR ajouté"
   /** Texte affiché quand la table est vide */
   emptyLabel?: string;
   columns: Column[];
@@ -135,14 +142,14 @@ export type TableSchema = {
 };
 
 export type Tab = {
-  id: string;                   // utilisé dans data-tab
+  id: string; // utilisé dans data-tab
   label: string;
-  icon?: string;                // nom d'icône lucide (ex: "Eye")
-  tableIds: string[];           // tables incluses dans cet onglet
+  icon?: string; // nom d'icône lucide (ex: "Eye")
+  tableIds: string[]; // tables incluses dans cet onglet
 };
 
 export type MiniAppSchema = {
-  key: string;                  // ex: "tableau-veille"
+  key: string; // ex: "tableau-veille"
   name: string;
   shortName: string;
   description: string;
@@ -167,8 +174,8 @@ export type MiniAppSchema = {
   kind?: "generic" | "custom";
   /** Pour les mini-apps "generic" */
   tables?: TableSchema[];
-  tabs?: Tab[];                  // si vide, on génère 1 onglet par table
-  seed?: Record<string, Row[]>;  // optionnel : données d'exemple
+  tabs?: Tab[]; // si vide, on génère 1 onglet par table
+  seed?: Record<string, Row[]>; // optionnel : données d'exemple
   /**
    * Contrôles automatiques transverses — bandeau affiché en tête de mini-app.
    * Ne retourner que les alertes actives (liste vide = rien à signaler).

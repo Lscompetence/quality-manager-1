@@ -1,10 +1,11 @@
 import type { MiniAppSchema } from "../schema-types";
 
+// Statut cliquable : un bouton par choix (voir display: "checklist")
 const STATUT_OPTIONS = [
-  { value: "ok", label: "✓ OK" },
-  { value: "ko", label: "❌ KO / À corriger" },
-  { value: "partiel", label: "⚠ Partiel" },
-  { value: "na", label: "— N/A" },
+  { value: "ok", label: "✓ OK", tone: "ok" as const },
+  { value: "partiel", label: "⚠ Partiel", tone: "warn" as const },
+  { value: "ko", label: "❌ KO / À corriger", tone: "danger" as const },
+  { value: "na", label: "— N/A", tone: "neutral" as const },
 ];
 
 const RUBRIQUE_OPTIONS = [
@@ -40,9 +41,15 @@ export const checklistSiteSchema: MiniAppSchema = {
         { id: "point", type: "text", label: "Point à vérifier", width: "300px" },
         { id: "support", type: "select", label: "Support", options: SUPPORT_OPTIONS, width: "140px" },
         { id: "url", type: "text", label: "URL / Référence" },
-        { id: "statut", type: "select", label: "Statut", options: STATUT_OPTIONS, width: "150px" },
+        {
+          id: "statut",
+          type: "select",
+          display: "checklist",
+          label: "Statut",
+          options: STATUT_OPTIONS,
+          width: "190px",
+        },
         { id: "date_verif", type: "date", label: "Vérifié le", width: "130px" },
-        { id: "commentaire", type: "textarea", label: "Commentaire / action" },
         { id: "pj", type: "attachments", label: "PJ", width: "70px" },
       ],
     },
