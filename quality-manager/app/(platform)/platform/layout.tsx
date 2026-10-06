@@ -56,7 +56,8 @@ export default async function PlatformLayout({ children }: { children: React.Rea
           />
           <ThemeToggle />
         </header>
-        <main className="flex-1 pb-20">{children}</main>
+        {/* Même colonne centrée pour toutes les pages de l'espace */}
+        <main className="mx-auto w-full max-w-6xl flex-1 pb-20">{children}</main>
       </div>
     </div>
   );

@@ -55,7 +55,11 @@ export default async function ClientAreaLayout({ children }: { children: React.R
       .is("read_at", null),
     // Indicateurs validés des dossiers confiés — pour l'avancement par critère du menu
     auditIds.length
-      ? supabase.from("audit_indicators").select("audit_id, critere_num").in("audit_id", auditIds).eq("status", "complet")
+      ? supabase
+          .from("audit_indicators")
+          .select("audit_id, critere_num")
+          .in("audit_id", auditIds)
+          .eq("status", "complet")
       : Promise.resolve({ data: [] as { audit_id: string; critere_num: number }[] }),
   ]);
 
@@ -67,7 +71,10 @@ export default async function ClientAreaLayout({ children }: { children: React.R
     per[c] = (per[c] ?? 0) + 1;
     doneByAudit.set(ind.audit_id, per);
   }
-  const critereScoresByAudit: Record<string, Partial<Record<CritereNum, number>>> = Object.fromEntries(
+  const critereScoresByAudit: Record<
+    string,
+    Partial<Record<CritereNum, number>>
+  > = Object.fromEntries(
     (accesses ?? [])
       .filter((a) => a.audit)
       .map((a) => {
@@ -99,7 +106,8 @@ export default async function ClientAreaLayout({ children }: { children: React.R
       </Suspense>
       <div className="flex min-w-0 flex-1 flex-col px-6 pt-7">
         <ClientTopbar name={name} />
-        <main className="flex flex-1 flex-col pb-20">{children}</main>
+        {/* Même colonne centrée pour toutes les pages de l'espace */}
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col pb-20">{children}</main>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export default async function RequestsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="mx-auto w-full max-w-5xl space-y-6">
+      <div className="w-full space-y-6">
         <PageHeader
           eyebrow="Messages · Admin de l’organisme"
           title="Contacter mon admin"
@@ -74,7 +74,7 @@ export default async function RequestsPage() {
   const teamToHandle = team.filter((r) => r.status === "a_traiter").length;
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader
         eyebrow="Messages · Équipe et LS Compétences"
         title="Messages"

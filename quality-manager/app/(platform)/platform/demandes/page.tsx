@@ -61,7 +61,7 @@ export default async function RequestsPage({
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader eyebrow="LS Compétences · Relation client" title="Demandes" />
 
       <div className="flex gap-2">

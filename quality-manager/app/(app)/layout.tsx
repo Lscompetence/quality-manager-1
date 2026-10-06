@@ -70,7 +70,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           searchGroups={searchGroups}
           breadcrumb={<AutoBreadcrumb audits={audits} establishments={session.establishments} />}
         />
-        <main className="flex flex-1 flex-col pb-20">{children}</main>
+        {/* Même colonne centrée pour toutes les pages de l'espace */}
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col pb-20">{children}</main>
       </div>
     </div>
   );

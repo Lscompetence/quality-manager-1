@@ -31,7 +31,7 @@ export default async function NotificationsPage() {
     (prefsRow?.preferences as Record<string, Record<string, boolean>>) ?? DEFAULT_PREFERENCES;
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader
         eyebrow="Centre · Notifications"
         title="Notifications"
