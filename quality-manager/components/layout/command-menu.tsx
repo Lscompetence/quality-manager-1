@@ -61,6 +61,8 @@ export function CommandMenu({
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      // La saisie automatique du navigateur envoie des événements sans `key`
+      if (typeof e.key !== "string") return;
       if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen(!open);
