@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { PASSWORD_SETUP_COOKIE, canSetPassword } from "@/lib/auth/password-setup";
 import { createClient } from "@/lib/supabase/server";
 import {
   createEmailLinkClient,
@@ -110,6 +112,18 @@ export async function resetPassword(input: ResetPasswordInput): Promise<ActionRe
   }
 
   const supabase = await createClient();
+  // Seulement pour le compte du lien reçu par email (voir lib/auth/password-setup)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  if (!user || !canSetPassword(cookieStore.get(PASSWORD_SETUP_COOKIE)?.value, user.id)) {
+    return {
+      ok: false,
+      error: "Ce lien n’est plus valable. Demandez un nouveau lien depuis « Mot de passe oublié ».",
+    };
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
@@ -118,6 +132,8 @@ export async function resetPassword(input: ResetPasswordInput): Promise<ActionRe
     return { ok: false, error: mapAuthError(error.message) };
   }
 
+  // Lien consommé : la page ne resservira pas
+  cookieStore.delete(PASSWORD_SETUP_COOKIE);
   return { ok: true };
 }
 
@@ -145,7 +161,8 @@ export async function logoutClient() {
 // Helpers
 // =============================================================================
 function mapAuthError(message: string): string {
-  if (message.includes("Invalid login credentials")) return "Email ou mot de passe incorrect";
+  if (message.includes("Invalid login credentials"))
+    return "Email ou mot de passe incorrect. Si le navigateur a rempli le mot de passe tout seul, effacez-le et retapez-le.";
   if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email";
   if (message.includes("User already registered")) return "Un compte existe déjà avec cet email";
   if (message.includes("session missing"))

@@ -7,6 +7,7 @@ import type { Route } from "next";
 import { createBrowserClient } from "@supabase/ssr";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import type { Database } from "@/types/database";
+import { PASSWORD_SETUP_COOKIE, PASSWORD_SETUP_MAX_AGE } from "@/lib/auth/password-setup";
 
 /**
  * Atterrissage des liens reçus par email (invitation d'un client, renvoi de
@@ -54,12 +55,18 @@ export function ConfirmLink() {
     );
     supabase.auth
       .setSession({ access_token: accessToken, refresh_token: refreshToken })
-      .then(({ error }) => {
-        if (error) {
+      .then(({ data, error }) => {
+        if (error || !data.user) {
           setError(
             "Ce lien a expiré ou a déjà été utilisé. Demandez à votre organisme de vous renvoyer vos accès.",
           );
           return;
+        }
+        // Le choix du mot de passe n'est ouvert qu'au compte de CE lien
+        // (voir PASSWORD_SETUP_COOKIE) : jamais au compte qui était déjà
+        // connecté dans le navigateur.
+        if (hash.get("type") === "recovery" || hash.get("type") === "invite") {
+          document.cookie = `${PASSWORD_SETUP_COOKIE}=${data.user.id}; path=/; max-age=${PASSWORD_SETUP_MAX_AGE}; samesite=lax`;
         }
         router.replace(next as Route);
         router.refresh();

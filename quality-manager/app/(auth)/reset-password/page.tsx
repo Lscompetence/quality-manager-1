@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import type { Route } from "next";
 import { AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 import { PORTALS, isPortal, type Portal } from "@/lib/auth/portals";
+import { PASSWORD_SETUP_COOKIE, canSetPassword } from "@/lib/auth/password-setup";
 
 const PORTAL_LABEL: Record<Portal, string> = {
   platform: "Espace LS Compétences",
@@ -31,13 +33,15 @@ export default async function ResetPasswordPage({
   const target = PORTALS[portal].home;
   const eyebrow = PORTAL_LABEL[portal];
 
-  // La page n'a de sens qu'avec la session posée par le lien reçu par email.
+  // La page n'a de sens qu'avec la session posée par le lien reçu par email,
+  // et pour le compte de ce lien — pas pour un compte déjà connecté ici.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const setupFor = (await cookies()).get(PASSWORD_SETUP_COOKIE)?.value;
 
-  if (!user) {
+  if (!user || !canSetPassword(setupFor, user.id)) {
     return (
       <>
         <div className="mb-5 grid h-11 w-11 place-items-center rounded-xl bg-[rgba(232,93,93,0.12)] text-[#E85D5D]">
@@ -79,7 +83,7 @@ export default async function ResetPasswordPage({
         dès l&apos;enregistrement.
       </p>
 
-      <ResetPasswordForm next={target} />
+      <ResetPasswordForm next={target} email={user.email ?? ""} />
     </>
   );
 }

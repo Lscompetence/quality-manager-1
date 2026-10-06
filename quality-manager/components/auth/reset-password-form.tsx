@@ -27,7 +27,14 @@ const RULES = [
  * email, puis `updateUser({ password })`) : réinitialisation classique, et
  * première connexion d'un client invité sur un dossier.
  */
-export function ResetPasswordForm({ next = "/dashboard" }: { next?: string }) {
+export function ResetPasswordForm({
+  next = "/dashboard",
+  email,
+}: {
+  next?: string;
+  /** Le compte concerné : le navigateur met à jour LE BON mot de passe enregistré. */
+  email: string;
+}) {
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
@@ -57,6 +64,9 @@ export function ResetPasswordForm({ next = "/dashboard" }: { next?: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      {/* Sans ce champ, le navigateur ne sait pas à quel compte rattacher le
+          nouveau mot de passe et continue de proposer l'ancien à la connexion. */}
+      <input type="email" name="username" autoComplete="username" value={email} readOnly hidden />
       <div className="space-y-5">
         <div>
           <Label htmlFor="password">Nouveau mot de passe</Label>
