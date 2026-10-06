@@ -68,11 +68,19 @@
     --t-renew: #eb489b;
 
     --shadow-card: 0 4px 12px -4px rgba(0, 0, 0, 0.4);
-    --shadow-card-hover: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+    --shadow-card-hover:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -8px rgba(0, 0, 0, 0.5);
 
     --status-on: #58d69a;
     --grain-opacity: 0.04;
     --grain-blend: normal;
+
+    /* Boutons d'icônes de la barre du haut et tuiles d'icônes du menu */
+    --ctl-top: rgba(255, 255, 255, 0.09);
+    --ctl-bottom: rgba(255, 255, 255, 0.025);
+    --ctl-highlight: rgba(255, 255, 255, 0.14);
+    --ctl-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 18px -10px rgba(0, 0, 0, 0.6);
+    --ctl-glow: rgba(148, 116, 255, 0.45);
   }
 
   /* Teinte de l'aurore selon la catégorie du dossier ouvert (comme dossier_dashboard.html) */
@@ -162,11 +170,18 @@
     --t-renew: #c82a7d;
 
     --shadow-card: 0 2px 6px -2px rgba(15, 42, 71, 0.07), 0 14px 28px -12px rgba(15, 42, 71, 0.14);
-    --shadow-card-hover: 0 4px 12px -4px rgba(15, 42, 71, 0.1), 0 20px 44px -10px rgba(15, 42, 71, 0.2);
+    --shadow-card-hover:
+      0 4px 12px -4px rgba(15, 42, 71, 0.1), 0 20px 44px -10px rgba(15, 42, 71, 0.2);
 
     --status-on: #0e9f6e;
     --grain-opacity: 0.025;
     --grain-blend: multiply;
+
+    --ctl-top: rgba(255, 255, 255, 0.92);
+    --ctl-bottom: rgba(255, 255, 255, 0.55);
+    --ctl-highlight: rgba(255, 255, 255, 1);
+    --ctl-shadow: 0 1px 2px rgba(15, 42, 71, 0.08), 0 8px 18px -10px rgba(15, 42, 71, 0.28);
+    --ctl-glow: rgba(107, 79, 187, 0.32);
   }
 }
 
@@ -178,8 +193,12 @@
   html,
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    transition: background-color 0.45s ease, color 0.45s ease;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    transition:
+      background-color 0.45s ease,
+      color 0.45s ease;
   }
 
   /* Défilement doux pour les ancres du menu (« Mes dossiers ») */
@@ -229,13 +248,41 @@
        sans repeindre le flou à chaque image. */
     will-change: transform;
     background:
-      radial-gradient(ellipse 1200px 600px at 20% 30%, rgba(240, 153, 123, var(--aur-c1)) 0%, transparent 50%),
-      radial-gradient(ellipse 1000px 500px at 70% 25%, rgba(93, 201, 165, var(--aur-c2)) 0%, transparent 50%),
-      radial-gradient(ellipse 900px 600px at 85% 50%, rgba(239, 158, 40, var(--aur-c3)) 0%, transparent 50%),
-      radial-gradient(ellipse 1100px 500px at 60% 75%, rgba(107, 137, 208, var(--aur-c4)) 0%, transparent 50%),
-      radial-gradient(ellipse 800px 500px at 25% 70%, rgba(107, 190, 84, var(--aur-c5)) 0%, transparent 50%),
-      radial-gradient(ellipse 900px 600px at 50% 90%, rgba(167, 85, 248, var(--aur-c6)) 0%, transparent 50%),
-      radial-gradient(ellipse 1000px 500px at 10% 50%, rgba(235, 72, 155, var(--aur-c7)) 0%, transparent 50%);
+      radial-gradient(
+        ellipse 1200px 600px at 20% 30%,
+        rgba(240, 153, 123, var(--aur-c1)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 1000px 500px at 70% 25%,
+        rgba(93, 201, 165, var(--aur-c2)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 900px 600px at 85% 50%,
+        rgba(239, 158, 40, var(--aur-c3)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 1100px 500px at 60% 75%,
+        rgba(107, 137, 208, var(--aur-c4)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 800px 500px at 25% 70%,
+        rgba(107, 190, 84, var(--aur-c5)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 900px 600px at 50% 90%,
+        rgba(167, 85, 248, var(--aur-c6)) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse 1000px 500px at 10% 50%,
+        rgba(235, 72, 155, var(--aur-c7)) 0%,
+        transparent 50%
+      );
     filter: blur(40px);
     animation: auroraDrift 30s ease-in-out infinite;
   }
@@ -284,8 +331,13 @@
     backdrop-filter: blur(40px) saturate(140%);
     -webkit-backdrop-filter: blur(40px) saturate(140%);
     border: 1px solid var(--border-soft);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-card);
-    transition: background-color 0.45s ease, border-color 0.45s ease, box-shadow 0.3s ease;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      var(--shadow-card);
+    transition:
+      background-color 0.45s ease,
+      border-color 0.45s ease,
+      box-shadow 0.3s ease;
   }
 
   .qm-glass-hover:hover {
@@ -649,6 +701,123 @@
   /* ===== BASCULE DE THÈME (reprise des maquettes) =====
      L'icône affichée correspond au thème ACTUEL : soleil orangé en clair,
      lune en sombre. Les deux icônes glissent l'une après l'autre. */
+  /* ===== BOUTONS D'ICÔNES (barre du haut) =====
+     Verre bombé : dégradé vertical, reflet en haut, ombre douce ; au survol
+     le bouton se soulève légèrement et s'auréole d'améthyste. */
+  .qm-icon-btn {
+    display: grid;
+    place-items: center;
+    height: 38px;
+    width: 38px;
+    border-radius: 12px;
+    color: var(--text-soft);
+    background: linear-gradient(180deg, var(--ctl-top), var(--ctl-bottom));
+    border: 1px solid var(--border-soft);
+    box-shadow:
+      inset 0 1px 0 var(--ctl-highlight),
+      var(--ctl-shadow);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.25s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .qm-icon-btn:hover {
+    transform: translateY(-2px);
+    color: var(--amethyst-br);
+    border-color: var(--amethyst-soft);
+    box-shadow:
+      inset 0 1px 0 var(--ctl-highlight),
+      var(--ctl-shadow),
+      0 10px 24px -10px var(--ctl-glow);
+  }
+
+  .qm-icon-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Pastille profil : même verre, avatar cerclé d'un anneau dégradé */
+  .qm-profile-chip {
+    background: linear-gradient(180deg, var(--ctl-top), var(--ctl-bottom));
+    border: 1px solid var(--border-soft);
+    box-shadow:
+      inset 0 1px 0 var(--ctl-highlight),
+      var(--ctl-shadow);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.25s ease,
+      border-color 0.2s ease;
+  }
+
+  .qm-profile-chip:hover {
+    transform: translateY(-2px);
+    border-color: var(--amethyst-soft);
+    box-shadow:
+      inset 0 1px 0 var(--ctl-highlight),
+      var(--ctl-shadow),
+      0 10px 24px -10px var(--ctl-glow);
+  }
+
+  .qm-avatar-ring {
+    padding: 2px;
+    border-radius: 9999px;
+    background: conic-gradient(from 200deg, #9474ff, #eb489b, #ef9e28, #5dc9a5, #9474ff);
+  }
+
+  /* ===== TUILES D'ICÔNES DU MENU ===== */
+  .qm-nav-tile {
+    display: grid;
+    place-items: center;
+    height: 30px;
+    width: 30px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    color: var(--text-soft);
+    background: linear-gradient(180deg, var(--ctl-top), var(--ctl-bottom));
+    border: 1px solid var(--border-soft);
+    box-shadow:
+      inset 0 1px 0 var(--ctl-highlight),
+      var(--ctl-shadow);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .group:hover .qm-nav-tile {
+    color: var(--amethyst-br);
+    border-color: var(--amethyst-soft);
+    transform: scale(1.06);
+  }
+
+  .qm-nav-tile[data-active="true"] {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.22);
+    background: linear-gradient(145deg, #a38aff 0%, #7c5fd6 55%, #5a3fab 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 6px 16px -6px rgba(107, 79, 187, 0.85);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qm-icon-btn,
+    .qm-profile-chip,
+    .qm-nav-tile {
+      transition: none;
+    }
+    .qm-icon-btn:hover,
+    .qm-profile-chip:hover,
+    .group:hover .qm-nav-tile {
+      transform: none;
+    }
+  }
+
   .theme-toggle .ic-sun,
   .theme-toggle .ic-moon {
     transition:
@@ -785,15 +954,31 @@
 }
 
 /* Couleur par type — un peu plus foncée en mode jour pour rester lisible */
-.qm-toast.qm-toast-success { --qm-toast-accent: #0e9f6e; }
-.qm-toast.qm-toast-error { --qm-toast-accent: #d93636; }
-.qm-toast.qm-toast-warning { --qm-toast-accent: #c46f06; }
-.qm-toast.qm-toast-info { --qm-toast-accent: #5a3fab; }
+.qm-toast.qm-toast-success {
+  --qm-toast-accent: #0e9f6e;
+}
+.qm-toast.qm-toast-error {
+  --qm-toast-accent: #d93636;
+}
+.qm-toast.qm-toast-warning {
+  --qm-toast-accent: #c46f06;
+}
+.qm-toast.qm-toast-info {
+  --qm-toast-accent: #5a3fab;
+}
 
-[data-theme="dark"] .qm-toast.qm-toast-success { --qm-toast-accent: #58d69a; }
-[data-theme="dark"] .qm-toast.qm-toast-error { --qm-toast-accent: #ef5c5c; }
-[data-theme="dark"] .qm-toast.qm-toast-warning { --qm-toast-accent: #ef9e28; }
-[data-theme="dark"] .qm-toast.qm-toast-info { --qm-toast-accent: #9474ff; }
+[data-theme="dark"] .qm-toast.qm-toast-success {
+  --qm-toast-accent: #58d69a;
+}
+[data-theme="dark"] .qm-toast.qm-toast-error {
+  --qm-toast-accent: #ef5c5c;
+}
+[data-theme="dark"] .qm-toast.qm-toast-warning {
+  --qm-toast-accent: #ef9e28;
+}
+[data-theme="dark"] .qm-toast.qm-toast-info {
+  --qm-toast-accent: #9474ff;
+}
 
 /* Bouton « Ouvrir » des messages en direct */
 .qm-toast .qm-toast-action {
@@ -815,7 +1000,9 @@
   border: 1px solid var(--border-soft);
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 20px -6px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 6px 20px -6px rgba(0, 0, 0, 0.35);
 }
 [data-theme="light"] .qm-panel {
   box-shadow:
@@ -861,12 +1048,16 @@
   color: #fff;
   background: linear-gradient(180deg, #9474ff 0%, #6b4fbb 50%, #5a3fab 100%);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 4px 12px -2px rgba(107, 79, 187, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 4px 12px -2px rgba(107, 79, 187, 0.5);
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .qm-btn-add:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 6px 18px -2px rgba(107, 79, 187, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 6px 18px -2px rgba(107, 79, 187, 0.7);
 }
 
 .miniapp-table {

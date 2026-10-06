@@ -49,10 +49,12 @@ export function Topbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2.5 rounded-full border border-[var(--border-soft)] bg-[var(--surface)] py-[5px] pl-[5px] pr-3.5 text-xs text-[var(--text-soft)] outline-none backdrop-blur-xl transition-colors hover:border-[var(--border-strong)]">
-            <Avatar className="h-7 w-7">
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
+          <button className="qm-profile-chip flex items-center gap-2.5 rounded-full py-[4px] pl-[4px] pr-3.5 text-xs text-[var(--text-soft)] outline-none">
+            <span className="qm-avatar-ring">
+              <Avatar className="h-[26px] w-[26px]">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+            </span>
             <span className="hidden text-[12px] font-medium md:block">{user.organizationName}</span>
           </button>
         </DropdownMenuTrigger>

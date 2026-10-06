@@ -165,7 +165,7 @@ export function SearchButton({
         aria-label="Rechercher (Ctrl+K)"
         title="Rechercher (Ctrl+K)"
         onClick={() => setOpen(true)}
-        className="grid h-[38px] w-[38px] place-items-center rounded-[11px] border border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text-soft)] backdrop-blur-xl transition-colors hover:bg-[var(--surface-2)] hover:text-foreground"
+        className="qm-icon-btn"
       >
         <Search className="h-4 w-4" />
       </button>

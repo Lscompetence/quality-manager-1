@@ -4,7 +4,15 @@ import * as React from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { Building2, FileText, Home, LayoutDashboard, LifeBuoy, Zap } from "lucide-react";
+import {
+  Buildings,
+  ChartPieSlice,
+  ChatsCircle,
+  Files,
+  House,
+  Lightning,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { QmBrandMark } from "@/components/brand/logo";
 import type { AuditRef } from "@/components/layout/auto-breadcrumb";
@@ -72,37 +80,29 @@ export function Sidebar({
         {auditId && <DossierContext audit={audit} name={audit?.name ?? "Dossier"} />}
 
         {/* Navigation — sprint 8 : établissements (admin), contact LS, puis le dossier */}
-        <nav className="relative flex shrink-0 flex-col gap-px">
-          <NavLink
-            href="/dashboard"
-            icon={<Home className="h-4 w-4" />}
-            active={pathname === "/dashboard"}
-          >
+        <nav className="relative flex shrink-0 flex-col gap-1">
+          <NavLink href="/dashboard" icon={House} active={pathname === "/dashboard"}>
             Vue d&apos;ensemble
           </NavLink>
 
           {role === "admin" && (
             <NavLink
               href="/etablissements"
-              icon={<Building2 className="h-4 w-4" />}
+              icon={Buildings}
               active={pathname.startsWith("/etablissements")}
             >
               Établissements
             </NavLink>
           )}
 
-          <NavLink
-            href="/demandes"
-            icon={<LifeBuoy className="h-4 w-4" />}
-            active={pathname.startsWith("/demandes")}
-          >
+          <NavLink href="/demandes" icon={ChatsCircle} active={pathname.startsWith("/demandes")}>
             {role === "admin" ? "Messages" : "Contacter mon admin"}
           </NavLink>
 
           {dashboardAuditId && (
             <NavLink
               href={`/audits/${dashboardAuditId}`}
-              icon={<LayoutDashboard className="h-4 w-4" />}
+              icon={ChartPieSlice}
               active={pathname === `/audits/${dashboardAuditId}`}
             >
               Tableau de bord
@@ -114,14 +114,14 @@ export function Sidebar({
             <>
               <NavLink
                 href={`/audits/${auditId}/documents`}
-                icon={<FileText className="h-4 w-4" />}
+                icon={Files}
                 active={pathname.startsWith(`/audits/${auditId}/documents`)}
               >
                 Documents
               </NavLink>
               <NavLink
                 href={`/audits/${auditId}/miniapps`}
-                icon={<Zap className="h-4 w-4" />}
+                icon={Lightning}
                 active={pathname.startsWith(`/audits/${auditId}/miniapps`)}
               >
                 Mini-apps
@@ -198,13 +198,14 @@ function DossierContext({ audit, name }: { audit?: AuditRef; name: string }) {
 
 function NavLink({
   href,
-  icon,
+  icon: Icon,
   active,
   children,
   onClick,
 }: {
   href: string;
-  icon: React.ReactNode;
+  /** Icône Phosphor, en duotone dans une tuile de verre (globals.css : .qm-nav-tile) */
+  icon: PhosphorIcon;
   active: boolean;
   children: React.ReactNode;
   onClick?: () => void;
@@ -215,19 +216,21 @@ function NavLink({
       prefetch={true}
       onClick={onClick}
       className={cn(
-        "relative flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-colors",
+        "group relative flex items-center gap-[11px] rounded-[12px] px-2 py-[7px] text-[13px] font-medium transition-colors",
         active ? "text-foreground" : "text-[var(--text-soft)] hover:text-foreground",
       )}
     >
       {active && (
         <motion.div
           layoutId="sidebar-active-main"
-          className="absolute inset-0 rounded-[10px] bg-gradient-to-b from-[var(--amethyst-soft)] to-[var(--amethyst-soft-2)] shadow-[inset_0_0_0_1px_var(--amethyst-soft)]"
+          className="absolute inset-0 rounded-[12px] bg-gradient-to-r from-[var(--amethyst-soft)] to-[var(--amethyst-soft-2)] shadow-[inset_0_0_0_1px_var(--amethyst-soft)]"
           initial={false}
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
-      <span className="relative z-10 flex items-center gap-[11px] opacity-90">{icon}</span>
+      <span className="qm-nav-tile relative z-10" data-active={active}>
+        <Icon size={17} weight="duotone" />
+      </span>
       <span className="relative z-10">{children}</span>
     </Link>
   );

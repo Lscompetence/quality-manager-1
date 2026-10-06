@@ -29,7 +29,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={theme === "dark" ? "Passer en thème clair" : "Passer en thème sombre"}
-      className="theme-toggle relative grid h-[38px] w-[38px] place-items-center overflow-hidden rounded-[11px] border border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text-soft)] backdrop-blur-xl transition-colors hover:bg-[var(--surface-2)] hover:text-foreground"
+      className="theme-toggle qm-icon-btn relative overflow-hidden"
     >
       <span className="ic-sun absolute inset-0 grid place-items-center">
         <Sun className="h-4 w-4" />
