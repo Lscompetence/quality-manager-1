@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
@@ -44,15 +45,11 @@ export default async function ClientsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            LS Compétences · Comptes
-          </p>
-          <h1 className="font-sans text-3xl font-light tracking-tight">Clients</h1>
-        </div>
-        <NewClientDialog />
-      </div>
+      <PageHeader
+        eyebrow="LS Compétences · Comptes"
+        title="Clients"
+        actions={<NewClientDialog />}
+      />
 
       <div className="flex gap-2">
         {FILTERS.map((f) => (

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -72,16 +73,11 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
         </div>
       )}
 
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          Mini-apps métier · {applicableMiniapps.length} disponibles
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Mini-apps du dossier</h1>
-        <p className="mt-2 text-muted-foreground">
-          Mini-apps adaptées aux catégories de votre dossier ({categories.join(" · ")}).
-          Industrialisent la saisie pour les indicateurs RNQ V9.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow={`Mini-apps métier · ${applicableMiniapps.length} disponibles`}
+        title="Mini-apps du dossier"
+        description={`Mini-apps adaptées aux catégories de votre dossier (${categories.join(" · ")}). Industrialisent la saisie pour les indicateurs RNQ V9.`}
+      />
 
       {plan === "essentiel" && (
         <Card className="border-amethyst-bright/30">

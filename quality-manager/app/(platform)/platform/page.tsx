@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -53,15 +54,11 @@ export default async function PlatformHome() {
 
   return (
     <div className="w-full space-y-8">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            LS Compétences · Pilotage
-          </p>
-          <h1 className="font-sans text-4xl font-light tracking-tight">Activité Quality Manager</h1>
-        </div>
-        <NewClientDialog />
-      </div>
+      <PageHeader
+        eyebrow="LS Compétences · Pilotage"
+        title="Activité Quality Manager"
+        actions={<NewClientDialog />}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <KpiTile

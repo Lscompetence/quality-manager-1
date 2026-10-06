@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -140,20 +141,14 @@ function AdminOverview({
 
   return (
     <div className="w-full">
-      <div className="mb-10 flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            Vue d’ensemble · {session.organization.name}
-          </p>
-          <h1 className="font-sans text-4xl font-light tracking-tight">Vos établissements</h1>
-          <p className="mt-2 text-muted-foreground">
-            L’avancement Qualiopi de chaque établissement, critère par critère. Les responsables
-            pédagogiques remplissent les dossiers ; vous les consultez.
-          </p>
-        </div>
-        {/* Sans établissement, le bouton est dans l'encart central : un seul à la fois */}
-        {session.establishments.length > 0 && <CreateEstablishmentDialog />}
-      </div>
+      {/* Sans établissement, le bouton est dans l'encart central : un seul à la fois */}
+      <PageHeader
+        className="mb-10"
+        eyebrow={`Vue d’ensemble · ${session.organization.name}`}
+        title="Vos établissements"
+        description="L’avancement Qualiopi de chaque établissement, critère par critère. Les responsables pédagogiques remplissent les dossiers ; vous les consultez."
+        actions={session.establishments.length > 0 ? <CreateEstablishmentDialog /> : undefined}
+      />
 
       {session.establishments.length === 0 ? (
         <Card className="p-12 text-center">
@@ -312,21 +307,20 @@ function DossierOverview({
 
   return (
     <div className="w-full">
-      <div className="mb-10 flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            Vue d’ensemble · Dossiers
-          </p>
-          <h1 className="font-sans text-4xl font-light tracking-tight">
-            Bonjour {session.profile.firstName}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
+      <PageHeader
+        className="mb-10"
+        eyebrow="Vue d’ensemble · Dossiers"
+        title={`Bonjour ${session.profile.firstName}`}
+        description={
+          <>
             {session.establishments.length === 1 ? `${session.establishments[0]!.name} — ` : ""}
             vos dossiers d’audit Qualiopi (RNQ V9 — 7 critères, 32 indicateurs).
-          </p>
-        </div>
-        {canCreate && <CreateAuditDialog establishments={session.establishments} />}
-      </div>
+          </>
+        }
+        actions={
+          canCreate ? <CreateAuditDialog establishments={session.establishments} /> : undefined
+        }
+      />
 
       {session.establishments.length === 0 ? (
         <Card className="p-12 text-center">

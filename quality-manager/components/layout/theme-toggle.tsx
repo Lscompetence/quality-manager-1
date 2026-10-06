@@ -32,10 +32,10 @@ export function ThemeToggle() {
       className="theme-toggle qm-icon-btn relative overflow-hidden"
     >
       <span className="ic-sun absolute inset-0 grid place-items-center">
-        <Sun className="h-4 w-4" />
+        <Sun className="h-[18px] w-[18px]" />
       </span>
       <span className="ic-moon absolute inset-0 grid place-items-center">
-        <Moon className="h-4 w-4" />
+        <Moon className="h-[18px] w-[18px]" />
       </span>
     </button>
   );

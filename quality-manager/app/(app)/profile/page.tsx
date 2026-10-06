@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,13 +25,8 @@ export default async function ProfilePage() {
   const initials = `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase();
 
   return (
-    <div className="w-full max-w-3xl space-y-6">
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          Compte utilisateur
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Mon profil</h1>
-      </div>
+    <div className="mx-auto w-full max-w-3xl space-y-6">
+      <PageHeader eyebrow="Compte utilisateur" title="Mon profil" />
 
       <Card>
         <CardContent className="flex items-center gap-4 p-6">

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import type { Route } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -61,12 +62,7 @@ export default async function RequestsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          LS Compétences · Relation client
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Demandes</h1>
-      </div>
+      <PageHeader eyebrow="LS Compétences · Relation client" title="Demandes" />
 
       <div className="flex gap-2">
         {[

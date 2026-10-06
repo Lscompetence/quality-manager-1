@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth/session";
 import { requestCategory } from "@/lib/requests/categories";
@@ -45,7 +46,7 @@ export default async function RequestsPage() {
         <PageHeader
           eyebrow="Messages · Admin de l’organisme"
           title="Contacter mon admin"
-          intro="Une question, un blocage, une réclamation ou une idée : écrivez à l’admin de votre organisme. Il vous répond ici, ou transmet à LS Compétences si nécessaire."
+          description="Une question, un blocage, une réclamation ou une idée : écrivez à l’admin de votre organisme. Il vous répond ici, ou transmet à LS Compétences si nécessaire."
         />
         <Card>
           <CardHeader>
@@ -77,7 +78,7 @@ export default async function RequestsPage() {
       <PageHeader
         eyebrow="Messages · Équipe et LS Compétences"
         title="Messages"
-        intro="Les responsables pédagogiques et lecteurs de votre organisme vous écrivent ici. Répondez-leur, ou transmettez à LS Compétences ce que vous ne pouvez pas régler."
+        description="Les responsables pédagogiques et lecteurs de votre organisme vous écrivent ici. Répondez-leur, ou transmettez à LS Compétences ce que vous ne pouvez pas régler."
       />
 
       <Card>
@@ -130,18 +131,6 @@ export default async function RequestsPage() {
           <RequestList requests={toLs} responseLabel="Réponse de LS Compétences" />
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function PageHeader({ eyebrow, title, intro }: { eyebrow: string; title: string; intro: string }) {
-  return (
-    <div>
-      <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-        {eyebrow}
-      </p>
-      <h1 className="font-sans text-3xl font-light tracking-tight">{title}</h1>
-      <p className="mt-2 text-muted-foreground">{intro}</p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { REQUEST_KIND_LABEL, type RequestKind } from "@/lib/auth/permissions";
@@ -31,18 +32,11 @@ export default async function QualityPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          LS Compétences · Qualité du service
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">
-          Qualité et amélioration continue
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Sur les {PERIOD_DAYS} derniers jours : les réclamations et suggestions des clients, et la
-          réactivité de leur traitement.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="LS Compétences · Qualité du service"
+        title="Qualité et amélioration continue"
+        description={`Sur les ${PERIOD_DAYS} derniers jours : les réclamations et suggestions des clients, et la réactivité de leur traitement.`}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiTile label="Demandes reçues" value={stats.total} />

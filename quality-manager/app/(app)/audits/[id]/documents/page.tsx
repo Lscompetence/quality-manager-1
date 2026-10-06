@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth/session";
@@ -72,16 +73,11 @@ export default async function DocumentsPage({ params }: { params: Promise<Params
         </div>
       )}
 
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          Vue Documents · {enriched.length} preuves
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Documents du dossier</h1>
-        <p className="mt-2 text-muted-foreground">
-          Toutes les preuves attachées au dossier d&apos;audit, organisées par critère et source.
-          C&apos;est la vue que vous montrerez à l&apos;auditeur.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow={`Vue Documents · ${enriched.length} preuves`}
+        title="Documents du dossier"
+        description="Toutes les preuves attachées au dossier d’audit, organisées par critère et source. C’est la vue que vous montrerez à l’auditeur."
+      />
 
       <DocumentsView attachments={enriched} />
     </div>

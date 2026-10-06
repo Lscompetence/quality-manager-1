@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -19,18 +20,12 @@ export default async function EstablishmentsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            Organisation · {session.organization.name}
-          </p>
-          <h1 className="font-sans text-3xl font-light tracking-tight">Établissements</h1>
-          <p className="mt-2 text-muted-foreground">
-            Créez vos établissements et ouvrez l’accès à leurs responsables pédagogiques.
-          </p>
-        </div>
-        <CreateEstablishmentDialog />
-      </div>
+      <PageHeader
+        eyebrow={`Organisation · ${session.organization.name}`}
+        title="Établissements"
+        description="Créez vos établissements et ouvrez l’accès à leurs responsables pédagogiques."
+        actions={<CreateEstablishmentDialog />}
+      />
 
       <div className="space-y-3">
         {session.establishments.length === 0 && (

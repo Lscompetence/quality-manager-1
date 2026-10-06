@@ -40,7 +40,7 @@ export function Topbar({
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
 
   return (
-    <header className="relative z-30 mb-7 flex h-[38px] items-center gap-2.5">
+    <header className="relative z-30 mb-7 flex h-[46px] items-center gap-3">
       <div className="min-w-0 flex-1">{breadcrumb}</div>
 
       <SearchButton groups={searchGroups} />
@@ -49,13 +49,15 @@ export function Topbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="qm-profile-chip flex items-center gap-2.5 rounded-full py-[4px] pl-[4px] pr-3.5 text-xs text-[var(--text-soft)] outline-none">
+          <button className="qm-profile-chip flex h-[44px] items-center gap-3 rounded-full py-[5px] pl-[5px] pr-4 text-xs text-[var(--text-soft)] outline-none">
             <span className="qm-avatar-ring">
-              <Avatar className="h-[26px] w-[26px]">
+              <Avatar className="h-[30px] w-[30px]">
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </span>
-            <span className="hidden text-[12px] font-medium md:block">{user.organizationName}</span>
+            <span className="hidden text-[13px] font-semibold md:block">
+              {user.organizationName}
+            </span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

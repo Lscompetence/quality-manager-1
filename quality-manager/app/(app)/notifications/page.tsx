@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -31,15 +32,11 @@ export default async function NotificationsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          Centre · Notifications
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Notifications</h1>
-        <p className="mt-2 text-muted-foreground">
-          Centre de notifications et préférences (in-app et email).
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Centre · Notifications"
+        title="Notifications"
+        description="Centre de notifications et préférences (in-app et email)."
+      />
 
       <Tabs defaultValue="center">
         <TabsList>

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requireOrgAdmin } from "@/lib/auth/session";
 import type { MemberRole } from "@/lib/auth/permissions";
@@ -60,15 +61,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-          Configuration · Organisme
-        </p>
-        <h1 className="font-sans text-3xl font-light tracking-tight">Paramètres</h1>
-        <p className="mt-2 text-muted-foreground">
-          Configuration de votre organisme dans Quality Manager : profil, équipe et abonnement.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Configuration · Organisme"
+        title="Paramètres"
+        description="Configuration de votre organisme dans Quality Manager : profil, équipe et abonnement."
+      />
 
       <Tabs defaultValue="profile">
         <TabsList>

@@ -49,7 +49,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
       <PlatformNav email={session.email} toHandle={count ?? 0} />
       <div className="flex min-w-0 flex-1 flex-col px-6 pt-7">
         {/* Barre du haut : recherche et mode jour / nuit, comme dans les autres espaces */}
-        <header className="relative z-30 mb-7 flex h-[38px] items-center justify-end gap-2.5">
+        <header className="relative z-30 mb-7 flex h-[46px] items-center justify-end gap-3">
           <SearchButton
             groups={searchGroups}
             placeholder="Rechercher un client, une demande, une page…"

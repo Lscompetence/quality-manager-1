@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -74,9 +75,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         Clients
       </Link>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="mb-2 flex items-center gap-2">
+      <PageHeader
+        eyebrow={
+          <>
             <Badge
               variant={
                 org.subscription_status === "active"
@@ -89,15 +90,12 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               {SUBSCRIPTION_LABEL[org.subscription_status]}
             </Badge>
             {overdue && <Badge variant="warning">Échéance dépassée</Badge>}
-          </div>
-          <h1 className="font-sans text-3xl font-light tracking-tight">{org.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Client depuis le {fmt(org.created_at)} · {Number(s?.establishments_count ?? 0)}{" "}
-            établissement(s) · {Number(s?.users_count ?? 0)} utilisateur(s)
-          </p>
-        </div>
-        <StatusActions organizationId={org.id} status={org.subscription_status} />
-      </div>
+          </>
+        }
+        title={org.name}
+        description={`Client depuis le ${fmt(org.created_at)} · ${Number(s?.establishments_count ?? 0)} établissement(s) · ${Number(s?.users_count ?? 0)} utilisateur(s)`}
+        actions={<StatusActions organizationId={org.id} status={org.subscription_status} />}
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">

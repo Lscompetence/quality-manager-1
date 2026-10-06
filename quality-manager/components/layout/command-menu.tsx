@@ -167,7 +167,7 @@ export function SearchButton({
         onClick={() => setOpen(true)}
         className="qm-icon-btn"
       >
-        <Search className="h-4 w-4" />
+        <Search className="h-[18px] w-[18px]" />
       </button>
       <CommandMenu open={open} setOpen={setOpen} groups={groups} placeholder={placeholder} />
     </>

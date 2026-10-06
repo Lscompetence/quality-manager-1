@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Calendar, MapPin } from "lucide-react";
@@ -60,13 +61,11 @@ export default async function EstablishmentPage({ params }: { params: Promise<Pa
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
-            Établissement
-          </p>
-          <h1 className="font-sans text-3xl font-light tracking-tight">{est.name}</h1>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+      <PageHeader
+        eyebrow="Établissement"
+        title={est.name}
+        description={
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm">
             {est.city && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -78,18 +77,20 @@ export default async function EstablishmentPage({ params }: { params: Promise<Pa
               <span className="font-mono text-xs">NDA {est.declaration_nb}</span>
             )}
           </div>
-        </div>
-        <CreateEstablishmentDialog
-          establishment={{
-            id: est.id,
-            name: est.name,
-            city: est.city ?? "",
-            siret: est.siret ?? "",
-            declaration_nb: est.declaration_nb ?? "",
-            address: est.address ?? "",
-          }}
-        />
-      </div>
+        }
+        actions={
+          <CreateEstablishmentDialog
+            establishment={{
+              id: est.id,
+              name: est.name,
+              city: est.city ?? "",
+              siret: est.siret ?? "",
+              declaration_nb: est.declaration_nb ?? "",
+              address: est.address ?? "",
+            }}
+          />
+        }
+      />
 
       <MembersSection establishmentId={est.id} members={members} />
 
