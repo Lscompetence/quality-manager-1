@@ -43,7 +43,7 @@ export default async function ClientsPage({
   const statsById = new Map((stats ?? []).map((s) => [s.organization_id, s]));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">

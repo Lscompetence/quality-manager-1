@@ -37,7 +37,7 @@ export default async function ClientMiniAppsEntryPage() {
   for (const f of filled ?? []) filledCount.set(f.audit_id, (filledCount.get(f.audit_id) ?? 0) + 1);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <div className="mb-[30px] border-b border-[var(--border-soft)] pb-6">
         <p className="qm-eyebrow mb-3">Espace client · Mini-apps</p>
         <h1 className="mb-3 font-sans text-[40px] font-light leading-[1.05] tracking-[-0.025em]">Mini-apps</h1>

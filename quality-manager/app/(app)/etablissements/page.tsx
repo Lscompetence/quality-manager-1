@@ -18,7 +18,7 @@ export default async function EstablishmentsPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">

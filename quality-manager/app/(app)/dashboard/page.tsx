@@ -139,7 +139,7 @@ function AdminOverview({
   ).length;
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
@@ -311,7 +311,7 @@ function DossierOverview({
   const multi = session.establishments.length > 1;
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">

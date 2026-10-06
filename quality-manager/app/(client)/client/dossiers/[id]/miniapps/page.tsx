@@ -38,7 +38,7 @@ export default async function ClientMiniAppsPage({ params }: { params: Promise<P
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       <Link
         href={`/client/dossiers/${id}` as Route}
         className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--text-mute)] hover:text-foreground"

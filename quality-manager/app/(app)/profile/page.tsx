@@ -24,7 +24,7 @@ export default async function ProfilePage() {
   const initials = `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="w-full max-w-3xl space-y-6">
       <div>
         <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Compte utilisateur

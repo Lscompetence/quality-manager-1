@@ -59,7 +59,7 @@ export default async function SettingsPage() {
   const isAdmin = true;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Configuration · Organisme

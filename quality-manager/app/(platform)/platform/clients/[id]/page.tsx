@@ -64,7 +64,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const overdue = isPaymentOverdue(org);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="w-full space-y-6">
       <Link
         href="/platform/clients"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

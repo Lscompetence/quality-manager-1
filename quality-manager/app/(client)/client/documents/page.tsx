@@ -20,7 +20,7 @@ export default async function ClientDocumentsPage() {
   const { dossiers, documents } = await loadClientOverview(userData.user.id);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <div className="mb-[30px] border-b border-[var(--border-soft)] pb-6">
         <p className="qm-eyebrow mb-3">Espace client · Documents</p>
         <h1 className="mb-3 font-sans text-[40px] font-light leading-[1.05] tracking-[-0.025em]">Mes documents</h1>

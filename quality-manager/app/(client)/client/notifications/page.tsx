@@ -17,7 +17,7 @@ export default async function ClientNotificationsPage() {
     .limit(50);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <div className="mb-[30px] border-b border-[var(--border-soft)] pb-6">
         <p className="qm-eyebrow mb-3">Espace client · Notifications</p>
         <h1 className="mb-3 font-sans text-[40px] font-light leading-[1.05] tracking-[-0.025em]">Notifications</h1>

@@ -30,7 +30,7 @@ export default async function NotificationsPage() {
     (prefsRow?.preferences as Record<string, Record<string, boolean>>) ?? DEFAULT_PREFERENCES;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-amethyst-bright">
           Centre · Notifications

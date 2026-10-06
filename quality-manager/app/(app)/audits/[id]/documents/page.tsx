@@ -65,7 +65,7 @@ export default async function DocumentsPage({ params }: { params: Promise<Params
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="w-full space-y-6">
       {readOnly && (
         <div className="mb-6">
           <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />

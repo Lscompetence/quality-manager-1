@@ -77,7 +77,7 @@ export default async function MiniAppPage({ params }: { params: Promise<Params> 
     .eq("miniapp_key", key);
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="w-full">
       {readOnly && (
         <div className="mb-6">
           <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />

@@ -64,7 +64,7 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="w-full space-y-8">
       {readOnly && (
         <div className="mb-6">
           <ReadOnlyBanner reason={readOnlyReason(session.profile.role)} />
