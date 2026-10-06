@@ -60,7 +60,7 @@ export default async function SettingsPage() {
   const isAdmin = true;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <PageHeader
         eyebrow="Configuration · Organisme"
         title="Paramètres"
