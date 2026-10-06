@@ -1,18 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Raleway, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const raleway = Raleway({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600"],
+// Polices hébergées dans le projet (app/fonts, licence OFL) : plus de
+// téléchargement chez Google à la compilation. Une coupure réseau faisait
+// retomber l'application sur une police système, sans prévenir.
+const raleway = localFont({
+  src: "./fonts/raleway-latin.woff2",
+  weight: "100 600",
   variable: "--font-raleway",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const jetbrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
+  weight: "400 500",
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
