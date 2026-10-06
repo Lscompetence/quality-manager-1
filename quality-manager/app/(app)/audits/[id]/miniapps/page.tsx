@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -96,7 +97,10 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
                 Vous voyez la liste, mais l&apos;accès aux mini-apps est réservé au plan Pro.{" "}
                 {/* L'abonnement est géré par l'admin : lui seul est envoyé vers ses paramètres */}
                 {session.profile.role === "admin" ? (
-                  <Link href="/settings" className="font-medium text-amethyst-bright hover:underline">
+                  <Link
+                    href="/settings"
+                    className="font-medium text-amethyst-bright hover:underline"
+                  >
                     Demander le plan Pro →
                   </Link>
                 ) : (
@@ -113,23 +117,39 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
       {Object.entries(byCritere).map(([num, miniapps]) => {
         if (miniapps.length === 0) return null;
         const critere = CRITERES[Number(num) as CritereNum];
+        // Chaque critère garde sa couleur (--c1 à --c7), la même que partout dans l'app
+        const color = `var(--${critere.colorVar})`;
+        const tint = (pct: number) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
         return (
-          <div key={num}>
-            <div className="mb-3 flex items-center gap-3">
+          <div key={num} style={{ "--crit": color } as CSSProperties}>
+            <div className="mb-3 flex items-center gap-2.5">
+              <span
+                className="grid h-6 min-w-6 place-items-center rounded-md px-1.5 font-mono text-[11px] font-semibold text-foreground"
+                style={{ background: tint(22), boxShadow: `inset 0 0 0 1px ${tint(45)}` }}
+              >
+                C{num}
+              </span>
               <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                C{num} · {critere?.title}
+                {critere.title}
               </div>
+              <span className="h-px flex-1" style={{ background: tint(35) }} />
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {miniapps.map((m) => (
                 <Link key={m.key} href={`/audits/${id}/miniapps/${m.key}`} className="group">
-                  <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-amethyst-bright/40">
+                  <Card
+                    className="h-full overflow-hidden border-t-[3px] transition-all hover:-translate-y-0.5 hover:border-[var(--crit)]"
+                    style={{ borderTopColor: color }}
+                  >
                     <CardContent className="p-5">
                       <div className="mb-3 flex items-start justify-between gap-2">
-                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amethyst-bright/10 text-amethyst-bright">
+                        <div
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
+                          style={{ background: tint(16), color }}
+                        >
                           <Sparkles className="h-4 w-4" />
                         </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amethyst-bright" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-[var(--crit)]" />
                       </div>
                       <h3 className="mb-1.5 text-sm font-medium leading-tight">{m.shortName}</h3>
                       <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
