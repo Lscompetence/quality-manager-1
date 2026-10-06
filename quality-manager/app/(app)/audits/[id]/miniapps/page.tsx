@@ -94,9 +94,16 @@ export default async function MiniAppsListPage({ params }: { params: Promise<Par
               </p>
               <p className="text-sm">
                 Vous voyez la liste, mais l&apos;accès aux mini-apps est réservé au plan Pro.{" "}
-                <Link href="/settings" className="font-medium text-amethyst-bright hover:underline">
-                  Voir le plan Pro →
-                </Link>
+                {/* L'abonnement est géré par l'admin : lui seul est envoyé vers ses paramètres */}
+                {session.profile.role === "admin" ? (
+                  <Link href="/settings" className="font-medium text-amethyst-bright hover:underline">
+                    Demander le plan Pro →
+                  </Link>
+                ) : (
+                  <span className="text-[var(--text-mute)]">
+                    L&apos;admin de votre organisme peut demander le passage au plan Pro.
+                  </span>
+                )}
               </p>
             </div>
           </CardContent>
